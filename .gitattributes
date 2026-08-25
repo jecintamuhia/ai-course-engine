@@ -1,0 +1,22 @@
+# Normalize all text files to LF in Git
+* text=auto eol=lf
+
+# Python
+*.py text eol=lf
+
+# Configuration
+*.ini text eol=lf
+*.toml text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+
+# Documentation
+*.md text eol=lf
+
+# Shell scripts
+*.sh text eol=lf
+
+# Docker
+Dockerfile text eol=lf
+*.Dockerfile text eol=lf
