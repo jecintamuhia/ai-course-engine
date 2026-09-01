@@ -1,0 +1,118 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: ai-course-engine-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: course_engine
+      POSTGRES_USER: course_engine
+      POSTGRES_PASSWORD: course_engine
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U course_engine -d course_engine"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+    networks:
+      - backend
+
+
+  redis:
+    image: redis:8-alpine
+    container_name: ai-course-engine-redis
+    restart: unless-stopped
+
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes"
+      ]
+
+    ports:
+      - "6379:6379"
+
+    volumes:
+      - redis_data:/data
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "redis-cli",
+          "ping"
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+    networks:
+      - backend
+
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: ai-course-engine-api
+    restart: unless-stopped
+
+    env_file:
+      - .env
+
+    environment:
+      DATABASE_URL: postgresql+asyncpg://course_engine:course_engine@postgres:5432/course_engine
+      REDIS_URL: redis://redis:6379/0
+
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+    volumes:
+      - ./app:/app/app
+      - ./alembic:/app/alembic
+      - document_storage:/app/storage
+
+    command:
+      [
+        "uvicorn",
+        "app.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+        "--reload"
+      ]
+
+    networks:
+      - backend
+
+
+volumes:
+  postgres_data:
+  redis_data:
+  document_storage:
+
+
+networks:
+  backend:
+    driver: bridge

@@ -1,98 +1,97 @@
-from __future__ import annotations
+"""Application exception hierarchy."""
+
+from typing import Any
 
 
 class AppError(Exception):
-    """
-    Base class for expected application errors.
-    """
+    """Base exception for expected application-level failures."""
 
     status_code: int = 500
-    error_code: str = "APP_ERROR"
+    error_code: str = "internal_error"
 
     def __init__(
         self,
         message: str,
         *,
-        status_code: int | None = None,
-        error_code: str | None = None,
+        details: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(message)
-
         self.message = message
-
-        if status_code is not None:
-            self.status_code = status_code
-
-        if error_code is not None:
-            self.error_code = error_code
+        self.details = details or {}
 
 
-class NotFoundError(AppError):
-    status_code = 404
-    error_code = "NOT_FOUND"
+class ConfigurationError(AppError):
+    """Raised when application configuration is invalid."""
+
+    status_code = 500
+    error_code = "configuration_error"
 
 
-class ValidationError(AppError):
-    status_code = 422
-    error_code = "VALIDATION_ERROR"
+class DatabaseError(AppError):
+    """Raised when a database operation fails."""
 
-
-class UnauthorizedError(AppError):
-    status_code = 401
-    error_code = "UNAUTHORIZED"
-
-
-class ForbiddenError(AppError):
-    status_code = 403
-    error_code = "FORBIDDEN"
-
-
-class ConflictError(AppError):
-    status_code = 409
-    error_code = "CONFLICT"
-
-
-class ServiceUnavailableError(AppError):
     status_code = 503
-    error_code = "SERVICE_UNAVAILABLE"
+    error_code = "database_error"
 
 
-class CourseNotFound(NotFoundError):
-    error_code = "COURSE_NOT_FOUND"
+class DocumentNotFound(AppError):
+    """Raised when a requested document does not exist."""
+
+    status_code = 404
+    error_code = "document_not_found"
 
 
-class DocumentNotFound(NotFoundError):
-    error_code = "DOCUMENT_NOT_FOUND"
+class CourseNotFound(AppError):
+    """Raised when a requested course does not exist."""
+
+    status_code = 404
+    error_code = "course_not_found"
 
 
-class IngestionJobNotFound(NotFoundError):
-    error_code = "INGESTION_JOB_NOT_FOUND"
+class IngestionJobNotFound(AppError):
+    """Raised when an ingestion job does not exist."""
+
+    status_code = 404
+    error_code = "ingestion_job_not_found"
 
 
-class InvalidStateTransition(ConflictError):
-    error_code = "INVALID_STATE_TRANSITION"
+class InvalidStateTransition(AppError):
+    """Raised when a domain state transition is invalid."""
+
+    status_code = 409
+    error_code = "invalid_state_transition"
 
 
 class DocumentProcessingError(AppError):
-    status_code = 500
-    error_code = "DOCUMENT_PROCESSING_ERROR"
+    """Raised when document processing fails."""
+
+    status_code = 422
+    error_code = "document_processing_error"
 
 
 class AIProviderError(AppError):
+    """Raised when an AI provider operation fails."""
+
     status_code = 502
-    error_code = "AI_PROVIDER_ERROR"
+    error_code = "ai_provider_error"
 
 
 class AIOutputValidationError(AppError):
+    """Raised when AI output fails structural validation."""
+
     status_code = 422
-    error_code = "AI_OUTPUT_VALIDATION_ERROR"
+    error_code = "ai_output_validation_error"
 
 
 class CurriculumValidationError(AppError):
+    """Raised when generated curriculum violates constraints."""
+
     status_code = 422
-    error_code = "CURRICULUM_VALIDATION_ERROR"
+    error_code = "curriculum_validation_error"
 
 
 class MoodleIntegrationError(AppError):
+    """Raised when Moodle integration fails."""
+
     status_code = 502
-    error_code = "MOODLE_INTEGRATION_ERROR"
+    error_code = "moodle_integration_error"

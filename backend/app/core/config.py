@@ -1,18 +1,17 @@
-from __future__ import annotations
+"""Application configuration and environment management."""
 
 from functools import lru_cache
-from pathlib import Path
+from typing import Literal
 
 from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class Settings(BaseSettings):
-    """
-    Application configuration loaded from environment variables.
+Environment = Literal["development", "testing", "staging", "production"]
 
-    Environment variables take precedence over values defined in .env.
-    """
+
+class Settings(BaseSettings):
+    """Application settings loaded from environment variables."""
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -27,29 +26,31 @@ class Settings(BaseSettings):
 
     app_name: str = "AI Course Engine"
     app_version: str = "0.1.0"
-    environment: str = "development"
+    environment: Environment = "development"
     debug: bool = False
-    log_level: str = "INFO"
-
-    # ------------------------------------------------------------------
-    # API
-    # ------------------------------------------------------------------
 
     api_v1_prefix: str = "/api/v1"
+
+    # ------------------------------------------------------------------
+    # Server
+    # ------------------------------------------------------------------
+
+    host: str = "0.0.0.0"
+    port: int = Field(default=8000, ge=1, le=65535)
 
     # ------------------------------------------------------------------
     # Database
     # ------------------------------------------------------------------
 
-    database_url: str = Field(
-        default="postgresql+asyncpg://course_engine:course_engine@localhost:5432/course_engine",
-        description="Async SQLAlchemy PostgreSQL connection URL.",
+    database_url: str = (
+        "postgresql+asyncpg://course_engine:"
+        "course_engine@localhost:5432/course_engine"
     )
 
-    database_pool_size: int = 10
-    database_max_overflow: int = 20
-    database_pool_timeout: int = 30
-    database_pool_recycle: int = 1800
+    database_pool_size: int = Field(default=10, ge=1)
+    database_max_overflow: int = Field(default=20, ge=0)
+    database_pool_timeout: int = Field(default=30, ge=1)
+    database_pool_recycle: int = Field(default=1800, ge=60)
 
     # ------------------------------------------------------------------
     # Redis
@@ -61,131 +62,99 @@ class Settings(BaseSettings):
     # Security
     # ------------------------------------------------------------------
 
-    secret_key: SecretStr = SecretStr(
-        "development-only-change-this-secret-before-production"
+    secret_key: SecretStr = Field(
+        default=SecretStr(
+            "development-only-change-this-secret-before-production"
+        )
     )
 
-    request_id_header: str = "X-Request-ID"
-
-    # ------------------------------------------------------------------
-    # File storage
-    # ------------------------------------------------------------------
-
-    storage_path: Path = Path("./storage")
-
-    max_upload_size_mb: int = 100
-
-    allowed_upload_mime_types: tuple[str, ...] = (
-        "application/pdf",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    allowed_hosts: list[str] = Field(
+        default_factory=lambda: ["localhost", "127.0.0.1"]
     )
 
     # ------------------------------------------------------------------
-    # External services
+    # Logging
     # ------------------------------------------------------------------
 
-    ai_provider: str = "none"
-    ai_model: str = "unset"
-
-    ai_api_key: SecretStr | None = None
-
-    moodle_base_url: str | None = None
-    moodle_api_token: SecretStr | None = None
+    log_level: str = "INFO"
+    log_json: bool = False
 
     # ------------------------------------------------------------------
-    # Validation
+    # Upload / file processing
     # ------------------------------------------------------------------
 
-    @field_validator("environment")
-    @classmethod
-    def validate_environment(cls, value: str) -> str:
-        normalized = value.lower().strip()
+    max_upload_size_mb: int = Field(default=50, ge=1, le=2048)
 
-        allowed = {
-            "development",
-            "testing",
-            "staging",
-            "production",
-        }
-
-        if normalized not in allowed:
-            raise ValueError(
-                f"environment must be one of: {', '.join(sorted(allowed))}"
-            )
-
-        return normalized
+    upload_dir: str = Field(default="storage/documents")
 
     @field_validator("log_level")
     @classmethod
     def validate_log_level(cls, value: str) -> str:
-        normalized = value.upper().strip()
+        """Validate and normalize logging level."""
+        normalized = value.upper()
 
         allowed = {
-            "DEBUG",
-            "INFO",
-            "WARNING",
-            "ERROR",
             "CRITICAL",
+            "ERROR",
+            "WARNING",
+            "INFO",
+            "DEBUG",
         }
 
         if normalized not in allowed:
             raise ValueError(
-                f"log_level must be one of: {', '.join(sorted(allowed))}"
+                f"Invalid LOG_LEVEL={value!r}. "
+                f"Expected one of: {sorted(allowed)}"
             )
 
         return normalized
 
-    @field_validator("database_pool_size")
-    @classmethod
-    def validate_pool_size(cls, value: int) -> int:
-        if value < 1:
-            raise ValueError("database_pool_size must be greater than zero")
-        return value
-
-    @field_validator("database_max_overflow")
-    @classmethod
-    def validate_max_overflow(cls, value: int) -> int:
-        if value < 0:
-            raise ValueError("database_max_overflow cannot be negative")
-        return value
-
-    @field_validator("max_upload_size_mb")
-    @classmethod
-    def validate_upload_size(cls, value: int) -> int:
-        if value < 1:
-            raise ValueError("max_upload_size_mb must be greater than zero")
-        return value
-
-    def validate_production_security(self) -> None:
-        """
-        Prevent development secrets from accidentally being used in production.
-        """
-
-        if self.environment != "production":
-            return
-
-        if self.secret_key.get_secret_value().startswith("development-only"):
-            raise ValueError(
-                "A production SECRET_KEY must be explicitly configured."
-            )
-
     @property
     def max_upload_size_bytes(self) -> int:
+        """Return maximum upload size in bytes."""
         return self.max_upload_size_mb * 1024 * 1024
 
+    @property
+    def is_production(self) -> bool:
+        """Return whether the application runs in production."""
+        return self.environment == "production"
 
-@lru_cache
+    @field_validator("secret_key")
+    @classmethod
+    def validate_secret_key(cls, value: SecretStr) -> SecretStr:
+        """
+        Reject obviously unsafe production configuration.
+
+        Development may use the default secret so that a fresh checkout
+        remains easy to run. Production must explicitly configure it.
+        """
+        if value.get_secret_value().strip() == "":
+            raise ValueError("SECRET_KEY cannot be empty.")
+
+        return value
+
+
+@lru_cache(maxsize=1)
 def get_settings() -> Settings:
     """
-    Return the cached application settings instance.
+    Return the cached application settings.
+
+    Caching ensures all application components use the same immutable
+    configuration object during a process lifetime.
     """
-
     settings = Settings()
-    settings.validate_production_security()
 
-    settings.storage_path.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
+    if settings.is_production:
+        default_secret = (
+            "development-only-change-this-secret-before-production"
+        )
+
+        if settings.secret_key.get_secret_value() == default_secret:
+            raise ValueError(
+                "SECRET_KEY must be explicitly configured in production."
+            )
+
+        if settings.debug:
+            raise ValueError("DEBUG must be disabled in production.")
 
     return settings

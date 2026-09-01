@@ -1,0 +1,179 @@
+"""File validation and safe storage-path utilities for document uploads."""
+
+from __future__ import annotations
+
+import hashlib
+import re
+import uuid
+from pathlib import Path
+
+ALLOWED_EXTENSIONS: dict[str, str] = {
+    ".pdf": "application/pdf",
+    ".docx": (
+        "application/vnd.openxmlformats-officedocument"
+        ".wordprocessingml.document"
+    ),
+}
+
+_MAGIC_SIGNATURES: dict[str, bytes] = {
+    ".pdf": b"%PDF-",
+    ".docx": b"PK\x03\x04",
+}
+
+_SAFE_FILENAME_PATTERN = re.compile(r"[^A-Za-z0-9._-]+")
+
+
+class FileValidationError(ValueError):
+    """Raised when an uploaded file fails validation."""
+
+
+def get_extension(filename: str) -> str:
+    """Return the lowercase file extension, including the leading dot."""
+    return Path(filename).suffix.lower()
+
+
+def validate_extension(filename: str) -> str:
+    """
+    Validate that a filename has an allowed extension.
+
+    Returns the normalized extension. Raises FileValidationError otherwise.
+    """
+    extension = get_extension(filename)
+
+    if extension not in ALLOWED_EXTENSIONS:
+        allowed = ", ".join(sorted(ALLOWED_EXTENSIONS))
+        raise FileValidationError(
+            f"Unsupported file extension {extension!r}. "
+            f"Allowed extensions: {allowed}."
+        )
+
+    return extension
+
+
+def validate_declared_mime_type(
+    content_type: str | None, extension: str
+) -> None:
+    """
+    Validate that a client-declared MIME type is consistent with the
+    file extension.
+
+    The declared Content-Type header is untrusted input and is only used
+    as a first-pass check; validate_file_content() performs the
+    authoritative check against the actual file bytes.
+    """
+    expected = ALLOWED_EXTENSIONS[extension]
+
+    if content_type and content_type.split(";")[0].strip() != expected:
+        raise FileValidationError(
+            f"Declared content type {content_type!r} does not match "
+            f"expected type {expected!r} for extension {extension!r}."
+        )
+
+
+def sniff_extension(content: bytes) -> str | None:
+    """
+    Detect a file's true type from its leading bytes (magic numbers).
+
+    Returns the matching extension, or None if no known signature matches.
+    Client-supplied filenames and Content-Type headers must never be
+    trusted on their own; this provides an authoritative, content-based
+    check.
+    """
+    for extension, signature in _MAGIC_SIGNATURES.items():
+        if content.startswith(signature):
+            return extension
+
+    return None
+
+
+def validate_file_content(content: bytes, declared_extension: str) -> None:
+    """
+    Validate that a file's actual content matches its declared extension.
+
+    Raises FileValidationError on mismatch or unrecognized content.
+    """
+    sniffed = sniff_extension(content)
+
+    if sniffed is None:
+        raise FileValidationError(
+            "File content does not match any supported document format."
+        )
+
+    if sniffed != declared_extension:
+        raise FileValidationError(
+            f"File content signature indicates {sniffed!r}, which does "
+            f"not match the declared extension {declared_extension!r}."
+        )
+
+
+def validate_file_size(size_bytes: int, max_size_bytes: int) -> None:
+    """Validate that a file does not exceed the configured size limit."""
+    if size_bytes <= 0:
+        raise FileValidationError("Uploaded file is empty.")
+
+    if size_bytes > max_size_bytes:
+        raise FileValidationError(
+            f"File size {size_bytes} bytes exceeds the maximum allowed "
+            f"size of {max_size_bytes} bytes."
+        )
+
+
+def sanitize_display_filename(filename: str) -> str:
+    """
+    Produce a safe, storage-agnostic display filename.
+
+    This is used only for display/audit purposes (the
+    ``original_filename`` column). It strips any directory components,
+    normalizes the name, and must never be used to construct filesystem
+    paths directly.
+    """
+    name = Path(filename).name
+
+    if not name or name in {".", ".."}:
+        raise FileValidationError("Uploaded filename is invalid.")
+
+    name = _SAFE_FILENAME_PATTERN.sub("_", name)
+
+    if len(name) > 255:
+        stem = name[:200]
+        suffix = Path(name).suffix[:20]
+        name = f"{stem}{suffix}"
+
+    return name
+
+
+def generate_storage_filename(extension: str) -> str:
+    """
+    Generate a random, collision-resistant filename for on-disk storage.
+
+    The generated name is never derived from client input, eliminating
+    path traversal and filename-collision risks entirely.
+    """
+    return f"{uuid.uuid4().hex}{extension}"
+
+
+def compute_sha256(content: bytes) -> str:
+    """Compute the SHA-256 hash of file content, as a hex digest."""
+    return hashlib.sha256(content).hexdigest()
+
+
+def resolve_safe_storage_path(
+    upload_root: Path, storage_filename: str
+) -> Path:
+    """
+    Resolve a storage filename against the configured upload root and
+    verify the resulting path does not escape that root.
+
+    This is a defense-in-depth check: storage_filename is always
+    generated by generate_storage_filename() and never derived from
+    client input, but the check is performed regardless.
+    """
+    resolved_root = upload_root.resolve()
+    candidate = (resolved_root / storage_filename).resolve()
+
+    if candidate.parent != resolved_root:
+        raise FileValidationError(
+            "Resolved storage path escapes the configured upload root."
+        )
+
+    return candidate
