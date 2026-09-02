@@ -13,3 +13,5 @@ redis
 python-multipart
 
 structlog
+pypdf
+python-docx
