@@ -6,8 +6,6 @@ import asyncio
 import uuid
 from pathlib import Path
 
-from fastapi import UploadFile
-
 from app.core.config import Settings
 from app.core.exceptions import DocumentNotFound, DocumentProcessingError
 from app.db.repositories.documents import DocumentRepository
@@ -23,6 +21,7 @@ from app.utils.files import (
     validate_file_content,
     validate_file_size,
 )
+from fastapi import UploadFile
 
 
 class DocumentStorageService:

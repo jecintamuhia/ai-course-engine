@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import uuid
 
+from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 
 
 class Chapter(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -37,7 +36,7 @@ class Chapter(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     order_index: Mapped[int] = mapped_column(Integer, nullable=False)
 
-    sections: Mapped[list["Section"]] = relationship(
+    sections: Mapped[list[Section]] = relationship(
         "Section",
         cascade="all, delete-orphan",
         order_by="Section.order_index",

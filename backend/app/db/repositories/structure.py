@@ -4,13 +4,10 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import delete
+from app.models.chapter import Chapter
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from sqlalchemy import select
-
-from app.models.chapter import Chapter
-from app.models.section import Section
 
 
 class StructureRepository:
@@ -19,9 +16,7 @@ class StructureRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def list_chapters_by_document(
-        self, document_id: uuid.UUID
-    ) -> list[Chapter]:
+    async def list_chapters_by_document(self, document_id: uuid.UUID) -> list[Chapter]:
         """Return all chapters (with sections eagerly loaded) for a document."""
         stmt = (
             select(Chapter)
@@ -31,6 +26,12 @@ class StructureRepository:
         )
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
+
+    async def count_by_document(self) -> dict[uuid.UUID, int]:
+        """Return chapter counts grouped by document id."""
+        stmt = select(Chapter.document_id, func.count()).group_by(Chapter.document_id)
+        result = await self._session.execute(stmt)
+        return {row[0]: int(row[1]) for row in result.all()}
 
     async def delete_by_document(self, document_id: uuid.UUID) -> None:
         """

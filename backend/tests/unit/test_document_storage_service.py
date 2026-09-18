@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
+import asyncio
 import uuid
 from pathlib import Path
 
 import pytest
-
 from app.core.config import Settings
 from app.core.exceptions import DocumentNotFound, DocumentProcessingError
 from app.models.document import Document
@@ -92,8 +92,11 @@ async def test_store_upload_persists_new_document(tmp_path: Path) -> None:
     assert is_duplicate is False
     assert document.version_number == 1
     assert document.is_latest_version is True
-    assert Path(document.storage_path).exists()
-    assert Path(document.storage_path).read_bytes() == PDF_BYTES
+    assert await asyncio.to_thread(Path(document.storage_path).exists)
+    assert (
+        await asyncio.to_thread(Path(document.storage_path).read_bytes)
+        == PDF_BYTES
+    )
     assert repository.committed is True
 
 

@@ -5,9 +5,8 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
-
 from app.models.document import DocumentStatus
+from pydantic import BaseModel, ConfigDict
 
 
 class DocumentRead(BaseModel):

@@ -4,10 +4,9 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.models.document import Document, DocumentStatus
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class DocumentRepository:
@@ -33,6 +32,34 @@ class DocumentRepository:
         )
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def list_latest(self) -> list[Document]:
+        """Return all latest-version documents, newest first."""
+        stmt = (
+            select(Document)
+            .where(
+                Document.is_latest_version.is_(True),
+                Document.status != DocumentStatus.DELETED,
+            )
+            .order_by(Document.created_at.desc())
+        )
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def count_latest(self, *, status: DocumentStatus | None = None) -> int:
+        """Count latest-version documents, optionally filtered by status."""
+        stmt = (
+            select(func.count())
+            .select_from(Document)
+            .where(
+                Document.is_latest_version.is_(True),
+                Document.status != DocumentStatus.DELETED,
+            )
+        )
+        if status is not None:
+            stmt = stmt.where(Document.status == status)
+        result = await self._session.execute(stmt)
+        return int(result.scalar_one())
 
     async def add(self, document: Document) -> Document:
         """Stage a new document for persistence."""

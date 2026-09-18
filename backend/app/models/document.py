@@ -5,6 +5,7 @@ from __future__ import annotations
 import enum
 import uuid
 
+from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 from sqlalchemy import (
     BigInteger,
     Boolean,
@@ -15,8 +16,6 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 
 
 class DocumentStatus(str, enum.Enum):
@@ -81,7 +80,7 @@ class Document(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         default=DocumentStatus.UPLOADED,
     )
 
-    previous_version: Mapped["Document | None"] = relationship(
+    previous_version: Mapped[Document | None] = relationship(
         "Document",
         remote_side="Document.id",
         foreign_keys=[previous_version_id],

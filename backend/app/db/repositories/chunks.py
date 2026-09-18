@@ -4,10 +4,9 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import delete, select
+from app.models.chunks import Chunk
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.models.chunk import Chunk
 
 
 class ChunkRepository:
@@ -25,6 +24,12 @@ class ChunkRepository:
         )
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
+
+    async def count_by_document(self) -> dict[uuid.UUID, int]:
+        """Return chunk counts grouped by document id."""
+        stmt = select(Chunk.document_id, func.count()).group_by(Chunk.document_id)
+        result = await self._session.execute(stmt)
+        return {row[0]: int(row[1]) for row in result.all()}
 
     async def delete_by_document(self, document_id: uuid.UUID) -> None:
         """Delete all existing chunks for a document, for idempotent re-chunking."""

@@ -97,10 +97,10 @@ def chunk_text(
     for unit in units:
         candidate = f"{current}\n\n{unit}".strip() if current else unit
 
-        if len(candidate) > max_size and current:
-            chunks.append(current)
-            current = unit
-        elif len(current) >= target_size and current:
+        should_flush = current and (
+            len(candidate) > max_size or len(current) >= target_size
+        )
+        if should_flush:
             chunks.append(current)
             current = unit
         else:

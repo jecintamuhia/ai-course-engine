@@ -57,9 +57,7 @@ def _looks_like_heading_candidate(line: str) -> bool:
     stripped = line.strip()
     if not stripped or len(stripped) > 90:
         return False
-    if stripped.endswith((".", ",", ";")):
-        return False
-    return True
+    return not stripped.endswith((".", ",", ";"))
 
 
 def detect_structure(

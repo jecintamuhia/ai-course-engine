@@ -48,6 +48,20 @@ class CourseNotFound(AppError):
     error_code = "course_not_found"
 
 
+class CurriculumNotFound(AppError):
+    """Raised when a requested curriculum does not exist."""
+
+    status_code = 404
+    error_code = "curriculum_not_found"
+
+
+class TopicNotFound(AppError):
+    """Raised when a requested topic does not exist."""
+
+    status_code = 404
+    error_code = "topic_not_found"
+
+
 class IngestionJobNotFound(AppError):
     """Raised when an ingestion job does not exist."""
 
@@ -95,3 +109,14 @@ class MoodleIntegrationError(AppError):
 
     status_code = 502
     error_code = "moodle_integration_error"
+
+
+class MoodlePublishBlockedError(MoodleIntegrationError):
+    """Raised when a preflight check blocks publishing before any write.
+
+    The curriculum is never modified by this failure; the details carry
+    the structured readiness issues a Moodle administrator must address.
+    """
+
+    status_code = 409
+    error_code = "moodle_publish_blocked"

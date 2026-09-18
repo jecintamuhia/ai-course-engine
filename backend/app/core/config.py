@@ -6,8 +6,8 @@ from typing import Literal
 from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
 Environment = Literal["development", "testing", "staging", "production"]
+AIProvider = Literal["openai", "openrouter"]
 
 
 class Settings(BaseSettings):
@@ -43,8 +43,7 @@ class Settings(BaseSettings):
     # ------------------------------------------------------------------
 
     database_url: str = (
-        "postgresql+asyncpg://course_engine:"
-        "course_engine@localhost:5432/course_engine"
+        "postgresql+asyncpg://course_engine:course_engine@localhost:5432/course_engine"
     )
 
     database_pool_size: int = Field(default=10, ge=1)
@@ -63,14 +62,10 @@ class Settings(BaseSettings):
     # ------------------------------------------------------------------
 
     secret_key: SecretStr = Field(
-        default=SecretStr(
-            "development-only-change-this-secret-before-production"
-        )
+        default=SecretStr("development-only-change-this-secret-before-production")
     )
 
-    allowed_hosts: list[str] = Field(
-        default_factory=lambda: ["localhost", "127.0.0.1"]
-    )
+    allowed_hosts: list[str] = Field(default_factory=lambda: ["localhost", "127.0.0.1"])
 
     # ------------------------------------------------------------------
     # Logging
@@ -86,6 +81,44 @@ class Settings(BaseSettings):
     max_upload_size_mb: int = Field(default=50, ge=1, le=2048)
 
     upload_dir: str = Field(default="storage/documents")
+    frontend_dir: str = Field(default="frontend")
+
+    # ------------------------------------------------------------------
+    # AI provider
+    # ------------------------------------------------------------------
+
+    ai_provider: AIProvider = Field(default="openrouter")
+
+    openai_api_key: SecretStr = Field(default=SecretStr(""))
+    openai_model: str = Field(default="gpt-4o-mini")
+
+    openrouter_base_url: str = Field(default="https://openrouter.ai/api/v1")
+    openrouter_api_key: SecretStr = Field(default=SecretStr(""))
+    openrouter_model: str = Field(default="")
+    openrouter_timeout_seconds: float = Field(default=300.0, ge=1.0)
+    openrouter_max_attempts: int = Field(default=3, ge=1, le=5)
+    openrouter_max_retries: int = Field(default=5, ge=0, le=10)
+    openrouter_retry_base_delay_seconds: float = Field(default=2.0, ge=0.1)
+    openrouter_max_retry_delay_seconds: float = Field(default=120.0, ge=1.0)
+
+    ai_extract_temperature: float = Field(default=0.0, ge=0.0, le=2.0)
+    ai_extract_max_tokens: int = Field(default=2560, ge=1, le=32768)
+    ai_extract_max_topics: int = Field(default=6, ge=1, le=50)
+    ai_extract_max_objectives: int = Field(default=3, ge=1, le=20)
+    ai_extract_max_concepts: int = Field(default=3, ge=1, le=20)
+    ai_extract_max_prerequisites: int = Field(default=2, ge=0, le=20)
+
+    ai_max_context_chars: int = Field(default=6_000, ge=1_000)
+    ai_min_content_chars: int = Field(default=500, ge=1)
+
+    # ------------------------------------------------------------------
+    # Moodle integration
+    # ------------------------------------------------------------------
+
+    moodle_url: str | None = None
+    moodle_token: SecretStr = Field(default=SecretStr(""))
+    moodle_timeout_seconds: float = Field(default=30.0, ge=1.0)
+    moodle_course_category_id: int = Field(default=1, ge=1)
 
     @field_validator("log_level")
     @classmethod
@@ -103,8 +136,7 @@ class Settings(BaseSettings):
 
         if normalized not in allowed:
             raise ValueError(
-                f"Invalid LOG_LEVEL={value!r}. "
-                f"Expected one of: {sorted(allowed)}"
+                f"Invalid LOG_LEVEL={value!r}. Expected one of: {sorted(allowed)}"
             )
 
         return normalized
@@ -145,14 +177,10 @@ def get_settings() -> Settings:
     settings = Settings()
 
     if settings.is_production:
-        default_secret = (
-            "development-only-change-this-secret-before-production"
-        )
+        default_secret = "development-only-change-this-secret-before-production"
 
         if settings.secret_key.get_secret_value() == default_secret:
-            raise ValueError(
-                "SECRET_KEY must be explicitly configured in production."
-            )
+            raise ValueError("SECRET_KEY must be explicitly configured in production.")
 
         if settings.debug:
             raise ValueError("DEBUG must be disabled in production.")

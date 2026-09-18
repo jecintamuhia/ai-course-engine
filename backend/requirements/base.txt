@@ -15,3 +15,7 @@ python-multipart
 structlog
 pypdf
 python-docx
+
+openai
+
+httpx

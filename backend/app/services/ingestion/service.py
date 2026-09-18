@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import uuid
 
 from app.core.exceptions import DocumentNotFound
@@ -10,7 +11,7 @@ from app.db.repositories.documents import DocumentRepository
 from app.db.repositories.pages import PageRepository
 from app.db.repositories.structure import StructureRepository
 from app.models.chapter import Chapter
-from app.models.chunk import Chunk
+from app.models.chunks import Chunk
 from app.models.page import Page
 from app.models.section import Section
 from app.services.ingestion.chunker import chunk_text
@@ -50,7 +51,9 @@ class IngestionService:
 
         content = await load_document_content(document)
 
-        extracted = extract_pages(content, document.file_extension)
+        extracted = await asyncio.to_thread(
+            extract_pages, content, document.file_extension
+        )
         raw_texts = [page.raw_text for page in extracted]
         cleaned_texts = clean_pages(raw_texts)
 

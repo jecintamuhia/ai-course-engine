@@ -3,9 +3,8 @@
 from collections.abc import AsyncGenerator
 
 import pytest
-from httpx import ASGITransport, AsyncClient
-
 from app.main import create_application
+from httpx import ASGITransport, AsyncClient
 
 
 @pytest.fixture

@@ -5,7 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-
 from app.utils.files import (
     FileValidationError,
     compute_sha256,

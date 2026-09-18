@@ -5,17 +5,16 @@ from __future__ import annotations
 from io import BytesIO
 
 import pytest
-from docx import Document as DocxDocument
-from docx.enum.text import WD_BREAK
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
-
 from app.core.exceptions import DocumentProcessingError
 from app.services.ingestion.text_extractor import (
     extract_docx_pages,
     extract_pages,
     extract_pdf_pages,
 )
+from docx import Document as DocxDocument
+from docx.enum.text import WD_BREAK
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 
 
 def _build_sample_pdf() -> bytes:

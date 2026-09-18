@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import uuid
 
+from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 from sqlalchemy import ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
-
-from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 
 
 class Chunk(UUIDPrimaryKeyMixin, TimestampMixin, Base):

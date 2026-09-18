@@ -20,7 +20,7 @@ RUN pip install --upgrade pip \
     && pip install -r requirements/base.txt
 
 COPY app ./app
-COPY migrations ./migrations
+COPY alembic ./alembic
 COPY alembic.ini ./
 
 RUN useradd \

@@ -5,11 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from io import BytesIO
 
+from app.core.exceptions import DocumentProcessingError
 from docx import Document as DocxDocument
 from pypdf import PdfReader
 from pypdf.errors import PdfReadError
-
-from app.core.exceptions import DocumentProcessingError
 
 _PAGE_BREAK_XML_MARKER = 'type="page"'
 

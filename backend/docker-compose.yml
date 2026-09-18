@@ -90,6 +90,7 @@ services:
     volumes:
       - ./app:/app/app
       - ./alembic:/app/alembic
+      - ./frontend:/app/frontend
       - document_storage:/app/storage
 
     command:
@@ -101,6 +102,42 @@ services:
         "--port",
         "8000",
         "--reload"
+      ]
+
+    networks:
+      - backend
+
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: ai-course-engine-worker
+    restart: unless-stopped
+
+    env_file:
+      - .env
+
+    environment:
+      DATABASE_URL: postgresql+asyncpg://course_engine:course_engine@postgres:5432/course_engine
+      REDIS_URL: redis://redis:6379/0
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+    volumes:
+      - ./app:/app/app
+      - document_storage:/app/storage
+
+    command:
+      [
+        "python",
+        "-m",
+        "app.workers.ingestion_worker"
       ]
 
     networks:

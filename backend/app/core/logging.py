@@ -9,7 +9,6 @@ from typing import Any
 
 from app.core.config import Settings
 
-
 _request_id: ContextVar[str] = ContextVar(
     "request_id",
     default="-",

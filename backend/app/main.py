@@ -1,13 +1,6 @@
-"""AI Course Engine FastAPI application."""
-
-from __future__ import annotations
-
 import time
 from contextlib import asynccontextmanager
-from uuid import uuid4
-
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from pathlib import Path
 
 from app.api.v1.router import api_router
 from app.core.config import Settings, get_settings
@@ -17,10 +10,15 @@ from app.core.logging import (
     get_logger,
     set_request_id,
 )
+from app.core.redis import create_redis_client
 from app.core.security import generate_request_id
 from app.db.database import create_database_engine
 from app.db.session import create_session_factory
-
+from app.services.ai.factory import create_llm_provider
+from app.services.moodle.client import create_moodle_client
+from fastapi import FastAPI, Request
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 logger = get_logger(__name__)
 
@@ -30,16 +28,22 @@ async def lifespan(application: FastAPI):
     """
     Manage application-wide resources.
 
-    Database resources are initialized before serving requests and disposed
-    during graceful shutdown.
+    Database and Redis resources are initialized before serving requests
+    and disposed during graceful shutdown.
     """
     settings: Settings = application.state.settings
 
     engine = create_database_engine(settings)
     session_factory = create_session_factory(engine)
+    redis_client = create_redis_client(settings)
+    llm_provider = create_llm_provider(settings)
+    moodle_client = create_moodle_client(settings)
 
     application.state.engine = engine
     application.state.session_factory = session_factory
+    application.state.redis_client = redis_client
+    application.state.llm_provider = llm_provider
+    application.state.moodle_client = moodle_client
 
     logger.info(
         "Application startup environment=%s version=%s",
@@ -51,6 +55,11 @@ async def lifespan(application: FastAPI):
         yield
     finally:
         logger.info("Application shutdown")
+
+        await redis_client.aclose()
+
+        if moodle_client is not None:
+            await moodle_client.aclose()
 
         await engine.dispose()
 
@@ -152,7 +161,31 @@ def create_application() -> FastAPI:
         prefix=settings.api_v1_prefix,
     )
 
+    frontend_dir = Path(settings.frontend_dir)
+    dist_dir = frontend_dir / "dist"
+    serve_dir = dist_dir if dist_dir.is_dir() else frontend_dir
+    if serve_dir.is_dir():
+        application.mount(
+            "/",
+            SpaStaticFiles(directory=str(serve_dir), html=True),
+            name="frontend",
+        )
+        logger.info("Serving frontend from %s", serve_dir)
+
     return application
+
+
+class SpaStaticFiles(StaticFiles):
+    """StaticFiles that falls back to index.html (hash-routed SPA)."""
+
+    async def get_response(self, path: str, scope):
+        try:
+            return await super().get_response(path, scope)
+        except Exception:
+            index_path = Path(self.directory) / "index.html"
+            if index_path.exists():
+                return FileResponse(index_path)
+            raise
 
 
 app = create_application()
