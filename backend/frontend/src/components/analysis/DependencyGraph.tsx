@@ -62,13 +62,13 @@ function CustomNode({ data }: { data: Record<string, unknown> }) {
     <div
       className={cn(
         "rounded-lg border px-3 py-2 shadow-sm transition-colors cursor-pointer",
-        selected && "ring-2 ring-oxford ring-offset-2",
+        selected && "ring-2 ring-burgundy ring-offset-2",
       )}
       style={{
         width: NODE_WIDTH,
         height: NODE_HEIGHT,
-        background: selected ? "#EFF4FA" : difficultyBg[difficulty],
-        borderColor: selected ? "#002147" : difficultyBorder[difficulty],
+        background: selected ? "#FDF3F5" : difficultyBg[difficulty],
+        borderColor: selected ? "#6B1F32" : difficultyBorder[difficulty],
       }}
     >
       <div className="truncate text-xs font-semibold text-foreground">{title}</div>
@@ -132,7 +132,7 @@ export function DependencyGraph({
                 target: topic.id,
                 animated: true,
                 type: "smoothstep",
-style: { stroke: "#002147", strokeWidth: 1.5 },
+                style: { stroke: "#6B1F32", strokeWidth: 1.5 },
               });
             }
           }
@@ -171,7 +171,7 @@ style: { stroke: "#002147", strokeWidth: 1.5 },
         proOptions={{ hideAttribution: true }}
         defaultEdgeOptions={{
           type: "smoothstep",
-          style: { stroke: "#002147", strokeWidth: 1.5 },
+          style: { stroke: "#6B1F32", strokeWidth: 1.5 },
           animated: true,
         }}
       >

@@ -68,7 +68,7 @@ export function AIInsightPanel({ curriculum, topics, selectedUnit }: AIInsightPa
       </div>
 
       {selectedUnit && selectedUnit.topics.length > 0 && (
-        <div className="rounded-lg border border-oxford/15 bg-oxford-50/60 p-3 text-xs leading-relaxed text-oxford-900">
+        <div className="rounded-lg border border-burgundy/15 bg-burgundy-50/60 p-3 text-xs leading-relaxed text-burgundy-900">
           <strong className="font-semibold">Week {selectedUnit.week_number}:</strong>{" "}
           {selectedUnit.topics.length} topic{selectedUnit.topics.length !== 1 && "s"} covering{" "}
           {selectedUnit.topics.map((t) => t.title).join(", ")}.

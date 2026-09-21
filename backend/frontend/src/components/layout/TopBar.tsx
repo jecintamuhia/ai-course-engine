@@ -62,7 +62,7 @@ export function TopBar({ onOpenMobileNav, moodle }: TopBarProps) {
       <div className="flex shrink-0 items-center gap-2">
         <Link
           to="/status"
-          className="hidden items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:border-oxford/25 hover:text-oxford-800 sm:inline-flex"
+          className="hidden items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:border-burgundy/25 hover:text-burgundy-800 sm:inline-flex"
           title="Moodle connection"
         >
           <span

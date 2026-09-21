@@ -150,7 +150,7 @@ export function DashboardPage() {
               {stats.documents_processing > 0 ? (
                 <>
                   {stats.documents_processing} in AI processing
-                  <Loader className="ml-0.5 h-3 w-3 text-oxford" />
+                  <Loader className="ml-0.5 h-3 w-3 text-burgundy" />
                 </>
               ) : (
                 "all processing settled"
@@ -230,15 +230,15 @@ export function DashboardPage() {
 
 function Hero({ heroStages }: { heroStages: PipelineStage[] }) {
   return (
-    <section className="relative mb-6 overflow-hidden rounded-2xl border border-oxford-800/60 bg-oxford-900 text-cream-100 shadow-lift">
+    <section className="relative mb-6 overflow-hidden rounded-2xl border border-burgundy-800/60 bg-burgundy-900 text-cream-100 shadow-lift">
       {/* washes */}
       <span
         aria-hidden
-        className="pointer-events-none absolute -right-24 -top-28 h-80 w-80 rounded-full bg-oxford-600/30 blur-3xl"
+        className="pointer-events-none absolute -right-24 -top-28 h-80 w-80 rounded-full bg-burgundy-600/30 blur-3xl"
       />
       <span
         aria-hidden
-        className="pointer-events-none absolute -bottom-32 left-1/4 h-72 w-72 rounded-full bg-oxford-700/25 blur-3xl"
+        className="pointer-events-none absolute -bottom-32 left-1/4 h-72 w-72 rounded-full bg-burgundy-700/25 blur-3xl"
       />
 
       <div className="relative grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.2fr_1fr] lg:items-center lg:p-10">
@@ -258,7 +258,7 @@ function Hero({ heroStages }: { heroStages: PipelineStage[] }) {
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <Link
               to="/upload"
-              className="inline-flex h-11 items-center gap-2 rounded-md bg-cream-50 px-6 text-sm font-semibold text-oxford-900 shadow-sm transition-colors hover:bg-cream-100"
+              className="inline-flex h-11 items-center gap-2 rounded-md bg-cream-50 px-6 text-sm font-semibold text-burgundy-900 shadow-sm transition-colors hover:bg-cream-100"
             >
               <Upload className="h-4 w-4" />
               Upload textbook
@@ -273,7 +273,7 @@ function Hero({ heroStages }: { heroStages: PipelineStage[] }) {
           </div>
         </div>
 
-        <div className="rounded-xl border border-cream-100/10 bg-oxford-950/40 p-5 backdrop-blur-sm">
+        <div className="rounded-xl border border-cream-100/10 bg-burgundy-950/40 p-5 backdrop-blur-sm">
           <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-cream-100/50">
             <BrainCircuit className="h-3.5 w-3.5" />
             The pipeline
@@ -381,7 +381,7 @@ function WorkspaceBody({
         <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-card">
           <div className="border-b border-border px-5 py-4">
             <SectionHeader
-              icon={<Network className="h-4 w-4 text-oxford" />}
+              icon={<Network className="h-4 w-4 text-burgundy" />}
               title="Knowledge map preview"
               hint={
                 activeTopics.length > 0
@@ -392,7 +392,7 @@ function WorkspaceBody({
                 flatTopics.length > 0 ? (
                   <Link
                     to={`/document/${activeDoc.document.id}`}
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-oxford-700 hover:text-oxford-800"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-burgundy-700 hover:text-burgundy-800"
                   >
                     Explore knowledge map <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
@@ -441,7 +441,7 @@ function WorkspaceBody({
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-10 text-center">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-oxford-50 text-oxford">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-burgundy-50 text-burgundy">
                   <Network className="h-5 w-5" />
                 </span>
                 <p className="mt-3 text-sm font-semibold text-ink">No topics extracted yet</p>
@@ -450,7 +450,7 @@ function WorkspaceBody({
                 </p>
                 <Link
                   to={`/document/${activeDoc.document.id}`}
-                  className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-oxford-700 hover:text-oxford-800"
+                  className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-burgundy-700 hover:text-burgundy-800"
                 >
                   Open textbook workspace <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
@@ -463,13 +463,13 @@ function WorkspaceBody({
         <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-card">
           <div className="border-b border-border px-5 py-4">
             <SectionHeader
-              icon={<BookOpen className="h-4 w-4 text-oxford" />}
+              icon={<BookOpen className="h-4 w-4 text-burgundy" />}
               title="Recent textbooks"
               hint={`${documents.length} in library`}
               action={
                 <Link
                   to="/documents"
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-oxford-700 hover:text-oxford-800"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-burgundy-700 hover:text-burgundy-800"
                 >
                   View all <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
@@ -485,11 +485,11 @@ function WorkspaceBody({
                     to={`/document/${doc.document.id}`}
                     className="group flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-cream-100/70"
                   >
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-oxford-50 text-oxford">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-burgundy-50 text-burgundy">
                       <FileText className="h-4 w-4" />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium text-ink group-hover:text-oxford-700">
+                      <span className="block truncate text-sm font-medium text-ink group-hover:text-burgundy-700">
                         {doc.document.original_filename}
                       </span>
                       <span className="block text-[11px] text-muted-foreground">
@@ -551,15 +551,15 @@ function WorkspaceBody({
                   value={`${Math.round(studyMinutes / 60)} h`}
                   detail={totalWorkload ? `planned curriculum: ${totalWorkload}` : "from topic estimates"}
                 />
-                <div className="flex items-center justify-between rounded-lg border border-oxford/15 bg-oxford-50/50 px-3 py-2.5 text-xs">
-                  <span className="text-oxford-900">
+                <div className="flex items-center justify-between rounded-lg border border-burgundy/15 bg-burgundy-50/50 px-3 py-2.5 text-xs">
+                  <span className="text-burgundy-900">
                     {flatTopics.length > 0
                       ? "Topics are ready to be scheduled into a curriculum."
                       : "Run analysis to build the knowledge map."}
                   </span>
                   <Link
                     to={`/document/${activeDoc.document.id}`}
-                    className="shrink-0 font-semibold text-oxford-700 hover:text-oxford-800"
+                    className="shrink-0 font-semibold text-burgundy-700 hover:text-burgundy-800"
                   >
                     Open
                   </Link>
@@ -579,7 +579,7 @@ function WorkspaceBody({
         <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-card">
           <div className="border-b border-border px-5 py-4">
             <SectionHeader
-              icon={<Clock className="h-4 w-4 text-oxford" />}
+              icon={<Clock className="h-4 w-4 text-burgundy" />}
               title="Recent activity"
               description="Uploads and AI pipeline events from live records"
             />
@@ -635,16 +635,16 @@ function ActiveProject({
   );
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-oxford/20 bg-card shadow-card">
+    <section className="overflow-hidden rounded-2xl border border-burgundy/20 bg-card shadow-card">
       <div className="relative p-5 sm:p-6">
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-oxford/[0.05] to-transparent"
+          className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-burgundy/[0.05] to-transparent"
         />
         <div className="relative">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-oxford-700">
-              <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-oxford" />
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-burgundy-700">
+              <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-burgundy" />
               Active textbook
             </span>
             <StatusBadge tone={jobBadgeTone} label={jobBadgeLabel} />
@@ -657,7 +657,7 @@ function ActiveProject({
             <div className="min-w-0">
               <Link
                 to={`/document/${activeDoc.document.id}`}
-                className="text-xl font-bold tracking-tight text-ink hover:text-oxford-700"
+                className="text-xl font-bold tracking-tight text-ink hover:text-burgundy-700"
               >
                 {activeDoc.document.original_filename}
               </Link>
@@ -669,7 +669,7 @@ function ActiveProject({
             <div className="flex items-center gap-2">
               <Link
                 to={`/document/${activeDoc.document.id}`}
-                className="inline-flex h-9 items-center gap-2 rounded-md bg-oxford px-4 text-sm font-medium text-cream-50 shadow-sm transition-colors hover:bg-oxford-800"
+                className="inline-flex h-9 items-center gap-2 rounded-md bg-burgundy px-4 text-sm font-medium text-cream-50 shadow-sm transition-colors hover:bg-burgundy-800"
               >
                 Open workspace <ArrowRight className="h-4 w-4" />
               </Link>
@@ -722,14 +722,14 @@ function CurriculumPreview({
     <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-card">
       <div className="border-b border-border px-5 py-4">
         <SectionHeader
-          icon={<CalendarRange className="h-4 w-4 text-oxford" />}
+          icon={<CalendarRange className="h-4 w-4 text-burgundy" />}
           title="Curriculum"
           hint={c ? `v${c.version_number} · ${c.total_weeks} weeks` : "Not planned yet"}
           action={
             c ? (
               <Link
                 to={c.status === "approved" || c.status === "published" ? `/publish/${c.id}` : `/curriculum/${c.id}`}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-oxford-700 hover:text-oxford-800"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-burgundy-700 hover:text-burgundy-800"
               >
                 {c.status === "approved" || c.status === "published"
                   ? "Publish"
@@ -758,7 +758,7 @@ function CurriculumPreview({
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-8 text-center">
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-oxford-50 text-oxford">
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-burgundy-50 text-burgundy">
               <CalendarRange className="h-5 w-5" />
             </span>
             <p className="mt-3 text-sm font-semibold text-ink">No curriculum yet</p>
@@ -789,13 +789,13 @@ function MoodleCard({
     <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-card">
       <div className="border-b border-border px-5 py-4">
         <SectionHeader
-          icon={<GraduationCap className="h-4 w-4 text-oxford" />}
+          icon={<GraduationCap className="h-4 w-4 text-burgundy" />}
           title="Moodle"
           description="Publishing destination"
           action={
             <Link
               to="/status"
-              className="inline-flex items-center gap-1 text-xs font-semibold text-oxford-700 hover:text-oxford-800"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-burgundy-700 hover:text-burgundy-800"
             >
               Details <ArrowRight className="h-3.5 w-3.5" />
             </Link>
@@ -853,7 +853,7 @@ function WeekStrip({ unit }: { unit: CurriculumRead }) {
               className={cn(
                 "flex-1 rounded-sm transition-colors",
                 hasUnit
-                  ? "bg-gradient-to-t from-oxford to-oxford-500"
+                  ? "bg-gradient-to-t from-burgundy to-burgundy-500"
                   : "bg-border",
               )}
             />

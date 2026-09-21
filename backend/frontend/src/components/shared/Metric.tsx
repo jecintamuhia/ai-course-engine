@@ -14,7 +14,7 @@ const accentStyles: Record<string, string> = {
   success: "text-emerald-700",
   warning: "text-amber-600",
   danger: "text-red-600",
-  primary: "text-oxford",
+  primary: "text-burgundy",
 };
 
 export function Metric({ value, label, accent, icon, className }: MetricProps) {

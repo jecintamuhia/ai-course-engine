@@ -13,7 +13,7 @@ interface WeekSidebarProps {
 export function WeekSidebar({ units, selectedWeek, onSelect }: WeekSidebarProps) {
   return (
     <div className="flex flex-col gap-1">
-      <div className="mb-2 px-2 text-xs font-bold uppercase tracking-wider text-oxford-700">
+      <div className="mb-2 px-2 text-xs font-bold uppercase tracking-wider text-burgundy-700">
         Weeks
       </div>
       <ScrollArea className="h-[calc(100vh-240px)] pr-1">
@@ -28,12 +28,12 @@ export function WeekSidebar({ units, selectedWeek, onSelect }: WeekSidebarProps)
                 className={cn(
                   "group flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium transition-colors",
                   active
-                    ? "bg-oxford-50 text-oxford-900"
+                    ? "bg-burgundy-50 text-burgundy-900"
                     : "text-foreground hover:bg-muted",
                 )}
               >
                 {active ? (
-                  <Check className="h-3.5 w-3.5 shrink-0 text-oxford-700" />
+                  <Check className="h-3.5 w-3.5 shrink-0 text-burgundy-700" />
                 ) : (
                   <Circle className="h-3.5 w-3.5 shrink-0 text-muted-foreground/50" />
                 )}

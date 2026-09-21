@@ -25,7 +25,7 @@ export function EmptyState({
 
   return (
     <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-cream-300 bg-card/60 px-8 py-16 text-center shadow-inset-line">
-      <span className="relative mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-oxford-50 text-oxford ring-8 ring-oxford/[0.04]">
+      <span className="relative mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-burgundy-50 text-burgundy ring-8 ring-burgundy/[0.04]">
         {icon || <FileText className="h-8 w-8" />}
       </span>
       <h3 className="text-lg font-semibold tracking-tight text-ink">{title}</h3>

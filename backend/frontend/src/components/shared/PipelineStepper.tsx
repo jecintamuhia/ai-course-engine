@@ -48,7 +48,7 @@ export function PipelineStepper({ jobStatus }: PipelineStepperProps) {
         className={cn(
           "flex items-center gap-2.5 rounded-full border px-3.5 py-2 text-xs font-semibold transition-colors",
           done && "border-emerald-200 bg-emerald-50 text-emerald-700",
-          active && "border-oxford/40 bg-oxford-50 text-oxford-800",
+          active && "border-burgundy/40 bg-burgundy-50 text-burgundy-800",
           failed && "border-red-200 bg-red-50 text-red-700",
           state === "pending" && "border-border bg-card text-muted-foreground",
         )}
