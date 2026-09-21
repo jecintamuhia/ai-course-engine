@@ -111,14 +111,14 @@ function LibraryStat({
 }) {
   return (
     <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-card">
-      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-burgundy-50 text-burgundy">
+      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-oxford-50 text-oxford">
         <Icon className="h-4 w-4" />
       </div>
       <div>
         <div className="tnum text-lg font-bold leading-none text-ink">
           {value}
           {live && (
-            <span className="ml-1.5 inline-block h-1.5 w-1.5 animate-pulse-soft rounded-full bg-burgundy align-middle" />
+            <span className="ml-1.5 inline-block h-1.5 w-1.5 animate-pulse-soft rounded-full bg-oxford align-middle" />
           )}
         </div>
         <div className="mt-1 text-[11px] font-medium text-muted-foreground">{label}</div>

@@ -15,7 +15,7 @@ export interface ActivityItem {
 }
 
 const dotStyles: Record<ActivityTone, { dot: string; ring: string }> = {
-  primary: { dot: "bg-burgundy", ring: "ring-burgundy/15" },
+  primary: { dot: "bg-oxford", ring: "ring-oxford/15" },
   success: { dot: "bg-emerald-500", ring: "ring-emerald-500/15" },
   warning: { dot: "bg-amber-500", ring: "ring-amber-500/15" },
   danger: { dot: "bg-red-500", ring: "ring-red-500/15" },

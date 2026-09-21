@@ -50,7 +50,7 @@ export function PublishPage() {
             </p>
             <Link
               to={`/curriculum/${curriculum.id}`}
-              className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-burgundy-700 hover:text-burgundy-800"
+              className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-oxford-700 hover:text-oxford-800"
             >
               <ArrowLeft className="h-4 w-4" /> Back to the curriculum
             </Link>

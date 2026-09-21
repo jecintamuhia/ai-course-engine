@@ -29,7 +29,7 @@ export function AppShell() {
         <SheetTrigger asChild>
           <span className="sr-only" />
         </SheetTrigger>
-        <SheetContent side="left" className="w-72 border-r-0 bg-burgundy-900 p-0 text-cream-100">
+        <SheetContent side="left" className="w-72 border-r-0 bg-oxford-900 p-0 text-cream-100">
           <Sidebar moodle={moodle} onNavigate={() => setMobileOpen(false)} />
         </SheetContent>
       </Sheet>

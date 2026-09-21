@@ -95,7 +95,7 @@ export function IngestionStepper({
           {t.to && t.state !== "pending" ? (
             <Link
               to={t.to}
-              className="text-[11px] font-semibold text-burgundy-700 hover:text-burgundy-800"
+              className="text-[11px] font-semibold text-oxford-700 hover:text-oxford-800"
             >
               Open
             </Link>
@@ -142,7 +142,7 @@ function NodeDot({ state }: { state: "done" | "active" | "failed" | "pending" })
       className={cn(
         "mt-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ring-4",
         state === "done" && "bg-emerald-100 text-emerald-700 ring-emerald-500/10",
-        state === "active" && "bg-burgundy-900 text-cream-50 ring-burgundy/10 animate-pulse-soft",
+        state === "active" && "bg-oxford-900 text-cream-50 ring-oxford/10 animate-pulse-soft",
         state === "failed" && "bg-red-100 text-red-700 ring-red-500/10",
         state === "pending" && "bg-muted text-muted-foreground/70 ring-border/50",
       )}
@@ -161,7 +161,7 @@ function StateIcon({
   state: "done" | "active" | "failed" | "pending";
 }) {
   if (state === "done") return <Check className="h-4 w-4 text-emerald-600" />;
-  if (state === "active") return <Loader2 className="h-4 w-4 animate-spin text-burgundy" />;
+  if (state === "active") return <Loader2 className="h-4 w-4 animate-spin text-oxford" />;
   if (state === "failed") return <X className="h-4 w-4 text-red-600" />;
   return <CircleDashed className="h-4 w-4 text-muted-foreground/50" />;
 }

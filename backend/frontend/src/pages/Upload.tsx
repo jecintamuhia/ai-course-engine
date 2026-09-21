@@ -103,7 +103,7 @@ export function UploadPage() {
           <Card>
             <CardContent className="p-6">
               <CardTitle className="mb-4 flex items-center gap-2 text-sm font-semibold text-ink">
-                <FileText className="h-4 w-4 text-burgundy" />
+                <FileText className="h-4 w-4 text-oxford" />
                 Source document
               </CardTitle>
 
@@ -122,13 +122,13 @@ export function UploadPage() {
                 onDrop={handleDrop}
                 className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-14 text-center transition-colors ${
                   dragOver
-                    ? "border-burgundy bg-burgundy-50"
-                    : "border-border bg-cream-50 hover:border-burgundy/40 hover:bg-burgundy-50/40"
+                    ? "border-oxford bg-oxford-50"
+                    : "border-border bg-cream-50 hover:border-oxford/40 hover:bg-oxford-50/40"
                 } cursor-pointer`}
               >
                 {file ? (
                   <div className="flex flex-col items-center gap-1.5">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-burgundy-50 text-burgundy ring-8 ring-burgundy/[0.05]">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-oxford-50 text-oxford ring-8 ring-oxford/[0.05]">
                       <FileText className="h-7 w-7" />
                     </div>
                     <div className="mt-2 text-sm font-semibold text-foreground">
@@ -256,7 +256,7 @@ export function UploadPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-burgundy/15 bg-burgundy-50/40">
+          <Card className="border-oxford/15 bg-oxford-50/40">
             <CardContent className="space-y-3 p-6">
               <CardTitle className="flex items-center gap-2 text-sm font-semibold text-ink">
                 <span className="flex h-6 w-6 items-center justify-center rounded-md bg-ai/10 text-ai">

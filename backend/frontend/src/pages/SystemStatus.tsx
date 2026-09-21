@@ -46,7 +46,7 @@ export function SystemStatusPage() {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-sm">
-            <Activity className="h-4 w-4 text-burgundy" />
+            <Activity className="h-4 w-4 text-oxford" />
             Moodle connection — detailed check
           </CardTitle>
         </CardHeader>
@@ -139,7 +139,7 @@ function Kv({
   return (
     <div className="rounded-xl border border-border bg-cream-50/70 px-3.5 py-3">
       <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-        <span aria-hidden className="h-1 w-1 rounded-full bg-burgundy/60" />
+        <span aria-hidden className="h-1 w-1 rounded-full bg-oxford/60" />
         {label}
       </div>
       <div

@@ -13,8 +13,8 @@ export function PageHeader({ title, description, actions, eyebrow, meta }: PageH
     <div className="mb-8 flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
       <div className="min-w-0 max-w-3xl">
         {eyebrow && (
-          <div className="mb-3 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-burgundy-700">
-            <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-burgundy" />
+          <div className="mb-3 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-oxford-700">
+            <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-oxford" />
             {eyebrow}
           </div>
         )}

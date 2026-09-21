@@ -270,7 +270,7 @@ export function DocumentDetailPage() {
           </CardHeader>
           <CardContent className="px-6 pb-6 pt-1">
             {isActiveJob(job.status) && (
-              <div className="mb-4 flex items-center gap-2 rounded-lg border border-burgundy/20 bg-burgundy-50 px-4 py-2.5 text-xs text-burgundy-800">
+              <div className="mb-4 flex items-center gap-2 rounded-lg border border-oxford/20 bg-oxford-50 px-4 py-2.5 text-xs text-oxford-800">
                 <Loader className="h-3.5 w-3.5 animate-spin" />
                 Processing in background — this screen refreshes automatically.
               </div>
@@ -340,7 +340,7 @@ export function DocumentDetailPage() {
         <CardContent>
           {doc.topic_count === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-cream-50 px-6 py-12 text-center">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-burgundy-50 text-burgundy ring-8 ring-burgundy/[0.05]">
+              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-oxford-50 text-oxford ring-8 ring-oxford/[0.05]">
                 <BrainCircuit className="h-5 w-5" />
               </span>
               <p className="mt-3 text-sm font-semibold text-foreground">
@@ -446,7 +446,7 @@ export function DocumentDetailPage() {
                                 key={title}
                                 type="button"
                                 onClick={() => setSelectedTopicId(match.id)}
-                                className="inline-flex items-center gap-1 rounded-md border border-burgundy/20 bg-card px-2 py-0.5 text-[11px] font-medium text-burgundy-700 transition-colors hover:bg-burgundy-50"
+                                className="inline-flex items-center gap-1 rounded-md border border-oxford/20 bg-card px-2 py-0.5 text-[11px] font-medium text-oxford-700 transition-colors hover:bg-oxford-50"
                               >
                                 <CornerDownRight className="h-3 w-3" />
                                 {title}
@@ -513,9 +513,9 @@ export function DocumentDetailPage() {
                   <Link
                     key={c.id}
                     to={`/curriculum/${c.id}`}
-                    className="group flex items-center gap-4 rounded-xl border border-border bg-card px-4 py-3.5 shadow-card transition-all hover:border-burgundy/30 hover:shadow-lift"
+                    className="group flex items-center gap-4 rounded-xl border border-border bg-card px-4 py-3.5 shadow-card transition-all hover:border-oxford/30 hover:shadow-lift"
                   >
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-burgundy-50 text-burgundy ring-4 ring-burgundy/[0.04]">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-oxford-50 text-oxford ring-4 ring-oxford/[0.04]">
                       <CalendarRange className="h-[18px] w-[18px]" />
                     </span>
                     <div className="min-w-0 flex-1">
@@ -534,7 +534,7 @@ export function DocumentDetailPage() {
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                       <StatusBadge {...cb} />
-                      <ArrowRight className="h-4 w-4 text-muted-foreground/50 transition-transform group-hover:translate-x-0.5 group-hover:text-burgundy" />
+                      <ArrowRight className="h-4 w-4 text-muted-foreground/50 transition-transform group-hover:translate-x-0.5 group-hover:text-oxford" />
                     </div>
                   </Link>
                 );
@@ -559,7 +559,7 @@ function Stat({
   return (
     <div className="rounded-xl border border-border bg-card px-3.5 py-3 shadow-card">
       <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-        <span aria-hidden className="h-1 w-1 rounded-full bg-burgundy/60" />
+        <span aria-hidden className="h-1 w-1 rounded-full bg-oxford/60" />
         {label}
       </div>
       <div className="tnum mt-1 text-lg font-bold text-ink">

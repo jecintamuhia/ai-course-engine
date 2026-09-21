@@ -51,8 +51,8 @@ function NavLinkItem({ item, onNavigate }: { item: NavItem; onNavigate?: () => v
         cn(
           "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cream-100/40",
           isActive
-            ? "bg-cream-100 text-burgundy-900 shadow-sm"
-            : "text-cream-100/65 hover:bg-burgundy-800/60 hover:text-cream-50",
+            ? "bg-cream-100 text-oxford-900 shadow-sm"
+            : "text-cream-100/65 hover:bg-oxford-800/60 hover:text-cream-50",
         )
       }
     >
@@ -61,14 +61,14 @@ function NavLinkItem({ item, onNavigate }: { item: NavItem; onNavigate?: () => v
           <Icon
             className={cn(
               "h-4 w-4 shrink-0 transition-colors",
-              isActive ? "text-burgundy-700" : "text-cream-100/50 group-hover:text-cream-100",
+              isActive ? "text-oxford-700" : "text-cream-100/50 group-hover:text-cream-100",
             )}
           />
           {item.label}
           {isActive && (
             <span
               aria-hidden
-              className="absolute right-2 h-1.5 w-1.5 rounded-full bg-burgundy"
+              className="absolute right-2 h-1.5 w-1.5 rounded-full bg-oxford"
             />
           )}
         </>
@@ -87,7 +87,7 @@ export function Sidebar({
   const state = moodleState(moodle.status);
 
   return (
-    <aside className="relative flex h-full w-full flex-col overflow-hidden bg-burgundy-900 text-cream-100">
+    <aside className="relative flex h-full w-full flex-col overflow-hidden bg-oxford-900 text-cream-100">
       {/* Brand wash */}
       <span
         aria-hidden
@@ -100,7 +100,7 @@ export function Sidebar({
 
       {/* Brand */}
       <div className="relative z-10 flex items-center gap-3 border-b border-cream-100/10 px-5 py-5">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-burgundy-500 to-burgundy-800 text-cream-50 shadow-md ring-1 ring-cream-100/20">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-oxford-500 to-oxford-800 text-cream-50 shadow-md ring-1 ring-cream-100/20">
           <GraduationCap className="h-5 w-5" />
         </div>
         <div className="leading-tight">
@@ -134,7 +134,7 @@ export function Sidebar({
             <Sparkles className="h-3 w-3" />
             Flow
           </div>
-          <div className="mx-3 rounded-xl border border-cream-100/10 bg-burgundy-800/40 p-3 text-[10px] leading-relaxed text-cream-100/55">
+          <div className="mx-3 rounded-xl border border-cream-100/10 bg-oxford-800/40 p-3 text-[10px] leading-relaxed text-cream-100/55">
             Textbook &rarr; AI understanding &rarr; knowledge map &rarr; curriculum &rarr;
             review &rarr; Moodle
           </div>
@@ -143,7 +143,7 @@ export function Sidebar({
 
       {/* Moodle connection */}
       <div className="relative z-10 border-t border-cream-100/10 px-4 py-3.5">
-        <div className="flex items-center gap-2.5 rounded-lg bg-burgundy-800/60 px-3 py-2 text-xs text-cream-100/75 ring-1 ring-cream-100/5">
+        <div className="flex items-center gap-2.5 rounded-lg bg-oxford-800/60 px-3 py-2 text-xs text-cream-100/75 ring-1 ring-cream-100/5">
           {moodle.loading ? (
             <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
           ) : (

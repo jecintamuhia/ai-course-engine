@@ -89,11 +89,11 @@ export function ProgressPipeline({ stats, className }: ProgressPipelineProps) {
         {/* faint brand wash */}
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-burgundy/[0.05] to-transparent"
+          className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-oxford/[0.05] to-transparent"
         />
         <div className="relative flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-burgundy-700">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-oxford-700">
               Pipeline
             </p>
             <h2 className="mt-1 text-lg font-bold tracking-tight text-ink">
@@ -107,7 +107,7 @@ export function ProgressPipeline({ stats, className }: ProgressPipelineProps) {
           </div>
           <Link
             to="/upload"
-            className="inline-flex items-center gap-2 rounded-md bg-burgundy px-4 py-2 text-sm font-medium text-cream-50 shadow-sm transition-colors hover:bg-burgundy-800"
+            className="inline-flex items-center gap-2 rounded-md bg-oxford px-4 py-2 text-sm font-medium text-cream-50 shadow-sm transition-colors hover:bg-oxford-800"
           >
             <Upload className="h-4 w-4" />
             Upload textbook
@@ -129,7 +129,7 @@ export function ProgressPipeline({ stats, className }: ProgressPipelineProps) {
                     className={cn(
                       "flex h-10 w-10 items-center justify-center rounded-xl ring-2 transition-colors",
                       stage.active
-                        ? "bg-burgundy-900 text-cream-50 ring-burgundy-900/10"
+                        ? "bg-oxford-900 text-cream-50 ring-oxford-900/10"
                         : "bg-muted text-muted-foreground ring-border/60",
                     )}
                   >
@@ -178,7 +178,7 @@ export function ProgressPipeline({ stats, className }: ProgressPipelineProps) {
                     />
                     {stage.active ? "Active" : "Awaiting"}
                   </span>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5 group-hover:text-burgundy" />
+                  <ArrowRight className="h-4 w-4 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5 group-hover:text-oxford" />
                 </div>
               </Link>
             </li>

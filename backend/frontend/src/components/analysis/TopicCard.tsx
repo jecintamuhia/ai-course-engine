@@ -32,10 +32,10 @@ export function TopicCard({ topic, selected = false, onClick }: TopicCardProps) 
       type="button"
       onClick={onClick}
       className={cn(
-        "group w-full text-left rounded-lg border p-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy focus-visible:ring-offset-2",
+        "group w-full text-left rounded-lg border p-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-oxford focus-visible:ring-offset-2",
         selected
-          ? "border-burgundy/50 bg-burgundy-50 shadow-sm ring-1 ring-burgundy/20"
-          : "border-border bg-card hover:border-burgundy/30 hover:bg-burgundy-50/50",
+          ? "border-oxford/50 bg-oxford-50 shadow-sm ring-1 ring-oxford/20"
+          : "border-border bg-card hover:border-oxford/30 hover:bg-oxford-50/50",
       )}
     >
       <div className="flex items-start justify-between gap-2">
@@ -80,7 +80,7 @@ export function TopicCard({ topic, selected = false, onClick }: TopicCardProps) 
         <div className="mt-2.5 flex flex-wrap gap-1">
           <span className="text-[10px] uppercase font-semibold tracking-wide text-muted-foreground mr-1">Prereqs:</span>
           {topic.prerequisite_titles.map((pre) => (
-            <span key={pre} className="inline-block rounded-md bg-cream-200 px-1.5 py-0.5 text-[10px] font-medium text-burgundy-900">
+            <span key={pre} className="inline-block rounded-md bg-cream-200 px-1.5 py-0.5 text-[10px] font-medium text-oxford-900">
               {pre}
             </span>
           ))}

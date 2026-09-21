@@ -282,7 +282,7 @@ export function MoodlePublishPanel({ curriculum }: MoodlePublishPanelProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-burgundy-50 text-burgundy ring-4 ring-burgundy/[0.04]">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-oxford-50 text-oxford ring-4 ring-oxford/[0.04]">
                 <ExternalLink className="h-4 w-4" />
               </span>
               <div>

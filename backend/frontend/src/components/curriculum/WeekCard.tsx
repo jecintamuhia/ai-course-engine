@@ -10,15 +10,15 @@ interface WeekCardProps {
 
 export function WeekCard({ unit }: WeekCardProps) {
   return (
-    <Card className="border-burgundy/20 bg-card">
-      <CardHeader className="border-b border-border bg-burgundy-50/60 pb-3">
+    <Card className="border-oxford/20 bg-card">
+      <CardHeader className="border-b border-border bg-oxford-50/60 pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">
             <span className="text-[11px] font-bold tabular-nums text-muted-foreground">WEEK {String(unit.week_number).padStart(2, "0")}</span>
             <span className="mx-2 text-border" aria-hidden>·</span>
             {unit.title}
           </CardTitle>
-          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-burgundy-700">
+          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-oxford-700">
             <Clock className="h-3.5 w-3.5" />
             {formatMinutes(unit.estimated_workload_minutes)}
           </span>
@@ -39,7 +39,7 @@ export function WeekCard({ unit }: WeekCardProps) {
               {unit.topics.map((t) => (
                 <span
                   key={t.topic_id}
-                  className="inline-flex items-center rounded-md border border-burgundy/20 bg-burgundy-50 px-2.5 py-1 text-xs font-medium text-burgundy-800"
+                  className="inline-flex items-center rounded-md border border-oxford/20 bg-oxford-50 px-2.5 py-1 text-xs font-medium text-oxford-800"
                 >
                   {t.title}
                 </span>
@@ -57,7 +57,7 @@ export function WeekCard({ unit }: WeekCardProps) {
             <ul className="mt-2 space-y-1 pl-1">
               {unit.learning_objectives.map((obj) => (
                 <li key={obj} className="flex items-start gap-2 text-sm text-foreground/80">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-burgundy-600" />
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-oxford-600" />
                   {obj}
                 </li>
               ))}
