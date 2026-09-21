@@ -120,6 +120,24 @@ export function DocumentDetailPage() {
     enabled: isPolling,
   });
 
+  const flatTopics = useMemo(() => flattenTopics(topics), [topics]);
+  const topicMap = useMemo(() => {
+    const map = new Map<string, TopicRead>();
+    for (const { topic } of flatTopics) map.set(topic.id, topic);
+    return map;
+  }, [flatTopics]);
+
+  // Read-only display graph: order + edges are derived client-side from real topics.
+  const derivedGraph = useMemo<DependencyGraphResponse>(
+    () => ({
+      document_id: id ?? "",
+      topological_order: topics.map((t) => t.id),
+      rejected_cycle_edges: [],
+      unresolved_prerequisites: [],
+    }),
+    [topics, id],
+  );
+
   if (loading) return <LoadingState />;
   if (error) return <ErrorState message={error} onRetry={load} />;
   if (!doc) return <EmptyState title="Document not found" />;
@@ -168,24 +186,6 @@ export function DocumentDetailPage() {
       setGenerating(false);
     }
   };
-
-  const flatTopics = useMemo(() => flattenTopics(topics), [topics]);
-  const topicMap = useMemo(() => {
-    const map = new Map<string, TopicRead>();
-    for (const { topic } of flatTopics) map.set(topic.id, topic);
-    return map;
-  }, [flatTopics]);
-
-  // Read-only display graph: order + edges are derived client-side from real topics.
-  const derivedGraph = useMemo<DependencyGraphResponse>(
-    () => ({
-      document_id: id ?? "",
-      topological_order: topics.map((t) => t.id),
-      rejected_cycle_edges: [],
-      unresolved_prerequisites: [],
-    }),
-    [topics, id],
-  );
 
   const resolvedEdgeCount = topics.reduce(
     (acc, topic) =>
