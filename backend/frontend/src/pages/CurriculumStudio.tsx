@@ -99,7 +99,7 @@ export function CurriculumStudioPage() {
       {/* Three-column studio */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[240px_1fr_300px]">
         {/* Left: weeks */}
-        <div className="rounded-lg border border-border bg-card p-3 lg:h-[calc(100vh-260px)] lg:overflow-hidden lg:sticky lg:top-20">
+        <div className="rounded-xl border border-border bg-card p-3 shadow-card lg:h-[calc(100vh-260px)] lg:overflow-hidden lg:sticky lg:top-20">
           <WeekSidebar
             units={curriculum.units}
             selectedWeek={selectedWeek}
@@ -112,17 +112,27 @@ export function CurriculumStudioPage() {
           {selectedUnit ? (
             <div className="space-y-5">
               <WeekCard unit={selectedUnit} />
-              <div className="rounded-lg border border-border bg-card p-4 text-xs text-muted-foreground">
-                <strong className="text-foreground">Total plan workload:</strong>{" "}
-                {formatMinutes(totalMinutes)} · avg{" "}
-                {curriculum.units.length > 0
-                  ? formatMinutes(Math.round(totalMinutes / curriculum.units.length))
-                  : "—"}{" "}
-                per week
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-1 rounded-xl border border-border bg-card px-4 py-3 text-xs text-muted-foreground shadow-card">
+                <span>
+                  <strong className="font-semibold text-ink">Total plan workload:</strong>{" "}
+                  {formatMinutes(totalMinutes)}
+                </span>
+                <span className="hidden text-border sm:inline" aria-hidden>
+                  ·
+                </span>
+                <span>
+                  avg{" "}
+                  <strong className="font-semibold text-ink">
+                    {curriculum.units.length > 0
+                      ? formatMinutes(Math.round(totalMinutes / curriculum.units.length))
+                      : "—"}
+                  </strong>{" "}
+                  per week
+                </span>
               </div>
             </div>
           ) : (
-            <div className="rounded-lg border border-dashed border-border bg-card py-20 text-center text-sm text-muted-foreground">
+            <div className="rounded-xl border border-dashed border-border bg-card py-20 text-center text-sm text-muted-foreground">
               {curriculum.units.length === 0
                 ? "This curriculum has no weekly units yet."
                 : "Select a week from the sidebar."}

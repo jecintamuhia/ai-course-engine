@@ -43,7 +43,7 @@ function ReadinessChecks({ checks }: { checks: MoodlePreflightCheck[] }) {
             <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
           )}
           <span className="min-w-0 flex-1">
-            <span className="font-medium text-slate-800">{check.label}</span>
+            <span className="font-medium text-ink">{check.label}</span>
             <span className="text-muted-foreground">
               {" "}
               — {check.status === "ok" ? "OK" : check.detail}
@@ -165,7 +165,7 @@ export function MoodlePublishPanel({ curriculum }: MoodlePublishPanelProps) {
                 {done ? (
                   <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />
                 ) : (
-                  <XCircle className="h-3.5 w-3.5 text-gray-300" />
+                  <XCircle className="h-3.5 w-3.5 text-muted-foreground/30" />
                 )}
                 {label}
               </li>
@@ -281,7 +281,20 @@ export function MoodlePublishPanel({ curriculum }: MoodlePublishPanelProps) {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Publish to Moodle</CardTitle>
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-burgundy-50 text-burgundy ring-4 ring-burgundy/[0.04]">
+                <ExternalLink className="h-4 w-4" />
+              </span>
+              <div>
+                <CardTitle className="text-sm">Publish to Moodle</CardTitle>
+                <div className="text-[11px] text-muted-foreground">
+                  Course delivery platform{" "}
+                  {preflight?.site_url
+                    ?.replace(/^https?:\/\//, "")
+                    .replace(/\/$/, "") ?? "—"}
+                </div>
+              </div>
+            </div>
             <StatusBadge tone={badge.tone} label={badge.label} />
           </div>
         </CardHeader>

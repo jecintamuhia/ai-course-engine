@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Activity, RefreshCw } from "lucide-react";
 
 import { PageHeader } from "@/components/shared/PageHeader";
+import { StatusBadge } from "@/components/shared/StatusBadge";
 import { LoadingState } from "@/components/shared/LoadingState";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ export function SystemStatusPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Platform"
         title="System status"
         description="Moodle connection — detailed read-only check."
         actions={
@@ -42,9 +44,9 @@ export function SystemStatusPage() {
       />
 
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-4 w-4 text-muted-foreground" />
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <Activity className="h-4 w-4 text-burgundy" />
             Moodle connection — detailed check
           </CardTitle>
         </CardHeader>
@@ -56,25 +58,32 @@ export function SystemStatusPage() {
               Moodle check unavailable.
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
-              <Kv label="Configured" value={check.configured ? "Yes" : "No"} />
-              <Kv label="Connected" value={check.connected ? "Yes" : "No"} />
-              <Kv label="Site" value={check.site_name ?? "—"} />
-              <Kv label="Site URL" value={check.site_url ?? "—"} mono />
-              <Kv label="API version" value={check.api_version ?? "—"} />
-              <Kv label="Web service user" value={check.username ?? "—"} />
-              <Kv label="Default category id" value={check.default_category_id ?? "—"} />
-              <Kv
-                label="Category found"
-                value={
-                  check.default_category_found == null
-                    ? "—"
-                    : check.default_category_found
-                      ? "Yes"
-                      : "No"
-                }
-              />
-              <Kv label="Visible categories" value={check.categories_visible} />
+            <div className="space-y-5">
+              <div className="flex flex-wrap items-center gap-2">
+                <StatusBadge
+                  tone={check.configured ? "success" : "neutral"}
+                  label={check.configured ? "Configured" : "Not configured"}
+                />
+                <StatusBadge
+                  tone={check.connected ? "success" : "danger"}
+                  label={check.connected ? "Connected" : "Disconnected"}
+                />
+                {check.default_category_found === false && (
+                  <StatusBadge
+                    tone="danger"
+                    label={`Category ${check.default_category_id} not found`}
+                  />
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <Kv label="Site" value={check.site_name ?? "—"} />
+                <Kv label="Site URL" value={check.site_url ?? "—"} mono />
+                <Kv label="API version" value={check.api_version ?? "—"} />
+                <Kv label="Web service user" value={check.username ?? "—"} />
+                <Kv label="Default category id" value={check.default_category_id ?? "—"} />
+                <Kv label="Visible categories" value={check.categories_visible} />
+              </div>
             </div>
           )}
         </CardContent>
@@ -128,9 +137,14 @@ function Kv({
   mono?: boolean;
 }) {
   return (
-    <div>
-      <div className="text-[11px] text-muted-foreground">{label}</div>
-      <div className={`font-medium text-foreground ${mono ? "font-mono text-xs" : ""}`}>
+    <div className="rounded-xl border border-border bg-cream-50/70 px-3.5 py-3">
+      <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+        <span aria-hidden className="h-1 w-1 rounded-full bg-burgundy/60" />
+        {label}
+      </div>
+      <div
+        className={`tnum mt-1 font-semibold text-ink ${mono ? "font-mono text-xs" : "text-sm"}`}
+      >
         {value ?? "—"}
       </div>
     </div>

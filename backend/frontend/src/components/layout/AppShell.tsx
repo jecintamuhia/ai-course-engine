@@ -29,15 +29,15 @@ export function AppShell() {
         <SheetTrigger asChild>
           <span className="sr-only" />
         </SheetTrigger>
-        <SheetContent side="left" className="w-72 p-0">
+        <SheetContent side="left" className="w-72 border-r-0 bg-burgundy-900 p-0 text-cream-100">
           <Sidebar moodle={moodle} onNavigate={() => setMobileOpen(false)} />
         </SheetContent>
       </Sheet>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar onOpenMobileNav={() => setMobileOpen(true)} />
-        <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
-          <div className="mx-auto w-full max-w-[1400px] animate-fade-in">
+        <TopBar onOpenMobileNav={() => setMobileOpen(true)} moodle={moodle} />
+        <main className="flex-1 px-4 py-7 sm:px-6 lg:px-8 lg:py-9">
+          <div className="mx-auto w-full max-w-[1440px] animate-fade-in">
             <Outlet />
           </div>
         </main>

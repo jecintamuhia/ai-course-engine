@@ -5,7 +5,14 @@ import type {
   MoodleConnectionStatus,
 } from "@/lib/types";
 
-export type Tone = "neutral" | "primary" | "success" | "warning" | "danger";
+export type Tone =
+  | "neutral"
+  | "primary"
+  | "success"
+  | "warning"
+  | "danger"
+  | "info"
+  | "ai";
 
 export const INGESTION_LABELS: Record<IngestionState, string> = {
   pending: "Queued",

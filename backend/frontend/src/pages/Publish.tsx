@@ -41,7 +41,7 @@ export function PublishPage() {
   if (curriculum.status !== "approved" && curriculum.status !== "published") {
     return (
       <>
-        <PageHeader title="Publish to Moodle" />
+        <PageHeader eyebrow="Moodle delivery" title="Publish to Moodle" />
         <Card className="border-red-200 bg-red-50">
           <CardContent className="p-5">
             <p className="text-sm text-red-800">
@@ -63,6 +63,7 @@ export function PublishPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Moodle delivery"
         title="Publish to Moodle"
         description={`Curriculum: ${curriculum.title}`}
       />

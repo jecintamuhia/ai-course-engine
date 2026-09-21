@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ExternalLink, RotateCw } from "lucide-react";
+import { ExternalLink, RotateCw, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/shared/PageHeader";
@@ -72,6 +72,7 @@ export function CoursesPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Moodle delivery"
         title="Published courses"
         description={`${courses.length} course${courses.length !== 1 && "s"} published to Moodle.`}
       />
@@ -84,7 +85,7 @@ export function CoursesPage() {
           actionTo="/documents"
         />
       ) : (
-        <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-2 shadow-card">
           <Table>
             <TableHeader>
               <TableRow>
@@ -103,12 +104,19 @@ export function CoursesPage() {
                 return (
                   <TableRow key={course.id}>
                     <TableCell>
-                      <div className="font-medium text-foreground">{course.fullname}</div>
-                      <div className="text-[11px] text-muted-foreground">
-                        {course.idnumber}
-                        {course.sync_error && (
-                          <span className="ml-2 text-red-600">{course.sync_error}</span>
-                        )}
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-burgundy-50 text-burgundy ring-4 ring-burgundy/[0.04]">
+                          <BookOpen className="h-3.5 w-3.5" />
+                        </span>
+                        <div>
+                          <div className="font-medium text-foreground">{course.fullname}</div>
+                          <div className="text-[11px] text-muted-foreground">
+                            {course.idnumber}
+                            {course.sync_error && (
+                              <span className="ml-2 text-red-600">{course.sync_error}</span>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell className="font-mono text-xs">

@@ -1,5 +1,26 @@
 import type { CurriculumUnitRead } from "@/lib/types";
 
+export function formatTime(value: string | null | undefined): string {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleString(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+export function formatDateShort(value: string | null | undefined): string {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
 export function formatBytes(bytes: number | null | undefined): string {
   if (bytes === null || bytes === undefined) return "—";
   const units = ["B", "KB", "MB", "GB"];

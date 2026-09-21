@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { FileText, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
 import { Button } from "@/components/ui/button";
 
 interface EmptyStateProps {
@@ -23,16 +24,19 @@ export function EmptyState({
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card px-8 py-16 text-center">
-      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-burgundy-50 text-burgundy">
-        {icon || <FileText className="h-7 w-7" />}
-      </div>
-      <h3 className="text-base font-semibold text-foreground">{title}</h3>
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-cream-300 bg-card/60 px-8 py-16 text-center shadow-inset-line">
+      <span className="relative mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-burgundy-50 text-burgundy ring-8 ring-burgundy/[0.04]">
+        {icon || <FileText className="h-8 w-8" />}
+      </span>
+      <h3 className="text-lg font-semibold tracking-tight text-ink">{title}</h3>
       {description && (
-        <p className="mt-2 max-w-sm text-sm text-muted-foreground">{description}</p>
+        <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
+          {description}
+        </p>
       )}
       {(actionLabel && (actionTo || onAction)) && (
         <Button
+          size="lg"
           className="mt-6"
           onClick={() => {
             if (onAction) onAction();

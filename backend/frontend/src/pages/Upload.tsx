@@ -1,10 +1,11 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Upload, File, Loader2 } from "lucide-react";
+import { Upload, FileText, Loader2, Check } from "lucide-react";
 import { toast } from "sonner";
 
-import { PageHeader } from "@/components/shared/PageHeader";
+import { SectionHeader } from "@/components/shared/SectionHeader";
 import { Card, CardContent } from "@/components/ui/card";
+import { CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -89,20 +90,23 @@ export function UploadPage() {
   };
 
   return (
-    <>
-      <PageHeader
+    <div className="space-y-8">
+      <SectionHeader
+        icon={<Upload className="h-4 w-4" />}
         title="Upload textbook"
-        description="PDF or DOCX (max 50 MB). Processing starts automatically through the background worker."
+        description="PDF or DOCX (max 50 MB). Processing starts automatically in the background engine."
       />
 
-      <Card>
-        <CardContent className="p-6">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Drop zone */}
-            <div className="space-y-1.5">
-              <Label>
-                Source document <span className="text-red-500">*</span>
-              </Label>
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Left: source document */}
+        <div className="space-y-6 lg:col-span-2">
+          <Card>
+            <CardContent className="p-6">
+              <CardTitle className="mb-4 flex items-center gap-2 text-sm font-semibold text-ink">
+                <FileText className="h-4 w-4 text-burgundy" />
+                Source document
+              </CardTitle>
+
               <div
                 role="button"
                 tabIndex={0}
@@ -116,7 +120,7 @@ export function UploadPage() {
                 }}
                 onDragLeave={() => setDragOver(false)}
                 onDrop={handleDrop}
-                className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-12 text-center transition-colors ${
+                className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-14 text-center transition-colors ${
                   dragOver
                     ? "border-burgundy bg-burgundy-50"
                     : "border-border bg-cream-50 hover:border-burgundy/40 hover:bg-burgundy-50/40"
@@ -124,20 +128,28 @@ export function UploadPage() {
               >
                 {file ? (
                   <div className="flex flex-col items-center gap-1.5">
-                    <File className="h-8 w-8 text-burgundy-600" />
-                    <div className="text-sm font-semibold text-foreground">{file.name}</div>
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-burgundy-50 text-burgundy ring-8 ring-burgundy/[0.05]">
+                      <FileText className="h-7 w-7" />
+                    </div>
+                    <div className="mt-2 text-sm font-semibold text-foreground">
+                      {file.name}
+                    </div>
                     <div className="text-xs text-muted-foreground">
-                      {formatBytes(file.size)} — click to change
+                      {formatBytes(file.size)} — click to choose a different file
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center gap-1.5">
-                    <Upload className="h-8 w-8 text-muted-foreground" />
-                    <div className="text-sm font-semibold text-foreground">
-                      Drop your textbook here, or click to browse
+                  <>
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-cream-100 text-muted-foreground ring-8 ring-cream-200/40">
+                      <Upload className="h-7 w-7" />
                     </div>
-                    <div className="text-xs text-muted-foreground">PDF or DOCX</div>
-                  </div>
+                    <div className="mt-3 text-sm font-semibold text-foreground">
+                      Drop the textbook here, or click to browse
+                    </div>
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      PDF or DOCX · up to 50 MB
+                    </div>
+                  </>
                 )}
                 <input
                   ref={fileInputRef}
@@ -149,11 +161,13 @@ export function UploadPage() {
                   }}
                 />
               </div>
-            </div>
+            </CardContent>
+          </Card>
 
-            {/* Metadata */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
+          {/* Metadata */}
+          <Card>
+            <CardContent className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2">
+              <div className="space-y-1.5 sm:col-span-2 lg:col-span-1">
                 <Label htmlFor="title">Course name</Label>
                 <Input
                   id="title"
@@ -165,7 +179,7 @@ export function UploadPage() {
                   Defaults to the file name when generating the curriculum.
                 </p>
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 sm:col-span-2 lg:col-span-1">
                 <Label htmlFor="description">Course description</Label>
                 <Input
                   id="description"
@@ -174,8 +188,17 @@ export function UploadPage() {
                   onChange={(e) => setDescription(e.target.value)}
                 />
               </div>
-            </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right: publishing profile */}
+        <div className="space-y-6">
+          <Card>
+            <CardContent className="space-y-4 p-6">
+              <CardTitle className="text-sm font-semibold text-ink">
+                Publishing profile
+              </CardTitle>
               <div className="space-y-1.5">
                 <Label htmlFor="shortname">Moodle short name</Label>
                 <Input
@@ -185,7 +208,7 @@ export function UploadPage() {
                   onChange={(e) => setShortname(e.target.value)}
                 />
                 <p className="text-[11px] text-muted-foreground">
-                  Used as the Moodle course short name at publish time.
+                  Used at publish time.
                 </p>
               </div>
               <div className="space-y-1.5">
@@ -202,19 +225,17 @@ export function UploadPage() {
                   Defaults to the configured MOODLE_COURSE_CATEGORY_ID.
                 </p>
               </div>
-            </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor="weeks">Duration (weeks)</Label>
+                <Label htmlFor="weeks">Duration</Label>
                 <Select value={weeks} onValueChange={setWeeks}>
                   <SelectTrigger id="weeks" className="w-full">
                     <SelectValue placeholder="Choose duration" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="20">20 weeks (5 months)</SelectItem>
                     <SelectItem value="16">16 weeks (4 months)</SelectItem>
                     <SelectItem value="12">12 weeks (3 months)</SelectItem>
                     <SelectItem value="8">8 weeks (2 months)</SelectItem>
-                    <SelectItem value="20">20 weeks (5 months)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -226,36 +247,66 @@ export function UploadPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="5">5</SelectItem>
-                    <SelectItem value="4">4</SelectItem>
                     <SelectItem value="6">6</SelectItem>
                     <SelectItem value="7">7</SelectItem>
+                    <SelectItem value="4">4</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-            </div>
+            </CardContent>
+          </Card>
 
-            {/* Upload button & progress */}
-            <div className="space-y-3">
-              <Button type="submit" disabled={uploading}>
-                {uploading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Uploading…
-                  </>
-                ) : (
-                  "Upload and begin processing"
-                )}
-              </Button>
-              {uploading && (
-                <div className="space-y-1.5">
-                  <Progress value={progress} />
-                  <p className="text-xs text-muted-foreground">{statusText}</p>
+          <Card className="border-burgundy/15 bg-burgundy-50/40">
+            <CardContent className="space-y-3 p-6">
+              <CardTitle className="flex items-center gap-2 text-sm font-semibold text-ink">
+                <span className="flex h-6 w-6 items-center justify-center rounded-md bg-ai/10 text-ai">
+                  <span className="font-mono text-[11px] font-bold">AI</span>
+                </span>
+                What happens next
+              </CardTitle>
+              {PIPELINE_HINTS.map((hint) => (
+                <div key={hint} className="flex items-start gap-2.5">
+                  <span className="mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                    <Check className="h-3 w-3" />
+                  </span>
+                  <span className="text-xs leading-relaxed text-ink/80">{hint}</span>
                 </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Footer */}
+        <div className="lg:col-span-3">
+          <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-card">
+            <Button type="submit" disabled={uploading} size="lg" className="w-full">
+              {uploading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {statusText || "Uploading…"}
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4" />
+                  Upload and begin processing
+                </>
               )}
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </>
+            </Button>
+            {uploading && (
+              <div className="space-y-1.5">
+                <Progress value={progress} />
+                <p className="text-right text-xs text-muted-foreground">{statusText}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </form>
+    </div>
   );
 }
+
+const PIPELINE_HINTS = [
+  "Text is extracted and normalized from the source",
+  "AI analysis detects chapters, sections and topics",
+  "A 16-week curriculum is planned for your review",
+];

@@ -9,16 +9,19 @@ import {
   Clock,
   Target,
   CornerDownRight,
+  ArrowRight,
+  Loader,
 } from "lucide-react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/shared/PageHeader";
+import { SectionHeader } from "@/components/shared/SectionHeader";
 import { LoadingState } from "@/components/shared/LoadingState";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { StatusBadge } from "@/components/shared/StatusBadge";
-import { PipelineStepper } from "@/components/shared/PipelineStepper";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { IngestionStepper } from "@/components/shared/IngestionStepper";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TopicCard } from "@/components/analysis/TopicCard";
 import { DependencyGraph } from "@/components/analysis/DependencyGraph";
@@ -195,20 +198,30 @@ export function DocumentDetailPage() {
 
   const selectedTopic = selectedTopicId ? (topicMap.get(selectedTopicId) ?? null) : null;
 
+  const approvedCurriculum = curricula.find((c) => c.status === "approved");
+  const publishedCurriculum = curricula.find((c) => c.status === "published");
+  const firstCurriculum = curricula[0];
+
   return (
     <>
       <PageHeader
+        eyebrow="Analysis workspace"
         title={d.original_filename}
-        description={`${formatBytes(d.size_bytes)} · Uploaded ${formatDate(d.created_at)} · SHA ${d.sha256_hash.slice(0, 16)}…`}
+        meta={`${formatBytes(d.size_bytes)} · Uploaded ${formatDate(d.created_at)} · SHA ${d.sha256_hash.slice(0, 16)}…`}
         actions={
           <div className="flex gap-2">
             {doc.topic_count > 0 && curricula.length === 0 && (
               <Button
                 onClick={handleDependenciesAndGenerate}
                 disabled={generating}
-                variant="default"
               >
-                {generating ? "Generating…" : "Resolve dependencies → Generate curriculum"}
+                {generating ? (
+                  <>
+                    <Loader className="h-4 w-4 animate-spin" /> Generating…
+                  </>
+                ) : (
+                  "Resolve dependencies → Generate curriculum"
+                )}
               </Button>
             )}
             {readyForPipeline && (
@@ -233,7 +246,7 @@ export function DocumentDetailPage() {
       />
 
       {/* Status grid */}
-      <div className="mb-5 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <Stat label="Latest job" value={job ? null : "Not processed"}>
           {job && <StatusBadge {...ingestBadge(job.status)} />}
         </Stat>
@@ -244,18 +257,60 @@ export function DocumentDetailPage() {
         <Stat label="Curricula" value={doc.curriculum_count} />
       </div>
 
-      {/* Pipeline stepper */}
+      {/* Pipeline */}
       {job && (
-        <div className="mb-5">
-          <PipelineStepper jobStatus={job.status} />
-        </div>
+        <Card className="mb-5">
+          <CardHeader className="pb-3">
+            <SectionHeader
+              icon={<BrainCircuit className="h-4 w-4" />}
+              title="Pipeline progress"
+              hint={job ? `started ${formatTimeSafe(job.started_at)}` : undefined}
+              action={<StatusBadge {...ingestBadge(job.status)} />}
+            />
+          </CardHeader>
+          <CardContent className="px-6 pb-6 pt-1">
+            {isActiveJob(job.status) && (
+              <div className="mb-4 flex items-center gap-2 rounded-lg border border-burgundy/20 bg-burgundy-50 px-4 py-2.5 text-xs text-burgundy-800">
+                <Loader className="h-3.5 w-3.5 animate-spin" />
+                Processing in background — this screen refreshes automatically.
+              </div>
+            )}
+            <IngestionStepper
+              jobStatus={job.status}
+              trailing={[
+                {
+                  key: "curriculum",
+                  label: "Curriculum",
+                  detail: "Generate the course plan",
+                  state: firstCurriculum ? "done" : "pending",
+                  to: firstCurriculum ? `/curriculum/${firstCurriculum.id}` : undefined,
+                },
+                {
+                  key: "review",
+                  label: "Review",
+                  detail: "Lecturer review before publish",
+                  state: approvedCurriculum ? "done" : "pending",
+                  to: approvedCurriculum ? `/curriculum/${approvedCurriculum.id}` : undefined,
+                },
+                {
+                  key: "publish",
+                  label: "Publish to Moodle",
+                  detail: "Push approved course",
+                  state: publishedCurriculum ? "done" : "pending",
+                  to: publishedCurriculum ? `/publish/${publishedCurriculum.id}` : undefined,
+                },
+              ]}
+            />
+          </CardContent>
+        </Card>
       )}
 
-      {/* Job running message */}
-      {job && isActiveJob(job.status) && (
-        <div className="mb-5 flex items-center gap-2 rounded-lg border border-burgundy/20 bg-burgundy-50 px-4 py-2.5 text-xs text-burgundy-800">
-          <div className="h-2 w-2 animate-pulse rounded-full bg-burgundy" />
-          Processing in background — this screen refreshes automatically.
+      {/* Traceability strip when pipeline is done */}
+      {job && (job.status === "approved" || job.status === "completed") && (
+        <div className="mb-5 rounded-xl border border-border bg-card px-4 py-3 text-[11px] text-muted-foreground shadow-card">
+          Pipeline completed — text was derived from <strong className="font-semibold text-ink">source-derived</strong>{" "}
+          extraction with <strong className="font-semibold text-ink">AI-assisted</strong> topic detection. Review the
+          curriculum below before publishing.
         </div>
       )}
 
@@ -275,16 +330,17 @@ export function DocumentDetailPage() {
 
       {/* Knowledge map / AI analysis */}
       <Card className="mb-5">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BrainCircuit className="h-4 w-4 text-burgundy" />
-            Knowledge map &amp; topics
-          </CardTitle>
+        <CardHeader className="pb-3">
+          <SectionHeader
+            icon={<BrainCircuit className="h-4 w-4" />}
+            title="Knowledge map &amp; topics"
+            hint={doc.topic_count > 0 ? `${flatTopics.length} nodes` : undefined}
+          />
         </CardHeader>
         <CardContent>
           {doc.topic_count === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-muted/20 px-6 py-12 text-center">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-burgundy-50 text-burgundy">
+            <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-cream-50 px-6 py-12 text-center">
+              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-burgundy-50 text-burgundy ring-8 ring-burgundy/[0.05]">
                 <BrainCircuit className="h-5 w-5" />
               </span>
               <p className="mt-3 text-sm font-semibold text-foreground">
@@ -313,12 +369,14 @@ export function DocumentDetailPage() {
           ) : (
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
               <div className="min-w-0 lg:col-span-2">
-                <DependencyGraph
-                  topics={topics}
-                  graph={derivedGraph}
-                  selectedTopicId={selectedTopicId}
-                  onSelectTopic={setSelectedTopicId}
-                />
+                <div className="rounded-xl border border-border bg-cream-50/50 p-3">
+                  <DependencyGraph
+                    topics={topics}
+                    graph={derivedGraph}
+                    selectedTopicId={selectedTopicId}
+                    onSelectTopic={setSelectedTopicId}
+                  />
+                </div>
                 <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
                   Order shown is the AI-assessed learning sequence.{" "}
                   {resolvedEdgeCount > 0
@@ -332,10 +390,10 @@ export function DocumentDetailPage() {
               <aside className="min-w-0">
                 <div className="mb-2 flex items-center justify-between">
                   <h4 className="text-sm font-semibold text-foreground">
-                    Topics ({topics.length})
+                    Topics ({flatTopics.length})
                   </h4>
                   <span className="text-[11px] text-muted-foreground">
-                    top-level
+                    incl. subtopics
                   </span>
                 </div>
                 <div className="max-h-[520px] space-y-2 overflow-y-auto pr-1">
@@ -351,7 +409,7 @@ export function DocumentDetailPage() {
                 </div>
 
                 {selectedTopic && (
-                  <div className="mt-3 rounded-lg border border-burgundy/20 bg-burgundy-50/40 p-4">
+                  <div className="mt-3 rounded-xl border border-border bg-card p-4 shadow-card">
                     <div className="flex items-start justify-between gap-2">
                       <h4 className="text-sm font-semibold text-foreground">
                         {selectedTopic.title}
@@ -431,15 +489,16 @@ export function DocumentDetailPage() {
 
       {/* Curriculum list */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CalendarRange className="h-4 w-4 text-muted-foreground" />
-            Curricula for this document
-          </CardTitle>
+        <CardHeader className="pb-3">
+          <SectionHeader
+            icon={<CalendarRange className="h-4 w-4" />}
+            title="Curricula for this document"
+            hint={curricula.length > 0 ? `${curricula.length} version${curricula.length !== 1 ? "s" : ""}` : undefined}
+          />
         </CardHeader>
         <CardContent>
           {curricula.length === 0 ? (
-            <div className="py-10 text-center text-sm text-muted-foreground">
+            <div className="rounded-xl border border-dashed border-border bg-cream-50 px-6 py-10 text-center text-sm text-muted-foreground">
               {doc.topic_count > 0 && !generating
                 ? "No curriculum generated yet — click the pipeline button above to begin."
                 : doc.topic_count === 0 && !job
@@ -454,21 +513,29 @@ export function DocumentDetailPage() {
                   <Link
                     key={c.id}
                     to={`/curriculum/${c.id}`}
-                    className="flex items-center justify-between rounded-lg border border-border px-4 py-3 transition-colors hover:border-burgundy/30 hover:bg-burgundy-50/40"
+                    className="group flex items-center gap-4 rounded-xl border border-border bg-card px-4 py-3.5 shadow-card transition-all hover:border-burgundy/30 hover:shadow-lift"
                   >
-                    <div>
-                      <div className="text-sm font-semibold text-foreground">
-                        {c.title}
-                        <span className="ml-1.5 text-[11px] font-normal text-muted-foreground">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-burgundy-50 text-burgundy ring-4 ring-burgundy/[0.04]">
+                      <CalendarRange className="h-[18px] w-[18px]" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="truncate text-sm font-semibold text-foreground">
+                          {c.title}
+                        </span>
+                        <span className="rounded-md bg-cream-100 px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
                           v{c.version_number}
                         </span>
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        {c.total_weeks} weeks · {formatWorkload(c.units)} total workload · generated{" "}
-                        {formatDate(c.created_at)}
+                      <div className="mt-0.5 text-xs text-muted-foreground">
+                        {c.total_weeks} weeks · {formatWorkload(c.units)} total workload ·
+                        generated {formatDate(c.created_at)}
                       </div>
                     </div>
-                    <StatusBadge {...cb} />
+                    <div className="flex shrink-0 items-center gap-2">
+                      <StatusBadge {...cb} />
+                      <ArrowRight className="h-4 w-4 text-muted-foreground/50 transition-transform group-hover:translate-x-0.5 group-hover:text-burgundy" />
+                    </div>
                   </Link>
                 );
               })}
@@ -490,11 +557,24 @@ function Stat({
   children?: ReactNode;
 }) {
   return (
-    <div className="rounded-lg border border-border bg-card px-3.5 py-2.5">
-      <div className="text-[11px] text-muted-foreground">{label}</div>
-      <div className="mt-0.5 font-semibold text-foreground">
+    <div className="rounded-xl border border-border bg-card px-3.5 py-3 shadow-card">
+      <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+        <span aria-hidden className="h-1 w-1 rounded-full bg-burgundy/60" />
+        {label}
+      </div>
+      <div className="tnum mt-1 text-lg font-bold text-ink">
         {children ?? value ?? "—"}
       </div>
     </div>
   );
+}
+
+function formatTimeSafe(value: string | null | undefined): string {
+  if (!value) return "recently";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "recently";
+  return date.toLocaleString(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }

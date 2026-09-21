@@ -7,6 +7,8 @@ const toneToVariant: Record<Tone, BadgeProps["variant"]> = {
   success: "success",
   warning: "warning",
   danger: "danger",
+  info: "info",
+  ai: "ai",
 };
 
 interface StatusBadgeProps extends BadgeProps {

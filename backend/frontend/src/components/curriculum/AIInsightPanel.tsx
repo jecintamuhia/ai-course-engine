@@ -1,4 +1,4 @@
-import { Lightbulb, Info } from "lucide-react";
+import { Sparkles, Info } from "lucide-react";
 
 import { formatMinutes } from "@/lib/format";
 import type { CurriculumDetailRead, CurriculumUnitRead, TopicRead } from "@/lib/types";
@@ -31,13 +31,26 @@ export function AIInsightPanel({ curriculum, topics, selectedUnit }: AIInsightPa
   units.forEach((u) => u.topics.forEach((t) => uniqueTopics.add(t.title)));
 
   return (
-    <div className="flex flex-col gap-4 rounded-lg border border-border bg-card p-4">
-      <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-        <Lightbulb className="h-4 w-4 text-amber-500" />
-        Curriculum intelligence
+    <div className="flex flex-col gap-4 rounded-xl border border-ai/15 bg-card p-4 shadow-card">
+      <div className="relative overflow-hidden">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute right-2 top-0 h-16 w-16 rounded-full bg-ai/[0.07] blur-2xl"
+        />
+        <div className="relative inline-flex items-center gap-2">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-ai/10 text-ai">
+            <Sparkles className="h-3.5 w-3.5" />
+          </span>
+          <div>
+            <div className="text-sm font-semibold text-ink">Curriculum intelligence</div>
+            <div className="text-[10px] font-medium uppercase tracking-[0.14em] text-ai">
+              AI-generated planning view
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 text-center">
+      <div className="grid grid-cols-2 gap-2.5">
         <InsightStat value={curriculum.total_weeks} label="Weeks" />
         <InsightStat value={formatMinutes(total)} label="Total workload" />
         <InsightStat value={formatMinutes(avg)} label="Avg / week" />
@@ -46,16 +59,18 @@ export function AIInsightPanel({ curriculum, topics, selectedUnit }: AIInsightPa
         <InsightStat value={`${curriculum.hours_per_day}h/day`} label="Daily hours" />
       </div>
 
-      <div className="rounded-lg border border-amber-100 bg-amber-50 p-3 text-xs text-amber-800">
-        <strong>Workload spread:</strong> {formatMinutes(minW)} to {formatMinutes(maxW)} per week —
+      <div className="rounded-lg border border-amber-100 bg-amber-50 p-3 text-xs leading-relaxed text-amber-800">
+        <strong className="font-semibold">Workload spread:</strong> {formatMinutes(minW)} to{" "}
+        {formatMinutes(maxW)} per week —
         {maxW > minW * 2
           ? " consider rebalancing as the variance is significant."
           : " the workload distribution is well-balanced."}
       </div>
 
       {selectedUnit && selectedUnit.topics.length > 0 && (
-        <div className="rounded-lg border border-burgundy/15 bg-burgundy-50/60 p-3 text-xs text-burgundy-900">
-          <strong>Week {selectedUnit.week_number}:</strong> {selectedUnit.topics.length} topic{selectedUnit.topics.length !== 1 && "s"} covering{" "}
+        <div className="rounded-lg border border-burgundy/15 bg-burgundy-50/60 p-3 text-xs leading-relaxed text-burgundy-900">
+          <strong className="font-semibold">Week {selectedUnit.week_number}:</strong>{" "}
+          {selectedUnit.topics.length} topic{selectedUnit.topics.length !== 1 && "s"} covering{" "}
           {selectedUnit.topics.map((t) => t.title).join(", ")}.
         </div>
       )}
@@ -72,9 +87,9 @@ export function AIInsightPanel({ curriculum, topics, selectedUnit }: AIInsightPa
 
 function InsightStat({ value, label }: { value: string | number; label: string }) {
   return (
-    <div className="rounded-lg bg-muted/40 px-2 py-2">
-      <div className="text-base font-bold text-foreground">{value}</div>
-      <div className="text-[10px] text-muted-foreground">{label}</div>
+    <div className="rounded-lg bg-cream-100/70 px-2 py-2.5 text-center">
+      <div className="tnum text-base font-bold text-ink">{value}</div>
+      <div className="mt-0.5 text-[10px] font-medium text-muted-foreground">{label}</div>
     </div>
   );
 }
