@@ -115,68 +115,45 @@ class TestMissingCapability:
         assert "course:create" in issues[0].admin_action
 
     @pytest.mark.anyio
-    async def test_missing_page_capability_reported(self):
+    async def test_missing_page_function_reports_content_api_unavailable(self):
         info = {
             **DEFAULT_SITE_INFO,
             "functions": [
                 name
                 for name in ALL_FUNCTIONS
-                if name != "mod_page_add_instance"
+                if name != "local_ai_course_engine_add_page"
             ],
         }
         client = FakeClient(site_info=info)
         result = await run_readiness_check(client, category_id=1)
 
         assert result.ready is False
-        issues = _finding_issue(result, MoodleIssueKind.MISSING_CAPABILITY)
-        assert issues[0].ws_function == "mod_page_add_instance"
+        issues = _finding_issue(result, MoodleIssueKind.CONTENT_API_UNAVAILABLE)
+        assert issues[0].ws_function == "local_ai_course_engine_add_page"
         assert issues[0].capability == "mod/page:addinstance"
+        assert "ai_course_engine plugin" in issues[0].admin_action
 
 
-class TestUnsupportedFunction:
+class TestContentPluginFunctions:
     @pytest.mark.anyio
-    async def test_section_functions_flagged_unsupported_on_old_moodle(self):
+    async def test_missing_plugin_function_reports_content_api_unavailable(self):
         info = {
             **DEFAULT_SITE_INFO,
-            "release": "3.11.5",
             "functions": [
                 name
                 for name in ALL_FUNCTIONS
-                if name
-                not in (
-                    "core_course_create_sections",
-                    "core_course_update_sections",
-                )
+                if name != "local_ai_course_engine_update_section"
             ],
         }
         client = FakeClient(site_info=info)
         result = await run_readiness_check(client, category_id=1)
 
         assert result.ready is False
-        unsupported = _finding_issue(result, MoodleIssueKind.UNSUPPORTED_FUNCTION)
-        assert len(unsupported) == 2
-        assert {i.ws_function for i in unsupported} == {
-            "core_course_create_sections",
-            "core_course_update_sections",
-        }
-        assert "4.0" in unsupported[0].message
-
-    @pytest.mark.anyio
-    async def test_same_function_is_capability_problem_on_new_moodle(self):
-        info = {
-            **DEFAULT_SITE_INFO,
-            "functions": [
-                name
-                for name in ALL_FUNCTIONS
-                if name != "core_course_create_sections"
-            ],
-        }
-        client = FakeClient(site_info=info)
-        result = await run_readiness_check(client, category_id=1)
-
-        assert _finding_issue(result, MoodleIssueKind.UNSUPPORTED_FUNCTION) == []
-        missing = _finding_issue(result, MoodleIssueKind.MISSING_CAPABILITY)
-        assert any(i.ws_function == "core_course_create_sections" for i in missing)
+        issues = _finding_issue(result, MoodleIssueKind.CONTENT_API_UNAVAILABLE)
+        assert len(issues) == 1
+        assert issues[0].ws_function == "local_ai_course_engine_update_section"
+        assert issues[0].capability == "moodle/course:update"
+        assert "core_course_edit_section" in issues[0].admin_action
 
 
 class TestInvalidCategory:
@@ -227,6 +204,25 @@ class TestAuthAndTransient:
         result = await run_readiness_check(client, category_id=1)
 
         assert _finding_issue(result, MoodleIssueKind.INVALID_TOKEN)
+
+    @pytest.mark.anyio
+    async def test_accessexception_reports_missing_capability(self):
+        client = FakeClient(
+            site_info_error=MoodleIntegrationError(
+                "Access exception.",
+                details={
+                    "function": "core_webservice_get_site_info",
+                    "errorcode": "accessexception",
+                },
+            )
+        )
+        result = await run_readiness_check(client, category_id=1)
+
+        assert result.ready is False
+        issues = _finding_issue(result, MoodleIssueKind.MISSING_CAPABILITY)
+        assert len(issues) == 1
+        assert issues[0].ws_function == "core_webservice_get_site_info"
+        assert "core_course_get_contents" in issues[0].admin_action
 
     @pytest.mark.anyio
     async def test_transport_timeout_reports_transient_failure(self):

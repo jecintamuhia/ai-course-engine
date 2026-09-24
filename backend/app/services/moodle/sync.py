@@ -441,14 +441,13 @@ class MoodleSyncService:
         plan: MoodleCoursePlan,
     ) -> tuple[int, int]:
         """
-        Ensure weekly sections exist with correct names/summaries and
-        that each section contains its page resource. Returns
-        (sections_published, resources_published).
+        Ensure weekly sections have correct names/summaries and that each
+        section contains its page resource. ``update_section`` upserts
+        (the plugin creates a missing section), so the weekly sections
+        auto-created by ``create_courses`` are named in place.
+        Returns (sections_published, resources_published).
         """
         contents = await self._client.get_course_contents(moodle_course_id)
-        sections_by_number = {
-            int(section.get("section", -1)): section for section in contents
-        }
         modules_by_section: dict[int, list[dict]] = {}
         for section in contents:
             number = int(section.get("section", -1))
@@ -459,24 +458,14 @@ class MoodleSyncService:
 
         for week in plan.weeks:
             number = week.section_number
-            section = sections_by_number.get(number)
 
-            if section is None:
-                await self._client.create_section(
-                    moodle_course_id,
-                    section_number=number,
-                    name=week.section_name,
-                    summary=week.section_summary_html,
-                )
-                sections_published = max(sections_published, number)
-            else:
-                await self._client.update_section(
-                    moodle_course_id,
-                    section_id=int(section["id"]),
-                    name=week.section_name,
-                    summary=week.section_summary_html,
-                )
-                sections_published = max(sections_published, number)
+            await self._client.update_section(
+                moodle_course_id,
+                section_number=number,
+                name=week.section_name,
+                summary=week.section_summary_html,
+            )
+            sections_published = max(sections_published, number)
 
             existing_pages = [
                 module

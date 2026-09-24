@@ -29,6 +29,15 @@ from app.services.moodle.client import MoodleClient
 # releases). Missing a capability produces a MISSING_CAPABILITY issue;
 # a function that predates the connected Moodle produces an
 # UNSUPPORTED_FUNCTION issue.
+#
+# The core_* entries are standard Moodle web services. The
+# local_ai_course_engine_* entries are provided by the bundled Moodle
+# local plugin (moodle-plugin/local/ai_course_engine): core Moodle ships
+# no web service that can name course sections or create Page activity
+# resources (core_course_edit_section only changes visibility/marker/
+# deletion, and no mod_page_* web service exists). Missing local plugin
+# functions are reported as CONTENT_API_UNAVAILABLE issues.
+CONTENT_FUNCTION_PREFIX = "local_ai_course_engine_"
 FUNCTION_REQUIREMENTS: dict[str, dict[str, Any]] = {
     "core_webservice_get_site_info": {
         "capability": None,
@@ -60,17 +69,12 @@ FUNCTION_REQUIREMENTS: dict[str, dict[str, Any]] = {
         "since": None,
         "detail": "Update course names/summary on re-publish.",
     },
-    "core_course_create_sections": {
+    "local_ai_course_engine_update_section": {
         "capability": "moodle/course:update",
-        "since": "4.0",
-        "detail": "Create weekly course sections.",
+        "since": None,
+        "detail": "Name and summarise the weekly course sections.",
     },
-    "core_course_update_sections": {
-        "capability": "moodle/course:update",
-        "since": "4.0",
-        "detail": "Update weekly section names/summaries.",
-    },
-    "mod_page_add_instance": {
+    "local_ai_course_engine_add_page": {
         "capability": "mod/page:addinstance",
         "since": None,
         "detail": "Add the weekly 'Page' activity resources.",
@@ -87,6 +91,7 @@ class MoodleIssueKind(str, enum.Enum):
     AUTH_FAILURE = "auth_failure"
     MISSING_CAPABILITY = "missing_capability"
     UNSUPPORTED_FUNCTION = "unsupported_function"
+    CONTENT_API_UNAVAILABLE = "content_api_unavailable"
     INVALID_CATEGORY = "invalid_category"
     TRANSIENT_FAILURE = "transient_failure"
 
@@ -321,6 +326,29 @@ async def run_readiness_check(
                     recoverable=True,
                 )
             )
+        elif name.startswith(CONTENT_FUNCTION_PREFIX):
+            issues.append(
+                MoodleReadinessIssue(
+                    kind=MoodleIssueKind.CONTENT_API_UNAVAILABLE,
+                    ws_function=name,
+                    capability=requirement["capability"],
+                    message=(
+                        f"{name} is not available from the connected Moodle. "
+                        f"{requirement['detail']}"
+                    ),
+                    admin_action=(
+                        "Moodle core provides no web service that can name "
+                        "course sections or create Page activity resources "
+                        "(core_course_edit_section only changes "
+                        "visibility/marker/deletion). Install the bundled "
+                        "local ai_course_engine plugin "
+                        "(moodle-plugin/local/ai_course_engine) and add its "
+                        "local_ai_course_engine_* functions to the token's "
+                        "external service."
+                    ),
+                    recoverable=True,
+                )
+            )
         else:
             detail = requirement["detail"]
             message = (
@@ -342,7 +370,7 @@ async def run_readiness_check(
                             f" Required capability: {requirement['capability']}."
                             if requirement["capability"] is not None
                             else ""
-                        )
+                         )
                     ),
                     recoverable=True,
                 )
@@ -447,11 +475,21 @@ def _connectivity_checks(
         MoodleIssueKind.TRANSIENT_FAILURE,
         MoodleIssueKind.INVALID_PARAMETER,
     )
+    connection_ok = (
+        first_issue.kind == MoodleIssueKind.MISSING_CAPABILITY
+        and first_issue.ws_function is not None
+    )
     checks: list[MoodleReadinessCheck] = [
         MoodleReadinessCheck(
             label="Moodle connection & API access",
-            status=MoodleCheckStatus.ERROR,
+            status=(
+                MoodleCheckStatus.OK
+                if connection_ok
+                else MoodleCheckStatus.ERROR
+            ),
             detail=(
+                "Moodle responded but refused the requested web service "
+                "function." if connection_ok else
                 "Moodle could not be reached or did not respond. "
                 "Readiness cannot be evaluated."
             ),
@@ -467,7 +505,12 @@ def _connectivity_checks(
             detail=(
                 "Cannot be confirmed while Moodle is unreachable."
                 if transient_issue
-                else "Moodle rejected the web service token."
+                else (
+                    "Moodle accepted the web service token but refused the "
+                    "requested web service function."
+                    if connection_ok
+                    else "Moodle rejected the web service token."
+                )
             ),
             verification=(
                 MoodleCheckVerification.NOT_VERIFIABLE
@@ -662,6 +705,29 @@ def _classify_connectivity_issue(exc: MoodleIntegrationError) -> MoodleReadiness
     http_status = details.get("http_status")
     errorcode = details.get("errorcode")
     function = details.get("function")
+
+    if errorcode == "accessexception":
+        return MoodleReadinessIssue(
+            kind=MoodleIssueKind.MISSING_CAPABILITY,
+            ws_function=function,
+            message=(
+                "Moodle accepted the web service token but refused the "
+                "requested web service function. The function is registered "
+                "on the site but is not included in the token's external "
+                "service, or the token's user lacks its capability."
+            ),
+            admin_action=(
+                "In Moodle: Site administration → Plugins → Web services → "
+                "External services, add the required functions to the token's "
+                "service and grant the required capabilities: "
+                "core_webservice_get_site_info, core_course_get_categories, "
+                "core_course_get_courses_by_field, core_course_get_contents, "
+                "core_course_create_courses, core_course_update_courses, "
+                "local_ai_course_engine_update_section, "
+                "local_ai_course_engine_add_page."
+            ),
+            recoverable=True,
+        )
 
     if errorcode == "invalidtoken" or http_status == 403:
         return MoodleReadinessIssue(

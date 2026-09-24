@@ -17,21 +17,12 @@ from app.api.v1.curriculum import get_curriculum_service
 from app.core.exceptions import MoodleIntegrationError
 from app.main import app
 from app.services.moodle.client import MoodleClient
+from app.services.moodle.preflight import FUNCTION_REQUIREMENTS
 
 STATUS_URL = "/api/v1/moodle/status"
 PREFLIGHT_URL = "/api/v1/moodle/preflight"
 
-ALL_FUNCTIONS = [
-    "core_webservice_get_site_info",
-    "core_course_get_categories",
-    "core_course_get_courses_by_field",
-    "core_course_get_contents",
-    "core_course_create_courses",
-    "core_course_update_courses",
-    "core_course_create_sections",
-    "core_course_update_sections",
-    "mod_page_add_instance",
-]
+ALL_FUNCTIONS = list(FUNCTION_REQUIREMENTS)
 
 
 def _form(body: bytes) -> dict[str, str]:

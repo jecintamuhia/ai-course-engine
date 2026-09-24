@@ -212,54 +212,75 @@ class TestCreateCourse:
 
 
 # ---------------------------------------------------------------------------
-# create_section / update_section
+# update_section / add_page_module (local plugin web service functions)
 # ---------------------------------------------------------------------------
 
 
 class TestSections:
     @pytest.mark.anyio
-    async def test_creates_section_with_expected_params(self):
+    async def test_update_section_upserts_with_expected_params(self):
         sent = {}
 
         def handler(request):
             sent.update(_form(request.content))
-            return _json_response({"id": 9})
+            return _json_response({"section": 3})
 
         client = _make_client(handler)
-        result = await client.create_section(
+        result = await client.update_section(
             42,
             section_number=3,
             name="Week 3",
             summary="<p>Summary</p>",
         )
 
-        assert result["id"] == 9
-        assert sent["wsfunction"] == "core_course_create_sections"
-        assert sent["sections[0][section]"] == "3"
-        assert sent["sections[0][name]"] == "Week 3"
-        assert sent["sections[0][summary]"] == "<p>Summary</p>"
+        assert result["section"] == 3
+        assert sent["wsfunction"] == "local_ai_course_engine_update_section"
+        assert sent["courseid"] == "42"
+        assert sent["section"] == "3"
+        assert sent["name"] == "Week 3"
+        assert sent["summary"] == "<p>Summary</p>"
+        assert sent["summaryformat"] == "1"
 
+
+class TestAddPageModule:
     @pytest.mark.anyio
-    async def test_updates_section_with_id_and_params(self):
+    async def test_adds_page_with_expected_params(self):
         sent = {}
 
         def handler(request):
             sent.update(_form(request.content))
-            return _json_response({"id": 9})
+            return _json_response({"cmid": 18})
 
         client = _make_client(handler)
-        result = await client.update_section(
+        result = await client.add_page_module(
             42,
-            9,
-            name="Week 3 (updated)",
-            summary="<p>New text</p>",
+            section_number=3,
+            name="Week 3",
+            content_html="<p>Content</p>",
         )
 
-        assert result["id"] == 9
-        assert sent["wsfunction"] == "core_course_update_sections"
-        assert sent["sections[0][id]"] == "9"
-        assert sent["sections[0][name]"] == "Week 3 (updated)"
-        assert sent["sections[0][summary]"] == "<p>New text</p>"
+        assert result == 18
+        assert sent["wsfunction"] == "local_ai_course_engine_add_page"
+        assert sent["courseid"] == "42"
+        assert sent["section"] == "3"
+        assert sent["name"] == "Week 3"
+        assert sent["content"] == "<p>Content</p>"
+        assert sent["contentformat"] == "1"
+
+    @pytest.mark.anyio
+    async def test_adds_page_returns_none_without_cmid(self):
+        def handler(request):
+            return _json_response([])
+
+        client = _make_client(handler)
+        result = await client.add_page_module(
+            42,
+            section_number=1,
+            name="Week 1",
+            content_html="<p>Content</p>",
+        )
+
+        assert result is None
 
 
 # ---------------------------------------------------------------------------

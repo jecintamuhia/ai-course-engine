@@ -195,10 +195,10 @@ class TestPublishCurriculum:
         await s.publish_curriculum(c.id)
 
         assert client.add_page_module.await_count == 2
-        assert client.create_section.await_count == 2
+        assert client.update_section.await_count == 2
 
     @pytest.mark.anyio
-    async def test_updates_existing_sections_instead_of_creating(self):
+    async def test_updates_sections_by_number_instead_of_creating(self):
         c = _make_curriculum(status=CurriculumStatus.APPROVED, week_count=2)
         s, client, repo, course_repo, _ = _make_service(curriculum=c)
 
@@ -217,8 +217,9 @@ class TestPublishCurriculum:
         await s.publish_curriculum(c.id)
 
         assert client.update_section.await_count == 2
-        assert client.create_section.await_count == 0
         assert client.add_page_module.await_count == 2
+        for call in client.update_section.call_args_list:
+            assert call.kwargs["section_number"] in (1, 2)
 
     @pytest.mark.anyio
     async def test_republish_does_not_duplicate_page_modules(self):
@@ -245,7 +246,6 @@ class TestPublishCurriculum:
         await s.publish_curriculum(c.id)
 
         assert client.update_section.await_count == 2
-        assert client.create_section.await_count == 0
         assert client.add_page_module.await_count == 0
 
 
@@ -493,7 +493,7 @@ class TestPublishResumableRetry:
         assert result.created is False
         assert client.create_course.await_count == 1
         assert client.add_page_module.await_count == 2
-        assert client.update_section.await_count == 2
+        assert client.update_section.await_count == 4
         assert partial.status == CourseStatus.SYNCED
         assert partial.sync_error is None
         assert c.status == CurriculumStatus.PUBLISHED

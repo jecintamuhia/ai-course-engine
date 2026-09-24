@@ -219,41 +219,26 @@ class MoodleClient:
     async def update_section(
         self,
         course_id: int,
-        section_id: int,
-        *,
-        name: str,
-        summary: str,
-    ) -> Any:
-        """Rename/re-summarize an existing course section."""
-        return await self._call(
-            "core_course_update_sections",
-            courseid=course_id,
-            **{
-                "sections[0][id]": section_id,
-                "sections[0][name]": name,
-                "sections[0][summary]": summary,
-                "sections[0][summaryformat]": 1,
-            },
-        )
-
-    async def create_section(
-        self,
-        course_id: int,
         *,
         section_number: int,
         name: str,
         summary: str,
     ) -> Any:
-        """Create a new section at the given position in a course."""
+        """
+        Name and summarise a course section (creating it if needed).
+
+        Standard Moodle web services cannot set a section name or summary
+        (core_course_edit_section only changes visibility/marker/deletion),
+        so this uses the ``local_ai_course_engine_update_section`` function
+        provided by the bundled local Moodle plugin.
+        """
         return await self._call(
-            "core_course_create_sections",
+            "local_ai_course_engine_update_section",
             courseid=course_id,
-            **{
-                "sections[0][section]": section_number,
-                "sections[0][name]": name,
-                "sections[0][summary]": summary,
-                "sections[0][summaryformat]": 1,
-            },
+            section=section_number,
+            name=name,
+            summary=summary,
+            summaryformat=1,
         )
 
     async def add_page_module(
@@ -264,9 +249,15 @@ class MoodleClient:
         name: str,
         content_html: str,
     ) -> int | None:
-        """Add a 'Page' activity module to a section; return its instance id."""
+        """
+        Add a 'Page' activity module to a section; return its cm id.
+
+        Core Moodle registers no web service that creates a module
+        instance, so this uses the ``local_ai_course_engine_add_page``
+        function provided by the bundled local Moodle plugin.
+        """
         data = await self._call(
-            "mod_page_add_instance",
+            "local_ai_course_engine_add_page",
             courseid=course_id,
             section=section_number,
             name=name,
@@ -274,10 +265,10 @@ class MoodleClient:
             contentformat=1,
         )
         if isinstance(data, dict):
-            return data.get("id")
+            return data.get("cmid")
         if isinstance(data, list) and data:
             first = data[0]
-            return first.get("id") if isinstance(first, dict) else int(first)
+            return first.get("cmid") if isinstance(first, dict) else int(first)
         if isinstance(data, int):
             return data
         return None

@@ -19,9 +19,16 @@ All functions below must be registered for the external service token
 | `core_course_get_contents` | `moodle/course:view` | Read sections + modules |
 | `core_course_create_courses` | `moodle/course:create` | **BLOCKED** — currently missing |
 | `core_course_update_courses` | `moodle/course:update` | Update fullname/shortname |
-| `core_course_create_sections` | `moodle/course:update` | Moodle 4.0+ only |
-| `core_course_update_sections` | `moodle/course:update` | Section name sync |
-| `mod_page_add_instance` | `mod/page:addinstance` | Create page modules |
+| `local_ai_course_engine_update_section` | `moodle/course:update` | Name/summarise a section (plugin) |
+| `local_ai_course_engine_add_page` | `mod/page:addinstance` | Add a Page activity (plugin) |
+
+The two `local_ai_course_engine_*` functions are provided by the bundled
+**local Moodle plugin** (`moodle-plugin/local/ai_course_engine`). Moodle
+core ships no web service that can name a course section or create an
+activity instance: `core_course_edit_section`/`core_course_edit_module`
+only change visibility/marker/deletion, and no `mod_page_*` web service
+exists. A missing plugin function is reported as a
+`content_api_unavailable` issue.
 
 ### Moodle configuration
 
@@ -74,12 +81,16 @@ function (direct), and one item per required capability (inferred).
 
 **Issue kinds**: `not_configured`, `invalid_parameter`, `invalid_token`,
 `auth_failure`, `missing_capability`, `unsupported_function`,
+`content_api_unavailable` (missing local plugin function),
 `invalid_category`, `transient_failure`
 
 The check is entirely read-only — it never creates or modifies courses,
 sections, or modules. It uses `httpx.ConnectError`, HTTP 403,
 `invalidtoken` error codes, and timeout detection to classify
-connectivity failures as actionable issue kinds.
+connectivity failures as actionable issue kinds. An `accessexception`
+on the site-info handshake (function registered but not exposed to the
+token's service) is reported as `missing_capability` with the list of
+functions the admin must add to the service.
 
 ## Publish pipeline
 
@@ -94,11 +105,14 @@ connectivity failures as actionable issue kinds.
 3. Build `MoodleCoursePlan` via the mapper (title, fullname, shortname,
    idnumber, sections with page modules and section names)
 4. Find existing Moodle course by idnumber (`core_course_get_courses_by_field`)
-   or create (`core_course_create_courses`)
-5. Sync sections: create missing sections, update existing section names
-   via `core_course_update_sections`
-6. Sync page modules: update existing page content or add new pages via
-   `mod_page_add_instance`
+   or create (`core_course_create_courses`); `create_courses` also
+   pre-creates the weekly sections via `numsections=N`
+5. Sync sections: upsert each weekly section's name/summary by section
+   *number* via `local_ai_course_engine_update_section` (the plugin
+   creates a missing section, so no separate create/update branch exists)
+6. Sync page modules: add a `Page` activity per section when a page with
+   the same name is not already present, via
+   `local_ai_course_engine_add_page`
 7. **Post-publish verification** — read back course contents and assert
    all planned sections and page modules are present
 8. If verified: status = `PUBLISHED`, record persisted as `SYNCED`
@@ -106,8 +120,8 @@ connectivity failures as actionable issue kinds.
    persisted (with moodle_course_id and idnumber so retries resume
    without duplicates), and `MoodleIntegrationError` is raised
 10. **Idempotency** — re-publishing a partially-synced course reuses the
-    existing Moodle course, skips sections that already exist, and adds
-    only missing page modules
+    existing Moodle course, always re-names the sections in place, and
+    adds only missing page modules
 
 ### Error semantics
 
@@ -153,63 +167,56 @@ Configuration verified against the live client site
 (`https://elearning.skillupafrica.co.ke`, Moodle **4.3.12**):
 
 - Token user: `skillupadmin`
-- Category `1` exists and is visible to the token (auth + connection OK);
-  read-level functions are exposed
-- The token's external web service declares **none of the write
-  functions** required for publishing — all five are missing from the
-  exposed service:
+- The token's external service declares **only the two course write
+  functions** (`core_course_create_courses`, `core_course_update_courses`).
+- Every read function (`core_webservice_get_site_info`,
+  `core_course_get_categories`, `core_course_get_courses_by_field`,
+  `core_course_get_contents`) is registered on the site but **not
+  exposed to the token's service**, so all reads return `accessexception`.
+- The originally-assumed section/page functions are **not part of Moodle
+  core**: `core_course_create_sections`, `core_course_update_sections`,
+  and `mod_page_add_instance` return `invalidrecord` (function does not
+  exist) and do not appear in any official Moodle Web Services function
+  list. `core_course_edit_section`/`core_course_edit_module` only change
+  visibility/marker/deletion — they cannot set section names or create
+  activities.
 
-| Operation | Web service function | Capability required |
-|---|---|---|
-| Course creation | `core_course_create_courses` | `moodle/course:create` |
-| Course update | `core_course_update_courses` | `moodle/course:update` |
-| Section creation | `core_course_create_sections` | `moodle/course:update` |
-| Section update | `core_course_update_sections` | `moodle/course:update` |
-| Resource creation | `mod_page_add_instance` | `mod/page:addinstance` |
+Consequences:
 
-This is visible in the preflight response:
-
-```json
-{
-  "ready": false,
-  "checks": [
-    { "label": "Moodle connection & API access", "status": "ok", "verification": "direct" },
-    { "label": "Web service token authentication", "status": "ok", "verification": "direct" },
-    { "label": "Course category", "status": "ok", "verification": "direct" },
-    { "label": "Web service function core_course_create_courses", "status": "error", "verification": "direct" },
-    { "label": "Capability moodle/course:create", "status": "error", "verification": "inferred" },
-    "..."
-  ],
-  "blocking_issues": [
-    {
-      "kind": "missing_capability",
-      "message": "core_course_create_courses is not exposed to the configured web service token. Create the Moodle course on first publish.",
-      "ws_function": "core_course_create_courses",
-      "capability": "moodle/course:create",
-      "admin_action": "In Moodle: Site administration \u2192 Plugins \u2192 Web services \u2192 External services, add the required functions to the token's service, and grant the capabilities listed for it. Required capability: moodle/course:create."
-    }
-  ]
-}
-```
+- Preflight correctly reports `ready: false` with precise, actionable
+  issues (read functions missing; bundled plugin functions missing) and
+  the publisher refuses to start.
+- Live publishing cannot proceed until the Moodle admin exposes the read
+  functions to the token's service **and** installs the bundled local
+  `ai_course_engine` plugin (adding its two web service functions to the
+  service).
 
 ### What the Moodle administrator must do
 
 1. In Site administration → Plugins → Web services → External services,
-   open the service bound to the `skillupadmin` token
-2. Add the five write functions: `core_course_create_courses`,
-   `core_course_update_courses`, `core_course_create_sections`,
-   `core_course_update_sections`, `mod_page_add_instance`
-3. Grant (or allow auto-grant via "capabilities of the service" role)
-   `moodle/course:create`, `moodle/course:update`, `mod/page:addinstance`,
-   and `moodle/course:view`
+   open the service bound to the `skillupadmin` token and **add the four
+   read functions**: `core_webservice_get_site_info`,
+   `core_course_get_categories`, `core_course_get_courses_by_field`,
+   `core_course_get_contents`
+2. Install the bundled local plugin:
+   `moodle-plugin/local/ai_course_engine` (copy to
+   `$MOODLEDATA/../local/ai_course_engine` or
+   `moodle/local/ai_course_engine`, then run the site upgrade). The
+   plugin registers `local_ai_course_engine_update_section` and
+   `local_ai_course_engine_add_page`
+3. Add the two plugin functions to the token's service, and grant (or
+   allow auto-grant) the capabilities: `moodle/course:view`,
+   `moodle/course:create`, `moodle/course:update`,
+   `mod/page:addinstance`
 4. Run `GET /api/v1/moodle/preflight` to confirm `ready: true` and every
    check is `ok`
-5. Test publishing with a small curriculum into a test course/category
-   (category `1` is verified reachable) and confirm the post-publish
-   verification succeeds
+5. Test publishing with a small curriculum into a test course/category,
+   and confirm the post-publish verification succeeds, before publishing
+   to production
 
 Live publishing must NOT be attempted or claimed successful until the
-admin adds the functions and the preflight returns ready.
+admin exposes the read functions, installs the plugin, and the preflight
+returns ready.
 
 ## Migrations
 
@@ -222,9 +229,9 @@ includes `moodle_course_id`, `moodle_url`, `idnumber`, `status`
 
 | Test file | Covers |
 |---|---|
-| `test_moodle_preflight.py` | All issue kinds, classification, category probe, plain-string functions, readiness checklist items + verification method |
+| `test_moodle_preflight.py` | All issue kinds (incl. `content_api_unavailable`), classification (incl. `accessexception`), category probe, plain-string functions, readiness checklist items + verification method |
 | `test_moodle_export.py` | Export structure, importable flag, fields, provenance |
-| `test_moodle_sync.py` | Preflight gate, verification gate, idempotent retry, partial persistence, overrides |
+| `test_moodle_sync.py` | Preflight gate, verification gate, idempotent retry, partial persistence, overrides, section upsert-by-number |
 | `test_moodle_api.py` | API routes for status and preflight |
-| `test_moodle_client.py` | HTTP client edge cases (unchanged) |
+| `test_moodle_client.py` | HTTP client edge cases, plugin section/page function calls |
 | `test_moodle_mapper.py` | Plan building (unchanged) |

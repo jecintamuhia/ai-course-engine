@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import uuid
 from datetime import datetime
 
 from app.models.course import CourseStatus
@@ -136,8 +137,8 @@ class MoodleCourseRead(BaseModel):
 
     model_config = {"from_attributes": True}
 
-    id: str
-    curriculum_id: str
+    id: uuid.UUID
+    curriculum_id: uuid.UUID
     title: str
     fullname: str
     shortname: str
