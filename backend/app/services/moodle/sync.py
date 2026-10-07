@@ -5,18 +5,23 @@ The sync flow is idempotent. Publishing the same curriculum twice:
 1. always reuses the existing Moodle course found by ``idnumber``
    (``ai-ece-<curriculum_id>``);
 2. updates weekly section names/summaries in place;
-3. adds a "Page" activity per section only if a page with the same name
-   does not already exist there.
+3. adds a "Page" activity per lecturer-approved lesson (when a lesson
+   renderer is provided) only if a page with the lesson's name does not
+   already exist in that week's section. Lessons with byte-identical
+   content are published once, so duplicated curriculum/lesson items do
+   not create duplicate pages. No page is ever created that repeats a
+   weekly section's name: the section itself represents the week.
 
-Only APPROVED curricula can be published; the status transition to
-PUBLISHED is recorded on success. Moodle call failures are surfaced to
-the caller and, for previously published courses, recorded on the
-persisted Course row.
+Only APPROVED (or already PUBLISHED) curricula can be published; the
+status transition to PUBLISHED is recorded on success. Moodle call
+failures are surfaced to the caller and, for previously published
+courses, recorded on the persisted Course row.
 """
 
 from __future__ import annotations
 
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
@@ -32,8 +37,13 @@ from app.db.repositories.courses import CourseRepository
 from app.db.repositories.curriculum import CurriculumRepository
 from app.models.course import Course, CourseStatus
 from app.models.curriculum import Curriculum, CurriculumStatus
+from app.models.curriculum_unit import CurriculumUnit
 from app.services.moodle.client import MoodleClient
-from app.services.moodle.mapper import MoodleCoursePlan, build_course_plan
+from app.services.moodle.mapper import (
+    MoodleCoursePlan,
+    MoodleLessonPlan,
+    build_course_plan,
+)
 from app.services.moodle.preflight import issue_to_dict, run_readiness_check
 
 logger = get_logger(__name__)
@@ -109,14 +119,26 @@ class MoodleSyncService:
         fullname_override: str | None = None,
         shortname_override: str | None = None,
         category_id_override: int | None = None,
+        lesson_renderer: (
+            Callable[[CurriculumUnit], list[MoodleLessonPlan]] | None
+        ) = None,
     ) -> MoodlePublishResult:
-        """Publish an APPROVED curriculum to Moodle (idempotent)."""
+        """Publish an APPROVED (or already PUBLISHED) curriculum to Moodle.
+
+        ``lesson_renderer`` maps each weekly unit to the lecturer-approved
+        lessons that should be added as page resources in that week's
+        section. When omitted no lesson pages are published and the
+        behaviour is identical to publishing before lessons existed.
+        """
         curriculum = await self._curriculum_repository.get_by_id(curriculum_id)
 
         if curriculum is None:
             raise CurriculumNotFound(f"Curriculum {curriculum_id} was not found.")
 
-        if curriculum.status != CurriculumStatus.APPROVED:
+        if curriculum.status not in (
+            CurriculumStatus.APPROVED,
+            CurriculumStatus.PUBLISHED,
+        ):
             raise CurriculumValidationError(
                 "Only APPROVED curricula can be published to Moodle.",
                 details={"current_status": curriculum.status.value},
@@ -154,6 +176,7 @@ class MoodleSyncService:
             curriculum,
             fullname_override=fullname_override,
             shortname_override=shortname_override,
+            lesson_renderer=lesson_renderer,
         )
         if idnumber_override:
             plan.idnumber = idnumber_override.strip() or plan.idnumber
@@ -238,7 +261,10 @@ class MoodleSyncService:
                 },
             )
 
-        assert curriculum.status == CurriculumStatus.APPROVED
+        assert curriculum.status in (
+            CurriculumStatus.APPROVED,
+            CurriculumStatus.PUBLISHED,
+        )
         curriculum.status = CurriculumStatus.PUBLISHED
 
         course_record = existing_record
@@ -300,8 +326,8 @@ class MoodleSyncService:
     ) -> bool:
         """
         Verify the published course actually contains every planned
-        section and its page resource. Returns True only when the live
-        Moodle contents match the plan.
+        section and its lesson page resources. Returns True only when the
+        live Moodle contents match the plan.
         """
         contents = await self._client.get_course_contents(moodle_course_id)
         sections_by_number = {
@@ -313,13 +339,24 @@ class MoodleSyncService:
             if section is None:
                 return False
 
-            has_page = any(
-                module.get("modname") == "page"
-                and module.get("name") == week.page_name
-                for module in section.get("modules", [])
-            )
-            if not has_page:
-                return False
+            modules = section.get("modules", [])
+
+            # Mirror the sync rule: lessons with byte-identical content are
+            # published once, so verification accepts a single page for the
+            # first of a set of identical-content lessons.
+            seen_content: set[str] = set()
+            for lesson in week.lessons:
+                if lesson.content_html in seen_content:
+                    continue
+                seen_content.add(lesson.content_html)
+
+                has_lesson_page = any(
+                    module.get("modname") == "page"
+                    and module.get("name") == lesson.name
+                    for module in modules
+                )
+                if not has_lesson_page:
+                    return False
 
         return True
 
@@ -345,7 +382,7 @@ class MoodleSyncService:
         ]
 
         return {
-            "course_id": record.id,
+            "course_id": str(record.id),
             "moodle_course_id": record.moodle_course_id,
             "found": True,
             "sections_found": sections_found,
@@ -374,9 +411,7 @@ class MoodleSyncService:
         re-publish can resume: the Moodle course id and idnumber are stored
         and the sync is idempotent (never duplicates sections/pages).
         """
-        sections, resources = await self._count_existing_content(
-            moodle_course_id
-        )
+        sections, resources = await self._count_existing_content(moodle_course_id)
 
         record = existing_record
         if record is None:
@@ -409,9 +444,7 @@ class MoodleSyncService:
 
         await self._course_repository.commit()
 
-    async def _count_existing_content(
-        self, moodle_course_id: int
-    ) -> tuple[int, int]:
+    async def _count_existing_content(self, moodle_course_id: int) -> tuple[int, int]:
         """
         Best-effort count of what already exists in the Moodle course:
         the highest week/section number and the number of 'page' modules.
@@ -441,10 +474,12 @@ class MoodleSyncService:
         plan: MoodleCoursePlan,
     ) -> tuple[int, int]:
         """
-        Ensure weekly sections have correct names/summaries and that each
-        section contains its page resource. ``update_section`` upserts
-        (the plugin creates a missing section), so the weekly sections
-        auto-created by ``create_courses`` are named in place.
+        Ensure weekly sections have correct names/summaries and that every
+        planned lesson page exists in its section. ``update_section``
+        upserts (the plugin creates a missing section), so the weekly
+        sections auto-created by ``create_courses`` are named in place.
+        Lesson pages are only added when missing, so re-publishing never
+        duplicates them; lessons with identical content are added once.
         Returns (sections_published, resources_published).
         """
         contents = await self._client.get_course_contents(moodle_course_id)
@@ -467,21 +502,28 @@ class MoodleSyncService:
             )
             sections_published = max(sections_published, number)
 
-            existing_pages = [
-                module
-                for module in modules_by_section.get(number, [])
-                if module.get("modname") == "page"
-                and module.get("name") == week.page_name
-            ]
+            section_modules = modules_by_section.get(number, [])
 
-            if not existing_pages:
-                await self._client.add_page_module(
-                    moodle_course_id,
-                    section_number=number,
-                    name=week.page_name,
-                    content_html=week.page_content_html,
-                )
-                resources_published += 1
+            seen_content: set[str] = set()
+            for lesson in week.lessons:
+                if lesson.content_html in seen_content:
+                    continue
+                seen_content.add(lesson.content_html)
+
+                existing_lesson = [
+                    module
+                    for module in section_modules
+                    if module.get("modname") == "page"
+                    and module.get("name") == lesson.name
+                ]
+                if not existing_lesson:
+                    await self._client.add_page_module(
+                        moodle_course_id,
+                        section_number=number,
+                        name=lesson.name,
+                        content_html=lesson.content_html,
+                    )
+                    resources_published += 1
 
         return sections_published, resources_published
 

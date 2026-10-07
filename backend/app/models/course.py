@@ -40,13 +40,9 @@ class Course(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     title: Mapped[str] = mapped_column(String(500), nullable=False)
     fullname: Mapped[str] = mapped_column(String(500), nullable=False)
     shortname: Mapped[str] = mapped_column(String(255), nullable=False)
-    idnumber: Mapped[str] = mapped_column(
-        String(255), nullable=False, unique=True
-    )
+    idnumber: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
 
-    moodle_course_id: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
-    )
+    moodle_course_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     moodle_url: Mapped[str | None] = mapped_column(String(1024), nullable=True)
 
     status: Mapped[CourseStatus] = mapped_column(
@@ -60,12 +56,8 @@ class Course(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         default=CourseStatus.SYNCED,
     )
 
-    sections_published: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=0
-    )
-    resources_published: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=0
-    )
+    sections_published: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    resources_published: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
     last_sync_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True

@@ -18,11 +18,18 @@ from app.core.exceptions import MoodleIntegrationError
 from app.main import app
 from app.services.moodle.client import MoodleClient
 from app.services.moodle.preflight import FUNCTION_REQUIREMENTS
+from tests.helpers import install_auth_override
 
 STATUS_URL = "/api/v1/moodle/status"
 PREFLIGHT_URL = "/api/v1/moodle/preflight"
 
 ALL_FUNCTIONS = list(FUNCTION_REQUIREMENTS)
+
+
+@pytest.fixture(autouse=True)
+def _authenticated_routes() -> None:
+    """Protect every protected route with the fake authenticated user."""
+    install_auth_override(app)
 
 
 def _form(body: bytes) -> dict[str, str]:
@@ -46,8 +53,7 @@ def _site_info(functions: list[str] | None = None) -> dict:
         "version": 2024100700,
         "username": "demo-admin",
         "functions": [
-            {"name": name, "version": 2024100700}
-            for name in functions or ALL_FUNCTIONS
+            {"name": name, "version": 2024100700} for name in functions or ALL_FUNCTIONS
         ],
     }
 

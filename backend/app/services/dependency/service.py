@@ -10,7 +10,7 @@ from app.db.repositories.dependencies import DependencyRepository
 from app.db.repositories.documents import DocumentRepository
 from app.db.repositories.topics import TopicRepository
 from app.models.dependency import Dependency
-from app.services.dependency.graph import break_all_cycles, topological_sort
+from app.services.dependency.graph import Edges, break_all_cycles, topological_sort
 from app.services.dependency.resolver import (
     UnresolvedPrerequisite,
     resolve_prerequisites,
@@ -48,11 +48,21 @@ class DependencyGraphService:
         self._dependency_repository = dependency_repository
 
     async def build_document_dependencies(
-        self, document_id: uuid.UUID
+        self,
+        document_id: uuid.UUID,
+        *,
+        additional_edges: Edges | None = None,
     ) -> DependencyGraphResult:
         """
         Resolve, validate, and persist the dependency graph for a
         document's topics.
+
+        Two independent sources feed the graph. Each topic's own
+        ``prerequisite_titles`` (the within-chapter links named during
+        extraction) are resolved by title. ``additional_edges`` carries
+        the cross-chapter links from the document-wide linking pass, which
+        can only run once every title exists. Both are merged here so
+        cycle detection and topological ordering see the whole graph.
 
         Idempotent: re-running this replaces the document's previously
         persisted dependency edges. Cycle-causing edges are detected,
@@ -64,11 +74,16 @@ class DependencyGraphService:
         if document is None:
             raise DocumentNotFound(f"Document {document_id} was not found.")
 
-        top_level_topics = await self._topic_repository.list_by_document(
-            document_id
-        )
+        top_level_topics = await self._topic_repository.list_by_document(document_id)
 
         edges, unresolved = resolve_prerequisites(top_level_topics)
+
+        if additional_edges:
+            for topic_id, depends_on_ids in additional_edges.items():
+                if not depends_on_ids:
+                    continue
+                target = edges.setdefault(topic_id, set())
+                target.update(depends_on_ids)
 
         if unresolved:
             logger.warning(
@@ -81,8 +96,7 @@ class DependencyGraphService:
 
         if rejected_edges:
             logger.warning(
-                "Rejected cycle-causing dependency edges for "
-                "document_id=%s count=%s",
+                "Rejected cycle-causing dependency edges for document_id=%s count=%s",
                 document_id,
                 len(rejected_edges),
             )

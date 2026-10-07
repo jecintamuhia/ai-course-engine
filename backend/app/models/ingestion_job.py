@@ -69,12 +69,8 @@ class IngestionJob(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         String(36), nullable=False, default=lambda: str(uuid.uuid4())
     )
 
-    attempt_count: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=0
-    )
-    max_attempts: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=3
-    )
+    attempt_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    max_attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=3)
 
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
 

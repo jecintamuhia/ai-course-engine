@@ -27,9 +27,21 @@ class _FakeChunk:
 
 
 class _FakeChapter:
-    def __init__(self, chapter_id: uuid.UUID, title: str) -> None:
+    """Mirrors the fields of the real Chapter model that the analysis
+    service reads (including outline rendering)."""
+
+    def __init__(
+        self,
+        chapter_id: uuid.UUID,
+        title: str,
+        order_index: int = 0,
+        sections: list | None = None,
+    ) -> None:
         self.id = chapter_id
         self.title = title
+        self.number = None
+        self.order_index = order_index
+        self.sections = sections or []
 
 
 def _existing_topic(title: str) -> Topic:
@@ -100,9 +112,11 @@ class _TopicRepo:
 class _LLM:
     def __init__(self) -> None:
         self.llm_called = False
+        self.user_prompts: list[str] = []
 
     async def complete_structured(self, **kwargs):
         self.llm_called = True
+        self.user_prompts.append(kwargs.get("user_prompt", ""))
         return TopicExtractionResult(
             topics=[
                 ExtractedTopic(
@@ -226,3 +240,43 @@ async def test_skips_reanalysis_when_some_chapters_still_unanalyzed() -> None:
     await service.analyze_document(uuid.uuid4())
 
     assert llm.llm_called
+
+
+async def test_extraction_prompt_never_offers_other_chapter_titles() -> None:
+    """Cross-chapter linking is a separate pass, not an extraction concern.
+
+    Handing each chapter the document outline made the model cite chapter
+    titles ("Chapter 1.2: Linux Fundamentals"), which the topic resolver
+    cannot match, so two thirds of those references were discarded. The
+    linking pass now sees every real topic title at once instead, so the
+    extraction prompt must not invite cross-chapter names at all.
+    """
+    earlier = _FakeChapter(uuid.uuid4(), "The Web Hosting Ecosystem", 0)
+    later = _FakeChapter(uuid.uuid4(), "SSL Certificates", 1)
+    llm = _LLM()
+
+    service = _make_service(
+        chapters=[earlier, later],
+        chunks=[
+            _FakeChunk(uuid.uuid4(), earlier.id),
+            _FakeChunk(uuid.uuid4(), later.id),
+        ],
+        topics=_TopicRepo(by_chapter={}),
+        llm=llm,
+    )
+
+    await service.analyze_document(uuid.uuid4())
+
+    assert len(llm.user_prompts) == 2
+
+    # Each prompt names only its own chapter; no sibling chapter title is
+    # offered as a citable prerequisite.
+    assert "Chapter: The Web Hosting Ecosystem" in llm.user_prompts[0]
+    assert "SSL Certificates" not in llm.user_prompts[0]
+
+    assert "Chapter: SSL Certificates" in llm.user_prompts[1]
+    assert "The Web Hosting Ecosystem" not in llm.user_prompts[1]
+
+    for prompt in llm.user_prompts:
+        assert "Document outline" not in prompt
+        assert "(this chapter)" not in prompt

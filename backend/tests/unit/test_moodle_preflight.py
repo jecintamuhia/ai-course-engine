@@ -99,9 +99,7 @@ class TestMissingCapability:
         info = {
             **DEFAULT_SITE_INFO,
             "functions": [
-                name
-                for name in ALL_FUNCTIONS
-                if name != "core_course_create_courses"
+                name for name in ALL_FUNCTIONS if name != "core_course_create_courses"
             ],
         }
         client = FakeClient(site_info=info)
@@ -282,9 +280,7 @@ class TestReadinessChecks:
             result, "Web service function core_course_create_courses"
         )
         assert function_check.status.value == "ok"
-        capability_check = _finding_check(
-            result, "Capability moodle/course:create"
-        )
+        capability_check = _finding_check(result, "Capability moodle/course:create")
         assert capability_check.status.value == "ok"
         assert capability_check.verification.value == "inferred"
         assert "cannot be queried directly" in capability_check.detail
@@ -294,17 +290,13 @@ class TestReadinessChecks:
         info = {
             **DEFAULT_SITE_INFO,
             "functions": [
-                name
-                for name in ALL_FUNCTIONS
-                if name != "core_course_create_courses"
+                name for name in ALL_FUNCTIONS if name != "core_course_create_courses"
             ],
         }
         client = FakeClient(site_info=info)
         result = await run_readiness_check(client, category_id=1)
 
-        capability_check = _finding_check(
-            result, "Capability moodle/course:create"
-        )
+        capability_check = _finding_check(result, "Capability moodle/course:create")
         assert capability_check.status.value == "error"
         assert capability_check.verification.value == "inferred"
         assert capability_check.capability == "moodle/course:create"
@@ -330,9 +322,7 @@ class TestReadinessChecks:
 
         connection = _finding_check(result, "Moodle connection & API access")
         assert connection.status.value == "error"
-        authentication = _finding_check(
-            result, "Web service token authentication"
-        )
+        authentication = _finding_check(result, "Web service token authentication")
         assert authentication.status.value == "error"
         assert authentication.verification.value == "direct"
         category = _finding_check(result, "Course category")

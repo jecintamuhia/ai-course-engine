@@ -98,37 +98,60 @@ functions the admin must add to the service.
 
 ### Flow
 
-1. Curriculum must be in `APPROVED` status
+1. Curriculum must be in `APPROVED` or `PUBLISHED` status
 2. **Preflight gate** — `run_readiness_check` blocks if any issue exists
    (raises `MoodlePublishBlockedError` = HTTP 409 with full issue details;
    curriculum remains APPROVED)
-3. Build `MoodleCoursePlan` via the mapper (title, fullname, shortname,
-   idnumber, sections with page modules and section names)
-4. Find existing Moodle course by idnumber (`core_course_get_courses_by_field`)
+3. Build `MoodleCoursePlan` via the mapper (fullname, shortname, idnumber,
+   weekly sections, and lesson pages):
+   - the course **fullname** is the curriculum title (a title shaped
+     like a UUID is an internal id, never a human name, and falls back
+     to `AI-Generated Course`)
+   - the **shortname** is derived deterministically from the title
+     (lower-cased ASCII slug) plus the last 8 hex chars of the
+     curriculum id tail as a stability/uniqueness suffix; the full UUID
+     and the `ai-ece-` idnumber prefix never appear in the visible
+     names, but the UUID remains the course **idnumber**
+   - each week becomes **exactly one section** named after the week; no
+     dedicated page is generated for a week (the section itself
+     represents the week)
+4. **Lesson pages** — APPROVED lessons for the curriculum are rendered to
+   HTML (see [`lessons.py`](../backend/app/services/moodle/lessons.py)) and
+   attached to the plan as lesson pages. Each weekly section in the plan
+   can carry zero or more lesson pages; if no lessons are approved the plan
+   is byte-identical to the previous behavior
+5. Find existing Moodle course by idnumber (`core_course_get_courses_by_field`)
    or create (`core_course_create_courses`); `create_courses` also
    pre-creates the weekly sections via `numsections=N`
-5. Sync sections: upsert each weekly section's name/summary by section
+6. Sync sections: upsert each weekly section's name/summary by section
    *number* via `local_ai_course_engine_update_section` (the plugin
    creates a missing section, so no separate create/update branch exists)
-6. Sync page modules: add a `Page` activity per section when a page with
-   the same name is not already present, via
-   `local_ai_course_engine_add_page`
-7. **Post-publish verification** — read back course contents and assert
-   all planned sections and page modules are present
-8. If verified: status = `PUBLISHED`, record persisted as `SYNCED`
-9. If NOT verified: status stays `APPROVED`, a `SYNC_FAILED` record is
-   persisted (with moodle_course_id and idnumber so retries resume
-   without duplicates), and `MoodleIntegrationError` is raised
-10. **Idempotency** — re-publishing a partially-synced course reuses the
+7. Sync lesson pages: add a `Page` activity per lesson when a page with
+   the same name is not already present in that section, via
+   `local_ai_course_engine_add_page`. Publishing is idempotent by page
+   name per section, so a publish must be re-run after lecturer review
+   approves new lessons. Lessons whose rendered content is byte-identical
+   are published only once, so duplicated curriculum/lesson items never
+   create duplicate pages; two genuinely different lessons that share a
+   title are both published
+8. **Post-publish verification** — read back course contents and assert
+   every planned section and its lesson pages are present (verification
+   applies the same content-dedup rule as sync)
+9. If verified: status = `PUBLISHED`, record persisted as `SYNCED`
+10. If NOT verified: status stays `APPROVED`, a `SYNC_FAILED` record is
+    persisted (with moodle_course_id and idnumber so retries resume
+    without duplicates), and `MoodleIntegrationError` is raised
+11. **Idempotency** — re-publishing a partially-synced course reuses the
     existing Moodle course, always re-names the sections in place, and
-    adds only missing page modules
+    adds only missing lesson pages. Once a lesson page exists it is never
+    modified (the engine never updates course content)
 
 ### Error semantics
 
 | HTTP | Error code | Meaning |
 |---|---|---|
 | 409 | `moodle_publish_blocked` | Preflight failed; Moodle is not ready. Check `issues` for admin actions. |
-| 400 | `invalid_curriculum_status` | Curriculum must be APPROVED |
+| 400 | `invalid_curriculum_status` | Curriculum must be APPROVED or PUBLISHED |
 | 502 | `moodle_integration_error` | Moodle rejected the call, is unreachable, or post-publish verification failed |
 
 All Moodle HTTP/timeout errors are wrapped in `MoodleIntegrationError`

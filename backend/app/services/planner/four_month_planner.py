@@ -108,9 +108,7 @@ def _aggregate_topics(topics: list[Topic]) -> list[_PlannableTopic]:
         objectives = list(topic.learning_objectives)
         hardest = topic.difficulty
         for child in children_of.get(topic.id, []):
-            child_workload, child_objectives, child_difficulty = collect_subtree(
-                child
-            )
+            child_workload, child_objectives, child_difficulty = collect_subtree(child)
             workload += child_workload
             objectives.extend(child_objectives)
             hardest = max(hardest, child_difficulty)
@@ -166,9 +164,7 @@ def _order_topics(
     )
 
 
-def _clamp_topic_allocation(
-    workload_minutes: int, config: PlanningConfig
-) -> int:
+def _clamp_topic_allocation(workload_minutes: int, config: PlanningConfig) -> int:
     """Clamp a topic's workload to the configured allocation bounds."""
     return min(
         max(workload_minutes, config.min_topic_allocation_minutes),
@@ -216,9 +212,7 @@ class FourMonthPlanner:
         remaining_budget = config.max_weekly_workload_minutes
 
         for index, topic in enumerate(ordered):
-            allocation = _clamp_topic_allocation(
-                topic.workload_minutes, config
-            )
+            allocation = _clamp_topic_allocation(topic.workload_minutes, config)
 
             if allocation > remaining_budget:
                 if len(weeks) >= config.total_weeks:
@@ -274,9 +268,7 @@ class FourMonthPlanner:
         if count == 0:
             return weeks
 
-        buckets: list[list[TopicAllocation]] = [
-            [] for _ in range(total_weeks)
-        ]
+        buckets: list[list[TopicAllocation]] = [[] for _ in range(total_weeks)]
         for index, allocation in enumerate(allocations):
             slot = index * total_weeks // count
             buckets[slot].append(allocation)
@@ -303,6 +295,4 @@ class FourMonthPlanner:
 
     @staticmethod
     def _sum_minutes(allocations: list[TopicAllocation]) -> int:
-        return sum(
-            allocation.allocated_minutes for allocation in allocations
-        )
+        return sum(allocation.allocated_minutes for allocation in allocations)

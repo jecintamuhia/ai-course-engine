@@ -352,8 +352,7 @@ async def run_readiness_check(
         else:
             detail = requirement["detail"]
             message = (
-                f"{name} is not exposed to the configured web service token. "
-                f"{detail}"
+                f"{name} is not exposed to the configured web service token. {detail}"
             )
             issues.append(
                 MoodleReadinessIssue(
@@ -370,7 +369,7 @@ async def run_readiness_check(
                             f" Required capability: {requirement['capability']}."
                             if requirement["capability"] is not None
                             else ""
-                         )
+                        )
                     ),
                     recoverable=True,
                 )
@@ -482,15 +481,11 @@ def _connectivity_checks(
     checks: list[MoodleReadinessCheck] = [
         MoodleReadinessCheck(
             label="Moodle connection & API access",
-            status=(
-                MoodleCheckStatus.OK
-                if connection_ok
-                else MoodleCheckStatus.ERROR
-            ),
+            status=(MoodleCheckStatus.OK if connection_ok else MoodleCheckStatus.ERROR),
             detail=(
-                "Moodle responded but refused the requested web service "
-                "function." if connection_ok else
-                "Moodle could not be reached or did not respond. "
+                "Moodle responded but refused the requested web service function."
+                if connection_ok
+                else "Moodle could not be reached or did not respond. "
                 "Readiness cannot be evaluated."
             ),
             verification=MoodleCheckVerification.DIRECT,
@@ -587,9 +582,7 @@ def _connected_checks(
             MoodleReadinessCheck(
                 label="Course category",
                 status=(
-                    MoodleCheckStatus.OK
-                    if category_found
-                    else MoodleCheckStatus.ERROR
+                    MoodleCheckStatus.OK if category_found else MoodleCheckStatus.ERROR
                 ),
                 detail=(
                     f"Category {category_id} exists and is visible to the token."
@@ -625,9 +618,7 @@ def _connected_checks(
         MoodleReadinessCheck(
             label=f"Web service function {name}",
             status=(
-                MoodleCheckStatus.OK
-                if name in rendered
-                else MoodleCheckStatus.ERROR
+                MoodleCheckStatus.OK if name in rendered else MoodleCheckStatus.ERROR
             ),
             detail=(
                 "Declared in the token's web service."

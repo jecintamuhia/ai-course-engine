@@ -123,9 +123,7 @@ class OpenAIProvider(LLMProvider):
                 ) from exc
             except openai.APIError as exc:
                 logger.exception("OpenAI API error")
-                raise AIProviderError(
-                    "OpenAI returned an unexpected error."
-                ) from exc
+                raise AIProviderError("OpenAI returned an unexpected error.") from exc
 
         completion = await self._call_with_retry(_attempt)
         choice = completion.choices[0]
@@ -208,9 +206,7 @@ class OpenAIProvider(LLMProvider):
                 ) from exc
             except openai.APIError as exc:
                 logger.exception("OpenAI API error")
-                raise AIProviderError(
-                    "OpenAI returned an unexpected error."
-                ) from exc
+                raise AIProviderError("OpenAI returned an unexpected error.") from exc
 
         completion = await self._call_with_retry(_attempt)
         content = completion.choices[0].message.content

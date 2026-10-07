@@ -96,9 +96,7 @@ def _compact_json_schema(schema: dict[str, Any]) -> dict[str, Any]:
 def _parse_error_type(status_code: int, body: dict[str, Any]) -> str:
     """Extract OpenRouter's typed error_type from an error response."""
     error = body.get("error") if isinstance(body.get("error"), dict) else {}
-    metadata = (
-        error.get("metadata") if isinstance(error.get("metadata"), dict) else {}
-    )
+    metadata = error.get("metadata") if isinstance(error.get("metadata"), dict) else {}
     error_type = metadata.get("error_type")
     if isinstance(error_type, str) and error_type:
         return error_type
@@ -108,9 +106,7 @@ def _parse_error_type(status_code: int, body: dict[str, Any]) -> str:
 def _parse_error_reason(body: dict[str, Any]) -> str:
     """Extract OpenRouter's finer-grained ``metadata.reason`` code."""
     error = body.get("error") if isinstance(body.get("error"), dict) else {}
-    metadata = (
-        error.get("metadata") if isinstance(error.get("metadata"), dict) else {}
-    )
+    metadata = error.get("metadata") if isinstance(error.get("metadata"), dict) else {}
     reason = metadata.get("reason")
     if isinstance(reason, str) and reason:
         return reason
@@ -330,13 +326,10 @@ class OpenRouterProvider(LLMProvider):
         if isinstance(detail, str) and detail:
             return f"OpenRouter error (HTTP {status_code}): {detail}"
         if error_type:
-            return (
-                f"OpenRouter error (HTTP {status_code}, type={error_type})."
-            )
+            return f"OpenRouter error (HTTP {status_code}, type={error_type})."
         snippet = raw_text[:200]
         logger.warning(
-            "OpenRouter non-2xx response without structured error "
-            "status=%s body=%r",
+            "OpenRouter non-2xx response without structured error status=%s body=%r",
             status_code,
             snippet,
         )
@@ -356,9 +349,7 @@ class OpenRouterProvider(LLMProvider):
             total_tokens=total_tokens,
             model=str(body.get("model") or self._model),
             provider=(
-                str(body["provider"])
-                if isinstance(body.get("provider"), str)
-                else None
+                str(body["provider"]) if isinstance(body.get("provider"), str) else None
             ),
         )
 

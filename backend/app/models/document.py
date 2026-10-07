@@ -39,9 +39,7 @@ class Document(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     __tablename__ = "documents"
 
-    original_filename: Mapped[str] = mapped_column(
-        String(255), nullable=False
-    )
+    original_filename: Mapped[str] = mapped_column(String(255), nullable=False)
 
     storage_filename: Mapped[str] = mapped_column(
         String(255), nullable=False, unique=True
@@ -52,13 +50,9 @@ class Document(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     file_extension: Mapped[str] = mapped_column(String(16), nullable=False)
     size_bytes: Mapped[int] = mapped_column(BigInteger, nullable=False)
 
-    sha256_hash: Mapped[str] = mapped_column(
-        String(64), nullable=False, index=True
-    )
+    sha256_hash: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
 
-    version_number: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=1
-    )
+    version_number: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     is_latest_version: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=True
     )

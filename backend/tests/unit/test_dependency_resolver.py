@@ -63,9 +63,7 @@ def test_ambiguous_title_is_reported_and_creates_no_edge() -> None:
     intro_2 = _topic("Introduction")
     referencer = _topic("Chapter 2", prerequisite_titles=["Introduction"])
 
-    edges, unresolved = resolve_prerequisites(
-        [intro_1, intro_2, referencer]
-    )
+    edges, unresolved = resolve_prerequisites([intro_1, intro_2, referencer])
 
     assert edges.get(referencer.id) == set()
     assert len(unresolved) == 1
@@ -88,9 +86,7 @@ def test_isolated_topics_are_seeded_with_empty_edges() -> None:
 def test_resolves_across_nested_subtopics() -> None:
     child = _topic("Feedback Loops")
     parent = _topic("Systems Theory", subtopics=[child])
-    other = _topic(
-        "Advanced Systems", prerequisite_titles=["Feedback Loops"]
-    )
+    other = _topic("Advanced Systems", prerequisite_titles=["Feedback Loops"])
 
     edges, unresolved = resolve_prerequisites([parent, other])
 

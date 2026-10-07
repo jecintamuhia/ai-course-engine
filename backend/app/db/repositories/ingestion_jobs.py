@@ -39,9 +39,7 @@ class IngestionJobRepository:
             select(IngestionJob)
             .where(
                 IngestionJob.document_id == document_id,
-                IngestionJob.status.not_in(
-                    _TERMINAL_STATES | {_FAILED_STATE}
-                ),
+                IngestionJob.status.not_in(_TERMINAL_STATES | {_FAILED_STATE}),
             )
             .order_by(IngestionJob.created_at.desc())
             .limit(1)

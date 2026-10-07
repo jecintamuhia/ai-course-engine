@@ -58,6 +58,7 @@ logs/
 *.pem
 *.key
 *.crt
+.admin_credentials.txt
 
 # Build
 build/

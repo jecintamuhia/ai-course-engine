@@ -63,11 +63,17 @@ def _build_topic_tree_with_provenance(
                     Concept(
                         name=concept.name,
                         description=concept.description,
+                        definition=getattr(concept, "definition", None),
+                        terminology=getattr(concept, "terminology", []) or [],
+                        procedures=getattr(concept, "procedures", []) or [],
+                        formulas=getattr(concept, "formulas", []) or [],
+                        worked_examples=getattr(concept, "worked_examples", []) or [],
+                        exercises=getattr(concept, "exercises", []) or [],
+                        misconceptions=getattr(concept, "misconceptions", []) or [],
+                        provenance=getattr(concept, "provenance", []) or [],
                         order_index=concept_index,
                     )
-                    for concept_index, concept in enumerate(
-                        extracted.concepts
-                    )
+                    for concept_index, concept in enumerate(extracted.concepts)
                 ],
                 subtopics=build_level(extracted.subtopics),
             )
@@ -83,8 +89,7 @@ def _build_topic_tree_with_provenance(
 
             if dropped_markers:
                 logger.warning(
-                    "Dropped hallucinated chunk markers for topic "
-                    "title=%r markers=%s",
+                    "Dropped hallucinated chunk markers for topic title=%r markers=%s",
                     extracted.title,
                     dropped_markers,
                 )
@@ -135,9 +140,7 @@ class ContentAnalysisService:
         if document is None:
             raise DocumentNotFound(f"Document {document_id} was not found.")
 
-        all_chunks = await self._chunk_repository.list_by_document(
-            document_id
-        )
+        all_chunks = await self._chunk_repository.list_by_document(document_id)
 
         if not all_chunks:
             raise DocumentNotFound(
@@ -156,10 +159,8 @@ class ContentAnalysisService:
         all_persisted_topics: list[Topic] = []
 
         if not chapters:
-            existing = (
-                await self._topic_repository.list_unassociated_by_document(
-                    document_id
-                )
+            existing = await self._topic_repository.list_unassociated_by_document(
+                document_id
             )
 
             if existing:
@@ -171,9 +172,7 @@ class ContentAnalysisService:
                 )
                 all_persisted_topics.extend(existing)
             else:
-                chapter_chunks = [
-                    c for c in all_chunks if c.chapter_id is None
-                ]
+                chapter_chunks = [c for c in all_chunks if c.chapter_id is None]
                 topics = await self._analyze_and_persist(
                     document_id=document_id,
                     chapter_id=None,
@@ -183,9 +182,7 @@ class ContentAnalysisService:
                 all_persisted_topics.extend(topics)
         else:
             for chapter in chapters:
-                chapter_chunks = [
-                    c for c in all_chunks if c.chapter_id == chapter.id
-                ]
+                chapter_chunks = [c for c in all_chunks if c.chapter_id == chapter.id]
 
                 if not chapter_chunks:
                     logger.warning(
@@ -198,9 +195,7 @@ class ContentAnalysisService:
                     await self._topic_repository.commit()
                     continue
 
-                existing = await self._topic_repository.list_by_chapter(
-                    chapter.id
-                )
+                existing = await self._topic_repository.list_by_chapter(chapter.id)
 
                 if existing:
                     logger.info(

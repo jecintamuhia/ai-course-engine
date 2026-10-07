@@ -80,8 +80,7 @@ def test_build_marker_annotated_context_respects_max_chars() -> None:
     assert "[Source truncated:" in text
 
 
-def test_build_marker_annotated_context_marker_map_only_contains_sent_chunks(
-) -> None:
+def test_build_marker_annotated_context_marker_map_only_contains_sent_chunks() -> None:
     chunks = [
         _fake_chunk("A"),
         _fake_chunk("B"),
@@ -95,8 +94,7 @@ def test_build_marker_annotated_context_marker_map_only_contains_sent_chunks(
     assert all(chunk_marker not in marker_map for chunk_marker in ("C3", "C4"))
 
 
-def test_build_marker_annotated_context_keeps_first_chunk_when_oversized(
-) -> None:
+def test_build_marker_annotated_context_keeps_first_chunk_when_oversized() -> None:
     chunks = [_fake_chunk("A long chunk."), _fake_chunk("B chunk.")]
 
     text, marker_map = build_marker_annotated_context(chunks, max_chars=10)

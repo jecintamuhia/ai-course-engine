@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import uuid
+from collections.abc import Sequence
 
 from app.models.curriculum import Curriculum, CurriculumStatus
 from app.models.curriculum_review import CurriculumReview
 from app.models.curriculum_unit import CurriculumUnit
 from app.models.curriculum_unit_topic import CurriculumUnitTopic
+from app.models.topic import Topic
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -66,6 +68,32 @@ class CurriculumRepository:
         result = await self._session.execute(stmt)
         return result.scalars().first()
 
+    async def get_by_id_for_content(
+        self, curriculum_id: uuid.UUID
+    ) -> Curriculum | None:
+        """
+        Fetch a curriculum with the graph needed for course-content
+        generation: weekly units with their topic links, each planned
+        topic with its subtopics and their source-chunk provenance links.
+        """
+        stmt = (
+            select(Curriculum)
+            .where(Curriculum.id == curriculum_id)
+            .options(
+                selectinload(Curriculum.units)
+                .selectinload(CurriculumUnit.topic_links)
+                .selectinload(CurriculumUnitTopic.topic)
+                .selectinload(Topic.subtopics)
+                .selectinload(Topic.source_chunk_links),
+                selectinload(Curriculum.units)
+                .selectinload(CurriculumUnit.topic_links)
+                .selectinload(CurriculumUnitTopic.topic)
+                .selectinload(Topic.source_chunk_links),
+            )
+        )
+        result = await self._session.execute(stmt)
+        return result.scalars().first()
+
     async def list_by_document(self, document_id: uuid.UUID) -> list[Curriculum]:
         """Return all curricula for a document, newest version first."""
         stmt = (
@@ -80,6 +108,72 @@ class CurriculumRepository:
         )
         result = await self._session.execute(stmt)
         return list(result.scalars().unique().all())
+
+    async def get_unit_by_id(self, unit_id: uuid.UUID) -> CurriculumUnit | None:
+        """Fetch a single weekly unit with its topic links loaded."""
+        stmt = (
+            select(CurriculumUnit)
+            .where(CurriculumUnit.id == unit_id)
+            .options(
+                selectinload(CurriculumUnit.topic_links).selectinload(
+                    CurriculumUnitTopic.topic
+                )
+            )
+        )
+        result = await self._session.execute(stmt)
+        return result.scalars().first()
+
+    async def count_unit_topics(
+        self, unit_ids: Sequence[uuid.UUID]
+    ) -> dict[uuid.UUID, int]:
+        """
+        Count planned topics per unit in one query.
+
+        The bulk content worker needs this to tell a genuinely empty week
+        apart from a week that failed: a unit with no topics legitimately
+        produces no lessons, while a unit *with* topics that produced none
+        has failed and must not be reported as complete.
+        """
+        if not unit_ids:
+            return {}
+
+        stmt = (
+            select(
+                CurriculumUnitTopic.curriculum_unit_id,
+                func.count(CurriculumUnitTopic.id),
+            )
+            .where(CurriculumUnitTopic.curriculum_unit_id.in_(unit_ids))
+            .group_by(CurriculumUnitTopic.curriculum_unit_id)
+        )
+        result = await self._session.execute(stmt)
+        return {unit_id: count for unit_id, count in result.all()}
+
+    async def get_unit_with_lesson_context(
+        self, unit_id: uuid.UUID
+    ) -> CurriculumUnit | None:
+        """
+        Fetch a weekly unit with the graph needed for lesson generation:
+        topic links with each planned topic, its subtopics, and their
+        source-chunk provenance links.
+        """
+        stmt = (
+            select(CurriculumUnit)
+            .where(CurriculumUnit.id == unit_id)
+            .options(
+                selectinload(CurriculumUnit.topic_links)
+                .selectinload(CurriculumUnitTopic.topic)
+                .selectinload(Topic.subtopics)
+                .selectinload(Topic.source_chunk_links),
+                selectinload(CurriculumUnit.topic_links)
+                .selectinload(CurriculumUnitTopic.topic)
+                .selectinload(Topic.concepts),
+                selectinload(CurriculumUnit.topic_links)
+                .selectinload(CurriculumUnitTopic.topic)
+                .selectinload(Topic.source_chunk_links),
+            )
+        )
+        result = await self._session.execute(stmt)
+        return result.scalars().first()
 
     async def list_latest_by_document(self, document_id: uuid.UUID) -> list[Curriculum]:
         """Return latest-version curricula for a document."""

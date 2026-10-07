@@ -15,6 +15,7 @@ import pytest
 from app.api.v1.overview import get_overview_service
 from app.main import app
 from app.models.document import Document, DocumentStatus
+from tests.helpers import install_auth_override
 
 DASHBOARD_URL = "/api/v1/dashboard"
 DOCUMENTS_URL = "/api/v1/documents"
@@ -61,10 +62,10 @@ async def _client():
 
 @pytest.fixture(autouse=True)
 def _clear_overrides():
+    install_auth_override(app)
     app.dependency_overrides.pop(get_overview_service, None)
     app.state.moodle_client = None
     yield
-    app.dependency_overrides.pop(get_overview_service, None)
     app.state.moodle_client = None
 
 

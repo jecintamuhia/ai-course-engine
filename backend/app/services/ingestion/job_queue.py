@@ -44,9 +44,7 @@ async def promote_due_delayed_jobs(redis_client: Redis) -> int:
     return len(due_job_ids)
 
 
-async def dequeue(
-    redis_client: Redis, poll_timeout: int = 5
-) -> str | None:
+async def dequeue(redis_client: Redis, poll_timeout: int = 5) -> str | None:
     """
     Reliably pop a job from the ready queue onto the processing list.
 

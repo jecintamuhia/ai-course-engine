@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Sparkles } from "lucide-react";
 
 import { PageHeader } from "@/components/shared/PageHeader";
 import { LoadingState } from "@/components/shared/LoadingState";
@@ -10,6 +10,8 @@ import { WeekSidebar } from "@/components/curriculum/WeekSidebar";
 import { WeekCard } from "@/components/curriculum/WeekCard";
 import { AIInsightPanel } from "@/components/curriculum/AIInsightPanel";
 import { ReviewPanel } from "@/components/curriculum/ReviewPanel";
+import { QAPanel } from "@/components/curriculum/QAPanel";
+import { BulkGenerationPanel } from "@/components/curriculum/BulkGenerationPanel";
 import { Card, CardContent } from "@/components/ui/card";
 
 import { api } from "@/lib/api";
@@ -96,6 +98,21 @@ export function CurriculumStudioPage() {
         <ReviewPanel curriculum={curriculum} onUpdated={() => void load()} />
       </div>
 
+      <div className="mb-5">
+        <QAPanel
+          curriculum={curriculum}
+          selectedUnit={selectedUnit}
+          onUpdated={() => void load()}
+        />
+      </div>
+
+      <div className="mb-5">
+        <BulkGenerationPanel
+          curriculum={curriculum}
+          onUpdated={() => void load()}
+        />
+      </div>
+
       {/* Three-column studio */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[240px_1fr_300px]">
         {/* Left: weeks */}
@@ -112,6 +129,13 @@ export function CurriculumStudioPage() {
           {selectedUnit ? (
             <div className="space-y-5">
               <WeekCard unit={selectedUnit} />
+              <Link
+                to={`/curriculum/${curriculum.id}/content/${selectedUnit.id}`}
+                className="inline-flex items-center gap-2 rounded-md border border-ai/30 bg-ai/10 px-4 py-2 text-sm font-medium text-ai shadow-sm transition-colors hover:bg-ai/15"
+              >
+                <Sparkles className="h-4 w-4" />
+                Generate &amp; review lessons for this week
+              </Link>
               <div className="flex flex-wrap items-center gap-x-6 gap-y-1 rounded-xl border border-border bg-card px-4 py-3 text-xs text-muted-foreground shadow-card">
                 <span>
                   <strong className="font-semibold text-ink">Total plan workload:</strong>{" "}

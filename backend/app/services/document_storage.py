@@ -63,9 +63,7 @@ class DocumentStorageService:
         content = await self._read_within_limit(file)
 
         try:
-            validate_file_size(
-                len(content), self._settings.max_upload_size_bytes
-            )
+            validate_file_size(len(content), self._settings.max_upload_size_bytes)
             validate_file_content(content, extension)
         except FileValidationError as exc:
             raise DocumentProcessingError(str(exc)) from exc
@@ -75,22 +73,15 @@ class DocumentStorageService:
         previous_version: Document | None = None
 
         if replaces_document_id is not None:
-            previous_version = await self._repository.get_by_id(
-                replaces_document_id
-            )
+            previous_version = await self._repository.get_by_id(replaces_document_id)
 
-            if (
-                previous_version is None
-                or not previous_version.is_latest_version
-            ):
+            if previous_version is None or not previous_version.is_latest_version:
                 raise DocumentNotFound(
                     "The document to be replaced does not exist or is "
                     "not the latest version."
                 )
         else:
-            existing = await self._repository.get_latest_by_hash(
-                sha256_hash
-            )
+            existing = await self._repository.get_latest_by_hash(sha256_hash)
 
             if existing is not None:
                 return existing, True
@@ -120,13 +111,9 @@ class DocumentStorageService:
             size_bytes=len(content),
             sha256_hash=sha256_hash,
             version_number=(
-                previous_version.version_number + 1
-                if previous_version
-                else 1
+                previous_version.version_number + 1 if previous_version else 1
             ),
-            previous_version_id=(
-                previous_version.id if previous_version else None
-            ),
+            previous_version_id=(previous_version.id if previous_version else None),
             is_latest_version=True,
         )
 
@@ -159,8 +146,7 @@ class DocumentStorageService:
 
             if total > max_bytes:
                 raise DocumentProcessingError(
-                    f"File exceeds the maximum allowed size of "
-                    f"{max_bytes} bytes."
+                    f"File exceeds the maximum allowed size of {max_bytes} bytes."
                 )
 
             chunks.append(chunk)

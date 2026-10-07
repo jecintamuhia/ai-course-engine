@@ -41,14 +41,10 @@ async def create_ingestion_job(
     document = await document_repository.get_by_id(payload.document_id)
 
     if document is None:
-        raise DocumentNotFound(
-            f"Document {payload.document_id} was not found."
-        )
+        raise DocumentNotFound(f"Document {payload.document_id} was not found.")
 
     job_repository = IngestionJobRepository(session)
-    existing_job = await job_repository.get_active_for_document(
-        payload.document_id
-    )
+    existing_job = await job_repository.get_active_for_document(payload.document_id)
 
     if existing_job is not None:
         return IngestionJobCreateResponse(

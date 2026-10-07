@@ -6,11 +6,7 @@ from app.services.ingestion.chunker import chunk_text
 
 
 def test_merges_short_paragraphs_into_one_chunk() -> None:
-    text = (
-        "Short paragraph one.\n\n"
-        "Short paragraph two.\n\n"
-        "Short paragraph three."
-    )
+    text = "Short paragraph one.\n\nShort paragraph two.\n\nShort paragraph three."
 
     chunks = chunk_text(text, target_size=100, max_size=200, min_size=20)
 

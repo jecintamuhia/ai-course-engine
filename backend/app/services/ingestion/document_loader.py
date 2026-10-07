@@ -22,8 +22,7 @@ async def load_document_content(document: Document) -> bytes:
     def _read() -> bytes:
         if not path.is_file():
             raise DocumentProcessingError(
-                f"Stored file for document {document.id} was not found "
-                f"on disk."
+                f"Stored file for document {document.id} was not found on disk."
             )
         return path.read_bytes()
 

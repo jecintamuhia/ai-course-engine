@@ -2,6 +2,7 @@ import type {
   CurriculumStatus,
   CourseStatus,
   IngestionState,
+  LessonStatus,
   MoodleConnectionStatus,
 } from "@/lib/types";
 
@@ -41,6 +42,15 @@ export const CURRICULUM_LABELS: Record<CurriculumStatus, string> = {
   published: "Published",
 };
 
+export const LESSON_LABELS: Record<LessonStatus, string> = {
+  draft: "Draft",
+  generating: "Generating",
+  failed: "Failed",
+  awaiting_review: "Awaiting review",
+  approved: "Approved",
+  rejected: "Rejected",
+};
+
 export function ingestionLabel(status: IngestionState | null | undefined): string {
   if (!status) return "Not processed";
   return INGESTION_LABELS[status] ?? status;
@@ -69,6 +79,28 @@ export function curriculumTone(status: CurriculumStatus): Tone {
       return "danger";
     case "published":
       return "primary";
+    default:
+      return "neutral";
+  }
+}
+
+export function lessonLabel(status: LessonStatus | null | undefined): string {
+  if (!status) return "Draft";
+  return LESSON_LABELS[status] ?? status;
+}
+
+export function lessonTone(status: LessonStatus | null | undefined): Tone {
+  if (!status) return "neutral";
+  switch (status) {
+    case "approved":
+      return "success";
+    case "rejected":
+    case "failed":
+      return "danger";
+    case "awaiting_review":
+    case "draft":
+    case "generating":
+      return "warning";
     default:
       return "neutral";
   }

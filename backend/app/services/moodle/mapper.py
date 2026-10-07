@@ -2,14 +2,18 @@
 
 The mapper is pure (no I/O): it turns an in-memory Curriculum ORM graph
 (units with their topic links) into plain data classes describing the
-Moodle course, its weekly sections, and the "Page" activities that will
-be created inside each section. The sync service then executes that
-plan through the MoodleClient.
+Moodle course and its weekly sections. Each week becomes exactly one
+course section named after the week; lecturer-approved lessons render to
+"Page" activities inside that section (no page repeats the week's
+section name). The sync service then executes that plan through the
+MoodleClient.
 """
 
 from __future__ import annotations
 
 import html
+import re
+from collections.abc import Callable
 from dataclasses import dataclass, field
 
 from app.models.curriculum import Curriculum
@@ -22,16 +26,36 @@ MAX_FULLNAME = 1334
 MAX_SHORTNAME = 255
 MAX_TITLE = 255
 
+# A title shaped like a UUID is an internal identifier, not a human course
+# name. Guard so an internal UUID can never surface as the Moodle course
+# fullname or leak verbatim into the shortname.
+UUID_PATTERN = re.compile(
+    r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+    re.IGNORECASE,
+)
+
+# The shortname is a title slug plus a short stable uniqueness suffix taken
+# from the tail of the curriculum id; the slug is capped so the suffix (and
+# the full shortname) always fits under Moodle's 255-char limit.
+SHORTNAME_SLUG_BASE = 200
+
+
+@dataclass
+class MoodleLessonPlan:
+    """A single lecturer-approved lesson published as a page in a week."""
+
+    name: str
+    content_html: str
+
 
 @dataclass
 class MoodleWeekPlan:
-    """One week of the Moodle course: its section and page content."""
+    """One week of the Moodle course: its section and lesson pages."""
 
     section_number: int
     section_name: str
     section_summary_html: str
-    page_name: str
-    page_content_html: str
+    lessons: list[MoodleLessonPlan] = field(default_factory=list)
 
 
 @dataclass
@@ -53,12 +77,40 @@ def _clamp(value: str, max_length: int) -> str:
 
 
 def _course_fullname(curriculum: Curriculum) -> str:
-    title = curriculum.title or MOODLE_DEFAULT_COURSE_NAME
+    title = (curriculum.title or "").strip()
+    if not title or UUID_PATTERN.fullmatch(title):
+        title = MOODLE_DEFAULT_COURSE_NAME
     return _clamp(title, MAX_FULLNAME)
 
 
+def _slugify(value: str) -> str:
+    """Lower-case, ASCII-safe hyphenated slug; deterministic."""
+    slug = "".join(
+        ch if ("a" <= ch <= "z" or "0" <= ch <= "9") else "-" for ch in value.lower()
+    )
+    slug = re.sub(r"-+", "-", slug).strip("-")
+    return slug
+
+
 def _course_shortname(curriculum: Curriculum, idnumber: str) -> str:
-    return _clamp(idnumber, MAX_SHORTNAME)
+    """
+    Deterministic, unique-safe shortname derived from the course title.
+
+    The human-readable title is slugified and a short stable suffix taken
+    from the tail of the curriculum id keeps the value unique when two
+    curricula share a title, while remaining fully deterministic so
+    re-publishing the same curriculum never renames it. The full UUID and
+    the ``ai-ece-`` idnumber prefix never appear in the shortname; the
+    UUID stays in ``idnumber`` (the internal identity). When the title
+    yields no slug (or is itself a UUID), a neutral deterministic base is
+    used instead.
+    """
+    raw = (curriculum.title or "").strip()
+    if UUID_PATTERN.fullmatch(raw):
+        raw = ""
+    base = _slugify(raw)[:SHORTNAME_SLUG_BASE] or "course"
+    suffix = idnumber.rsplit("-", 1)[-1][-8:]
+    return _clamp(f"{base}-{suffix}", MAX_SHORTNAME)
 
 
 def _topic_titles(unit: CurriculumUnit) -> list[str]:
@@ -97,19 +149,8 @@ def _section_summary(unit: CurriculumUnit) -> str:
     )
 
 
-def _page_content(unit: CurriculumUnit) -> str:
-    description = html.escape(unit.description) or (
-        f"Week {unit.week_number} study plan."
-    )
-    return (
-        f"<h3>{html.escape(unit.title)}</h3>"
-        f"<p>{description}</p>"
-        f"<h4>Learning objectives</h4>"
-        f"{_objectives_list(unit)}"
-    )
-
-
-def _page_name(unit: CurriculumUnit) -> str:
+def _section_name(unit: CurriculumUnit) -> str:
+    """Name of the weekly section (the section itself represents the week)."""
     return _clamp(unit.title or f"Week {unit.week_number}", MAX_TITLE)
 
 
@@ -118,6 +159,7 @@ def build_course_plan(
     *,
     fullname_override: str | None = None,
     shortname_override: str | None = None,
+    lesson_renderer: (Callable[[CurriculumUnit], list[MoodleLessonPlan]] | None) = None,
 ) -> MoodleCoursePlan:
     """
     Build the Moodle course plan for a curriculum.
@@ -128,6 +170,12 @@ def build_course_plan(
     ``fullname_override``/``shortname_override`` let callers customize
     the Moodle course names; each falls back to the derived value when
     blank.
+
+    ``lesson_renderer`` optionally maps each weekly unit to the list of
+    lecturer-approved lessons that should be published as additional
+    page resources inside that week's section. When omitted (or when it
+    returns an empty list) the plan contains no lesson pages, which is
+    byte-identical to the pre-lesson plan format.
     """
     idnumber = f"ai-ece-{curriculum.id}"
 
@@ -143,13 +191,20 @@ def build_course_plan(
 
     weeks: list[MoodleWeekPlan] = []
     for unit in curriculum.units:
+        lessons = lesson_renderer(unit) if lesson_renderer is not None else []
+        named_lessons = [
+            MoodleLessonPlan(
+                name=_clamp(lesson.name, MAX_TITLE),
+                content_html=lesson.content_html,
+            )
+            for lesson in lessons
+        ]
         weeks.append(
             MoodleWeekPlan(
                 section_number=unit.week_number,
-                section_name=_page_name(unit),
+                section_name=_section_name(unit),
                 section_summary_html=_section_summary(unit),
-                page_name=_page_name(unit),
-                page_content_html=_page_content(unit),
+                lessons=named_lessons,
             )
         )
 

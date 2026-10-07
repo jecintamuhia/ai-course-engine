@@ -41,12 +41,8 @@ def validate_extraction_result(result: TopicExtractionResult) -> None:
         )
 
     if result.topics:
-        has_any_concept = any(
-            _has_any_concept(topic) for topic in result.topics
-        )
-        has_any_objective = any(
-            _has_any_objective(topic) for topic in result.topics
-        )
+        has_any_concept = any(_has_any_concept(topic) for topic in result.topics)
+        has_any_objective = any(_has_any_objective(topic) for topic in result.topics)
 
         if not has_any_concept and not has_any_objective:
             raise AIOutputValidationError(
@@ -79,6 +75,12 @@ async def extract_topics_for_chapter(
     ``chapter_text`` is expected to be marker-annotated (see
     chunk_context.build_marker_annotated_context) so the model can cite
     which chunks support each topic.
+
+    Cross-chapter prerequisites are out of scope for this call. It runs
+    once per chapter, so the other chapters' topic titles do not exist yet
+    and any cross-chapter name it emitted would be invented rather than
+    observed. Those links are made by the document-wide linking pass
+    (dependency.linking_service), which sees every real title at once.
 
     Returns a validated TopicExtractionResult. Raises AIProviderError
     (from the provider) or AIOutputValidationError (from business-level

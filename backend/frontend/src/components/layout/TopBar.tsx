@@ -1,8 +1,9 @@
-import { useLocation, Link } from "react-router-dom";
-import { Menu, Plus, ChevronRight } from "lucide-react";
+import { useLocation, Link, useNavigate } from "react-router-dom";
+import { Menu, Plus, ChevronRight, LogOut } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { moodleState } from "@/lib/status";
+import { clearToken } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import type { MoodleStatusState } from "@/hooks/useMoodleStatus";
 
@@ -31,9 +32,15 @@ interface TopBarProps {
 
 export function TopBar({ onOpenMobileNav, moodle }: TopBarProps) {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const { group, label } = crumbFor(pathname);
   const state = moodleState(moodle.status);
   const connected = moodle.status?.connected === true;
+
+  function handleSignOut() {
+    clearToken();
+    navigate("/login", { replace: true });
+  }
 
   return (
     <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-4 border-b border-border bg-cream-50/85 px-4 backdrop-blur-md sm:px-6 lg:px-8">
@@ -85,6 +92,16 @@ export function TopBar({ onOpenMobileNav, moodle }: TopBarProps) {
             <Plus className="h-4 w-4" />
             Upload textbook
           </Link>
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-muted-foreground"
+          onClick={handleSignOut}
+          aria-label="Sign out"
+          title="Sign out"
+        >
+          <LogOut className="h-4 w-4" />
         </Button>
       </div>
     </header>

@@ -6,7 +6,7 @@ import enum
 import uuid
 
 from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
-from sqlalchemy import ARRAY, Enum, ForeignKey, Integer, String
+from sqlalchemy import ARRAY, Enum, ForeignKey, Integer, String, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -27,6 +27,33 @@ class SourceType(str, enum.Enum):
     SOURCE_DERIVED = "source_derived"
     AI_GENERATED = "ai_generated"
     AI_ENRICHED = "ai_enriched"
+
+
+class TopicImportance(str, enum.Enum):
+    """
+    Learning-design weight of a topic, used to size lesson depth and to
+    drive content-QA depth rules.
+
+    MAJOR_FOUNDATIONAL: core gateway topic that the rest of the course
+    builds on — lessons must be substantial. MAJOR: a principal topic
+    that needs full treatment. SUPPORTING: augments a major topic with
+    lighter depth. ADVANCED: extension material at higher difficulty.
+    MINOR: terminology/reference point; brief coverage is acceptable.
+    """
+
+    MAJOR_FOUNDATIONAL = "major_foundational"
+    MAJOR = "major"
+    SUPPORTING = "supporting"
+    ADVANCED = "advanced"
+    MINOR = "minor"
+
+
+class ContentLevel(str, enum.Enum):
+    """Graph-based content level classification."""
+
+    BASIC = "basic"
+    INTERMEDIATE = "intermediate"
+    ADVANCED = "advanced"
 
 
 class Topic(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -69,6 +96,23 @@ class Topic(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     title: Mapped[str] = mapped_column(String(300), nullable=False)
 
+    canonical_key: Mapped[str | None] = mapped_column(
+        String(300), nullable=True, index=True
+    )
+    aliases: Mapped[list[str]] = mapped_column(
+        ARRAY(String),
+        nullable=False,
+        default=list,
+        server_default=text("'{}'::varchar[]"),
+    )
+    duplicate_of_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("topics.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    importance: Mapped[str | None] = mapped_column(String(20), nullable=True)
+
     learning_objectives: Mapped[list[str]] = mapped_column(
         ARRAY(String), nullable=False, default=list
     )
@@ -77,11 +121,20 @@ class Topic(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
 
     difficulty: Mapped[int] = mapped_column(Integer, nullable=False)
-    estimated_workload_minutes: Mapped[int] = mapped_column(
-        Integer, nullable=False
-    )
+    estimated_workload_minutes: Mapped[int] = mapped_column(Integer, nullable=False)
 
     order_index: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    content_level: Mapped[ContentLevel | None] = mapped_column(
+        Enum(
+            ContentLevel,
+            name="content_level",
+            native_enum=True,
+            validate_strings=True,
+            values_callable=lambda obj: [e.value for e in obj],
+        ),
+        nullable=True,
+    )
 
     source_type: Mapped[SourceType] = mapped_column(
         Enum(
@@ -104,8 +157,13 @@ class Topic(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         "Topic",
         cascade="all, delete-orphan",
         order_by="Topic.order_index",
-        remote_side="Topic.parent_topic_id",
-        overlaps="subtopics",
+        foreign_keys="Topic.parent_topic_id",
+    )
+
+    duplicate_of: Mapped[Topic | None] = relationship(
+        "Topic",
+        remote_side="Topic.id",
+        foreign_keys=[duplicate_of_id],
     )
 
     source_chunk_links: Mapped[list[TopicSourceChunk]] = relationship(
@@ -115,6 +173,5 @@ class Topic(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     def __repr__(self) -> str:  # pragma: no cover - debugging aid
         return (
-            f"<Topic id={self.id} title={self.title!r} "
-            f"parent={self.parent_topic_id}>"
+            f"<Topic id={self.id} title={self.title!r} parent={self.parent_topic_id}>"
         )

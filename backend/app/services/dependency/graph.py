@@ -92,18 +92,14 @@ def topological_sort(edges: Edges) -> list[uuid.UUID]:
         all_nodes.update(deps)
 
     in_degree: dict[uuid.UUID, int] = {node: 0 for node in all_nodes}
-    dependents: dict[uuid.UUID, set[uuid.UUID]] = {
-        node: set() for node in all_nodes
-    }
+    dependents: dict[uuid.UUID, set[uuid.UUID]] = {node: set() for node in all_nodes}
 
     for node, deps in edges.items():
         for dep in deps:
             dependents[dep].add(node)
             in_degree[node] += 1
 
-    queue = sorted(
-        (node for node in all_nodes if in_degree[node] == 0), key=str
-    )
+    queue = sorted((node for node in all_nodes if in_degree[node] == 0), key=str)
     order: list[uuid.UUID] = []
 
     while queue:
@@ -118,8 +114,6 @@ def topological_sort(edges: Edges) -> list[uuid.UUID]:
         queue.sort(key=str)
 
     if len(order) != len(all_nodes):
-        raise RuntimeError(
-            "Graph still contains a cycle; run break_all_cycles first."
-        )
+        raise RuntimeError("Graph still contains a cycle; run break_all_cycles first.")
 
     return order

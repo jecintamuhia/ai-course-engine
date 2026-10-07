@@ -41,7 +41,4 @@ class TopicSourceChunk(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
 
     def __repr__(self) -> str:  # pragma: no cover - debugging aid
-        return (
-            f"<TopicSourceChunk topic_id={self.topic_id} "
-            f"chunk_id={self.chunk_id}>"
-        ) 
+        return f"<TopicSourceChunk topic_id={self.topic_id} chunk_id={self.chunk_id}>"

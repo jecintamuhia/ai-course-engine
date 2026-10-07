@@ -109,9 +109,9 @@ export function CoursesPage() {
                           <BookOpen className="h-3.5 w-3.5" />
                         </span>
                         <div>
-                          <div className="font-medium text-foreground">{course.fullname}</div>
+                          <div className="font-medium text-foreground">{course.title}</div>
                           <div className="text-[11px] text-muted-foreground">
-                            {course.idnumber}
+                            {course.shortname}
                             {course.sync_error && (
                               <span className="ml-2 text-red-600">{course.sync_error}</span>
                             )}

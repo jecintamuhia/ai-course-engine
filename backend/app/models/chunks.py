@@ -56,9 +56,7 @@ class Chunk(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     content: Mapped[str] = mapped_column(Text, nullable=False)
     char_count: Mapped[int] = mapped_column(Integer, nullable=False)
-    content_hash: Mapped[str] = mapped_column(
-        String(64), nullable=False, index=True
-    )
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
 
     def __repr__(self) -> str:  # pragma: no cover - debugging aid
         return (

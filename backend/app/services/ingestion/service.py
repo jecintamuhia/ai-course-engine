@@ -6,6 +6,7 @@ import asyncio
 import uuid
 
 from app.core.exceptions import DocumentNotFound
+from app.core.logging import get_logger
 from app.db.repositories.chunks import ChunkRepository
 from app.db.repositories.documents import DocumentRepository
 from app.db.repositories.pages import PageRepository
@@ -20,6 +21,8 @@ from app.services.ingestion.document_loader import load_document_content
 from app.services.ingestion.structure_detector import detect_structure
 from app.services.ingestion.text_extractor import extract_pages
 from app.utils.files import compute_sha256
+
+logger = get_logger(__name__)
 
 
 class IngestionService:
@@ -77,9 +80,7 @@ class IngestionService:
 
         return pages
 
-    async def detect_document_structure(
-        self, document_id: uuid.UUID
-    ) -> list[Chapter]:
+    async def detect_document_structure(self, document_id: uuid.UUID) -> list[Chapter]:
         """
         Detect and persist chapter/section structure for a document.
 
@@ -136,7 +137,56 @@ class IngestionService:
         await self._structure_repository.add_chapters(chapters)
         await self._structure_repository.commit()
 
+        relinked = await self._relink_existing_chunks(document_id, chapters)
+
+        if relinked:
+            logger.info(
+                "Re-linked chunks to re-detected structure document_id=%s "
+                "chunks=%s chapters=%s",
+                document_id,
+                relinked,
+                len(chapters),
+            )
+
         return chapters
+
+    async def _relink_existing_chunks(
+        self, document_id: uuid.UUID, chapters: list[Chapter]
+    ) -> int:
+        """
+        Re-attach already-chunked content to a newly detected structure.
+
+        ``delete_by_document`` drops the previous Chapter rows, so every
+        existing chunk is left referencing chapter/section ids that no
+        longer exist. Content analysis groups chunks by chapter, so those
+        orphans read as chapters with no content and the document yields
+        zero topics while the job still reports success.
+
+        Re-linking by page number keeps re-detection cheap: the chunk text
+        itself is unaffected by a heading change, only its parent is.
+        """
+        if self._chunk_repository is None:
+            return 0
+
+        chunks = await self._chunk_repository.list_by_document(document_id)
+        if not chunks:
+            return 0
+
+        pages = await self._page_repository.list_by_document(document_id)
+        page_numbers = {page.id: page.page_number for page in pages}
+
+        assignments: dict[uuid.UUID, tuple[uuid.UUID | None, uuid.UUID | None]] = {}
+
+        for chunk in chunks:
+            page_number = page_numbers.get(chunk.page_id)
+            if page_number is None:
+                continue
+
+            assignments[chunk.id] = self._resolve_structure_for_page(
+                page_number, chapters
+            )
+
+        return await self._chunk_repository.relink_to_structure(chunks, assignments)
 
     async def chunk_document(self, document_id: uuid.UUID) -> list[Chunk]:
         """
@@ -196,9 +246,7 @@ class IngestionService:
                         page_index=page_index,
                         content=text_chunk.content,
                         char_count=text_chunk.char_count,
-                        content_hash=compute_sha256(
-                            text_chunk.content.encode("utf-8")
-                        ),
+                        content_hash=compute_sha256(text_chunk.content.encode("utf-8")),
                     )
                 )
                 document_index += 1

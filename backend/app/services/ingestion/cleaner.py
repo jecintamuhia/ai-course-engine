@@ -8,9 +8,7 @@ from collections import Counter
 
 _WHITESPACE_RUN = re.compile(r"[ \t]+")
 _BLANK_LINE_RUN = re.compile(r"\n{3,}")
-_PAGE_NUMBER_FOOTER = re.compile(
-    r"^(page\s+\d+(\s+of\s+\d+)?|\d+)$", re.IGNORECASE
-)
+_PAGE_NUMBER_FOOTER = re.compile(r"^(page\s+\d+(\s+of\s+\d+)?|\d+)$", re.IGNORECASE)
 
 
 def normalize_text(raw_text: str) -> str:
@@ -23,9 +21,7 @@ def normalize_text(raw_text: str) -> str:
     """
     text = unicodedata.normalize("NFKC", raw_text)
 
-    lines = [
-        _WHITESPACE_RUN.sub(" ", line).strip() for line in text.splitlines()
-    ]
+    lines = [_WHITESPACE_RUN.sub(" ", line).strip() for line in text.splitlines()]
     text = "\n".join(lines)
     text = _BLANK_LINE_RUN.sub("\n\n", text)
 
@@ -52,17 +48,13 @@ def detect_repeated_lines(
     line_page_counts: Counter[str] = Counter()
 
     for text in pages_text:
-        lines_on_page = {
-            line.strip() for line in text.splitlines() if line.strip()
-        }
+        lines_on_page = {line.strip() for line in text.splitlines() if line.strip()}
         for line in lines_on_page:
             line_page_counts[line] += 1
 
     required = max(2, int(len(pages_text) * threshold))
 
-    return {
-        line for line, count in line_page_counts.items() if count >= required
-    }
+    return {line for line, count in line_page_counts.items() if count >= required}
 
 
 def strip_repeated_lines(text: str, repeated_lines: set[str]) -> str:
@@ -70,11 +62,7 @@ def strip_repeated_lines(text: str, repeated_lines: set[str]) -> str:
     if not repeated_lines:
         return text
 
-    kept = [
-        line
-        for line in text.splitlines()
-        if line.strip() not in repeated_lines
-    ]
+    kept = [line for line in text.splitlines() if line.strip() not in repeated_lines]
 
     return "\n".join(kept).strip()
 
@@ -87,9 +75,7 @@ def strip_page_number_footers(text: str) -> str:
     """
     lines = text.splitlines()
 
-    kept = [
-        line for line in lines if not _PAGE_NUMBER_FOOTER.match(line.strip())
-    ]
+    kept = [line for line in lines if not _PAGE_NUMBER_FOOTER.match(line.strip())]
 
     return "\n".join(kept).strip()
 

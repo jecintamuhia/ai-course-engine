@@ -1,5 +1,15 @@
 import type {
+  AssessmentGenerateRequest,
+  AssessmentListResponse,
+  AssessmentRead,
+  AssessmentReviewRequest,
+  AuthMethods,
+  BlockReviewRequest,
+  CanonicalizationResponse,
   ChunkingResponse,
+  ContentGenerationCreateResponse,
+  ContentGenerationJob,
+  CoverageReportRead,
   CurriculumDetailRead,
   CurriculumGenerateRequest,
   CurriculumGenerateResponse,
@@ -11,8 +21,14 @@ import type {
   DocumentOverviewListResponse,
   DocumentStructureResponse,
   DocumentUploadResponse,
+  GenerateWeekResponse,
   IngestionJobCreateResponse,
   IngestionJobRead,
+  LessonBlockRead,
+  LessonListResponse,
+  LessonRead,
+  LessonReviewRequest,
+  LessonSourceMapRead,
   MoodleConnectionCheck,
   MoodleConnectionStatus,
   MoodleCourseListResponse,
@@ -22,11 +38,18 @@ import type {
   MoodleReadyExport,
   MoodleVerifyResponse,
   PageExtractionResponse,
+  QAReportRead,
+  QAReportResponse,
+  RegisterRequest,
   TopicAnalysisResponse,
   TopicProvenanceResponse,
   TopicRead,
+  TokenResponse,
+  UserRead,
   UUID,
 } from "@/lib/types";
+
+import { clearToken, getToken } from "@/lib/auth";
 
 const API_ROOT = "/api/v1";
 
@@ -40,6 +63,12 @@ export class ApiError extends Error {
   }
 }
 
+function redirectToLogin(): void {
+  if (window.location.pathname !== "/login") {
+    window.location.assign("/login");
+  }
+}
+
 async function request<T>(
   path: string,
   init: RequestInit = {},
@@ -47,6 +76,10 @@ async function request<T>(
   const headers = new Headers(init.headers);
   if (init.body && !(init.body instanceof FormData)) {
     headers.set("Content-Type", "application/json");
+  }
+  const token = getToken();
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
   }
 
   let response: Response;
@@ -66,6 +99,10 @@ async function request<T>(
   }
 
   if (!response.ok) {
+    if (response.status === 401 && path !== "/auth/login") {
+      clearToken();
+      redirectToLogin();
+    }
     const body = data as {
       error?: { message?: string };
       detail?: string | Record<string, unknown>;
@@ -88,6 +125,10 @@ function post<T>(path: string, body?: unknown): Promise<T> {
   });
 }
 
+function del<T>(path: string): Promise<T> {
+  return request<T>(path, { method: "DELETE" });
+}
+
 async function uploadFile(
   path: string,
   formData: FormData,
@@ -96,6 +137,10 @@ async function uploadFile(
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", API_ROOT + path);
+    const token = getToken();
+    if (token) {
+      xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    }
     xhr.upload.onprogress = (event) => {
       if (event.lengthComputable && onProgress) {
         onProgress(Math.round((event.loaded / event.total) * 100));
@@ -111,6 +156,10 @@ async function uploadFile(
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve(data as DocumentUploadResponse);
       } else {
+        if (xhr.status === 401) {
+          clearToken();
+          redirectToLogin();
+        }
         const body = data as unknown as {
           error?: { message?: string };
           detail?: string;
@@ -128,6 +177,20 @@ async function uploadFile(
 }
 
 export const api = {
+  /* Auth */
+  login: (email: string, password: string) =>
+    post<TokenResponse>("/auth/login", { email, password }),
+  register: (body: RegisterRequest) =>
+    post<TokenResponse>("/auth/register", body),
+  authMethods: () => request<AuthMethods>("/auth/methods"),
+  exchangeGoogleCode: (code: string) =>
+    post<TokenResponse>("/auth/google/exchange", { code }),
+  googleStartUrl: () => `${API_ROOT}/auth/google/start`,
+  me: () => request<UserRead>("/auth/me"),
+  logoutLocally: () => {
+    clearToken();
+  },
+
   /* Dashboard */
   dashboard: () => request<DashboardResponse>("/dashboard"),
 
@@ -149,6 +212,47 @@ export const api = {
     request<TopicRead[]>(`/documents/${encodeURIComponent(id)}/topics`),
   buildDependencies: (id: UUID) =>
     post<DependencyGraphResponse>(`/documents/${encodeURIComponent(id)}/dependencies`),
+  canonicalizeDocument: (id: UUID) =>
+    post<CanonicalizationResponse>(`/documents/${encodeURIComponent(id)}/canonicalize`),
+
+  /* Content QA */
+  runQA: (curriculumId: UUID) =>
+    post<QAReportResponse>(`/curricula/${encodeURIComponent(curriculumId)}/qa`),
+  getQualityReport: (curriculumId: UUID) =>
+    request<QAReportRead>(`/curricula/${encodeURIComponent(curriculumId)}/quality-report`),
+  getCoverageReport: (curriculumId: UUID) =>
+    request<CoverageReportRead>(`/curricula/${encodeURIComponent(curriculumId)}/coverage`),
+
+  /* Assessments */
+  generateUnitAssessment: (
+    curriculumId: UUID,
+    unitId: UUID,
+    body: AssessmentGenerateRequest = {},
+  ) =>
+    post<AssessmentRead>(
+      `/curricula/${encodeURIComponent(curriculumId)}/units/${encodeURIComponent(unitId)}/assessments`,
+      body,
+    ),
+  generateFinalAssessment: (
+    curriculumId: UUID,
+    body: AssessmentGenerateRequest = {},
+  ) =>
+    post<AssessmentRead>(
+      `/curricula/${encodeURIComponent(curriculumId)}/assessments/final`,
+      body,
+    ),
+  listUnitAssessments: (curriculumId: UUID, unitId: UUID) =>
+    request<AssessmentListResponse>(
+      `/curricula/${encodeURIComponent(curriculumId)}/units/${encodeURIComponent(unitId)}/assessments`,
+    ),
+  listCurriculumAssessments: (curriculumId: UUID) =>
+    request<AssessmentListResponse>(
+      `/curricula/${encodeURIComponent(curriculumId)}/assessments`,
+    ),
+  getAssessment: (assessmentId: UUID) =>
+    request<AssessmentRead>(`/assessments/${encodeURIComponent(assessmentId)}`),
+  reviewAssessment: (assessmentId: UUID, body: AssessmentReviewRequest) =>
+    post<AssessmentRead>(`/assessments/${encodeURIComponent(assessmentId)}/review`, body),
 
   /* Upload (progress-aware) */
   uploadDocument: (
@@ -183,6 +287,39 @@ export const api = {
     post<CurriculumDetailRead>(`/curricula/${encodeURIComponent(id)}/submit-for-review`),
   reviewCurriculum: (id: UUID, body: CurriculumReviewRequest) =>
     post<CurriculumDetailRead>(`/curricula/${encodeURIComponent(id)}/review`, body),
+
+  /* Course content (lessons) */
+  generateWeekContent: (unitId: UUID) =>
+    post<GenerateWeekResponse>(`/course-content/weeks/${encodeURIComponent(unitId)}/generate`),
+  listWeekLessons: (unitId: UUID) =>
+    request<LessonListResponse>(`/course-content/weeks/${encodeURIComponent(unitId)}/lessons`),
+  getLesson: (lessonId: UUID) =>
+    request<LessonRead>(`/course-content/lessons/${encodeURIComponent(lessonId)}`),
+  getLessonSourceMap: (lessonId: UUID) =>
+    request<LessonSourceMapRead>(
+      `/course-content/lessons/${encodeURIComponent(lessonId)}/source-map`,
+    ),
+  submitLessonForReview: (lessonId: UUID) =>
+    post<LessonRead>(`/course-content/lessons/${encodeURIComponent(lessonId)}/submit-for-review`),
+  reviewLesson: (lessonId: UUID, body: LessonReviewRequest) =>
+    post<LessonRead>(`/course-content/lessons/${encodeURIComponent(lessonId)}/review`, body),
+  reviewBlock: (blockId: UUID, body: BlockReviewRequest) =>
+    post<LessonBlockRead>(`/course-content/blocks/${encodeURIComponent(blockId)}/review`, body),
+  regenerateBlock: (blockId: UUID) =>
+    post<LessonBlockRead>(`/course-content/blocks/${encodeURIComponent(blockId)}/regenerate`),
+  deleteBlock: (blockId: UUID) =>
+    del<void>(`/course-content/blocks/${encodeURIComponent(blockId)}`),
+
+  /* Bulk generation across every week of a curriculum */
+  generateAllLessons: (curriculumId: UUID, rebuildExisting = false) =>
+    post<ContentGenerationCreateResponse>(
+      `/course-content/curricula/${encodeURIComponent(curriculumId)}/generate-all`,
+      { rebuild_existing: rebuildExisting },
+    ),
+  getContentGenerationJob: (curriculumId: UUID) =>
+    request<ContentGenerationJob | null>(
+      `/course-content/curricula/${encodeURIComponent(curriculumId)}/generate-all`,
+    ),
 
   /* Moodle */
   moodleStatus: () => request<MoodleConnectionStatus>("/moodle/status"),

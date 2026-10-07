@@ -26,6 +26,7 @@ from app.services.planner.four_month_planner import (
     PlanningConfig,
     WeekPlan,
 )
+from app.services.topics.canonicalization import apply_canonicalization
 
 logger = get_logger(__name__)
 
@@ -78,6 +79,34 @@ class CurriculumService:
                 f"Document {document_id} has no extracted topics. "
                 "Run topic analysis before generating a curriculum.",
             )
+
+        # Canonicalize before planning: assign canonical identity and
+        # importance, and merge safe exact-normalized-title duplicates so
+        # the course never contains accidental topic repetition. Merges
+        # flag duplicate rows (duplicate_of_id); nothing is deleted.
+        # Skipped when the repository returns non-Topic objects (e.g.
+        # test doubles) — it is defined over the persisted Topic model.
+        if topics and all(isinstance(topic, Topic) for topic in topics):
+            canonicalization = apply_canonicalization(topics)
+            await self._topic_repository.commit()
+            if canonicalization.clusters:
+                logger.info(
+                    "Canonicalized topics before planning document_id=%s "
+                    "clusters=%s duplicates=%s",
+                    document_id,
+                    canonicalization.clusters,
+                    canonicalization.duplicates_flagged,
+                )
+            topics = await self._topic_repository.list_flat_by_document(
+                document_id, exclude_duplicates=True
+            )
+            if not topics:
+                raise CurriculumValidationError(
+                    f"Document {document_id} has topics, but every one of them "
+                    "was flagged as a duplicate of another canonical topic. "
+                    "There is no canonical (non-duplicate) topic inventory to "
+                    "plan a curriculum from.",
+                )
 
         dependencies = await self._dependency_repository.list_by_document(document_id)
 
@@ -171,9 +200,7 @@ class CurriculumService:
         curriculum = await self.get_by_id(curriculum_id)
         await self._curriculum_repository.commit()
 
-        document = await self._document_repository.get_by_id(
-            curriculum.document_id
-        )
+        document = await self._document_repository.get_by_id(curriculum.document_id)
         await self._document_repository.commit()
         return build_curriculum_export(curriculum, document=document)
 

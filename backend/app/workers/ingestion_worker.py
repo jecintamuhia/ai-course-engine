@@ -15,11 +15,16 @@ import time
 import uuid
 
 from app.core.config import get_settings
-from app.core.exceptions import DocumentNotFound, InvalidStateTransition
+from app.core.exceptions import (
+    ContentAnalysisEmptyError,
+    DocumentNotFound,
+    InvalidStateTransition,
+)
 from app.core.logging import configure_logging, get_logger
 from app.core.redis import create_redis_client
 from app.db.database import create_database_engine
 from app.db.repositories.chunks import ChunkRepository
+from app.db.repositories.dependencies import DependencyRepository
 from app.db.repositories.documents import DocumentRepository
 from app.db.repositories.ingestion_jobs import IngestionJobRepository
 from app.db.repositories.pages import PageRepository
@@ -29,6 +34,10 @@ from app.db.session import create_session_factory
 from app.models.ingestion_job import IngestionState
 from app.services.ai.factory import create_llm_provider
 from app.services.content_analysis.service import ContentAnalysisService
+from app.services.dependency.linking_service import (
+    PrerequisiteLinkingService,
+)
+from app.services.dependency.service import DependencyGraphService
 from app.services.ingestion.job_queue import (
     DEFAULT_BACKOFF_BASE_SECONDS,
     ack,
@@ -84,6 +93,7 @@ async def _process_job(
         structure_repository = StructureRepository(session)
         chunk_repository = ChunkRepository(session)
         topic_repository = TopicRepository(session)
+        dependency_repository = DependencyRepository(session)
 
         ingestion_service = IngestionService(
             document_repository,
@@ -100,9 +110,20 @@ async def _process_job(
             llm_provider,
         )
 
+        dependency_graph_service = DependencyGraphService(
+            document_repository,
+            topic_repository,
+            dependency_repository,
+        )
+
+        prerequisite_linking_service = PrerequisiteLinkingService(
+            document_repository,
+            topic_repository,
+            llm_provider,
+        )
+
         logger.info(
-            "Job starting job_id=%s document_id=%s attempt=%s "
-            "correlation_id=%s",
+            "Job starting job_id=%s document_id=%s attempt=%s correlation_id=%s",
             job_id,
             job.document_id,
             job.attempt_count + 1,
@@ -115,9 +136,7 @@ async def _process_job(
 
             document = await document_repository.get_by_id(job.document_id)
             if document is None:
-                raise DocumentNotFound(
-                    f"Document {job.document_id} was not found."
-                )
+                raise DocumentNotFound(f"Document {job.document_id} was not found.")
 
             await job_repository.transition(job, IngestionState.EXTRACTING)
             await job_repository.commit()
@@ -154,16 +173,12 @@ async def _process_job(
                     len(chapters),
                 )
             else:
-                await ingestion_service.detect_document_structure(
-                    job.document_id
-                )
+                await ingestion_service.detect_document_structure(job.document_id)
 
                 # Structure is a prerequisite for chapter-aware chunking;
                 # re-read so chunks below are attributed correctly.
-                chapters = (
-                    await structure_repository.list_chapters_by_document(
-                        job.document_id
-                    )
+                chapters = await structure_repository.list_chapters_by_document(
+                    job.document_id
                 )
 
             await job_repository.transition(job, IngestionState.CHUNKING)
@@ -185,8 +200,103 @@ async def _process_job(
 
             await content_analysis_service.analyze_document(job.document_id)
 
-            # COMPLETED is reached directly from ANALYZING because
-            # KNOWLEDGE_BUILDING onward is not implemented yet.
+            # An analysis that yields nothing must not look like success.
+            # Chapters can legitimately be skipped for being too thin, but
+            # a document that ends with zero topics cannot produce a
+            # curriculum, and reporting COMPLETED hides that until someone
+            # notices the curriculum is empty. This is the symptom of chunks
+            # pointing at a replaced structure, so say so explicitly.
+            persisted_topics = await topic_repository.list_by_document(job.document_id)
+            await job_repository.commit()
+
+            if not persisted_topics:
+                unlinked_chunks = await chunk_repository.count_unlinked_by_document(
+                    job.document_id
+                )
+                total_chunks = (
+                    await chunk_repository.count_by_document(job.document_id)
+                ).get(job.document_id, 0)
+                await job_repository.commit()
+
+                raise ContentAnalysisEmptyError(
+                    f"Analysis produced no topics for document "
+                    f"{job.document_id}. "
+                    f"chapters={len(chapters)} "
+                    f"chunks={total_chunks} "
+                    f"chunks_without_chapter={unlinked_chunks}. "
+                    "If chunks_without_chapter is greater than zero, the "
+                    "structure was replaced without re-linking chunks; "
+                    "re-run chunking."
+                )
+
+            # Resolve the AI-extracted prerequisite titles into a real,
+            # acyclic topic graph. Curriculum planning orders weeks by this
+            # topological order, so leaving it unbuilt silently degrades
+            # sequencing to a workload sort. Idempotent: rebuilding
+            # replaces the document's previous edges.
+            await job_repository.transition(job, IngestionState.KNOWLEDGE_BUILDING)
+            await job_repository.commit()
+
+            # Cross-chapter prerequisites can only be named now that every
+            # chapter's topics exist. Per-chapter extraction deliberately
+            # skipped them, so without this pass the graph would hold only
+            # within-chapter links and sequencing would ignore the real
+            # cross-chapter spine.
+            linking = await prerequisite_linking_service.link_document(job.document_id)
+            await job_repository.commit()
+
+            for rejected in linking.rejected:
+                logger.warning(
+                    "Rejected prerequisite link document_id=%s topic=%r "
+                    "prerequisite=%r reason=%s",
+                    job.document_id,
+                    rejected.topic_title,
+                    rejected.prerequisite_title,
+                    rejected.reason,
+                )
+
+            graph = await dependency_graph_service.build_document_dependencies(
+                job.document_id,
+                additional_edges=linking.edges,
+            )
+            await job_repository.commit()
+
+            logger.info(
+                "Dependency graph built document_id=%s topics_ordered=%s "
+                "rejected_cycles=%s unresolved=%s",
+                job.document_id,
+                len(graph.topological_order),
+                len(graph.rejected_cycle_edges),
+                len(graph.unresolved_prerequisites),
+            )
+
+            for unresolved in graph.unresolved_prerequisites:
+                logger.warning(
+                    "Unresolved prerequisite document_id=%s topic=%r "
+                    "prerequisite=%r reason=%s",
+                    job.document_id,
+                    unresolved.topic_title,
+                    unresolved.prerequisite_title,
+                    unresolved.reason,
+                )
+
+            for cycle in graph.rejected_cycle_edges:
+                logger.warning(
+                    "Rejected dependency cycle edge document_id=%s "
+                    "topic_id=%s depends_on=%s",
+                    job.document_id,
+                    cycle.topic_id,
+                    cycle.depends_on_topic_id,
+                )
+
+            # PLANNING/VALIDATING_OUTPUT remain for the planner and
+            # curriculum-quality stages, which run on demand rather than as
+            # part of document ingestion.
+            # Clear any error from an earlier attempt: the job is succeeding
+            # now, and a stale message next to COMPLETED reads as an
+            # unresolved failure. Clear before the transition so both
+            # writes land in one commit.
+            job.error_message = None
             await job_repository.transition(job, IngestionState.COMPLETED)
             await job_repository.commit()
 
@@ -296,9 +406,7 @@ async def run_worker() -> None:
             now = time.monotonic()
             if now - last_reconcile >= RECONCILE_INTERVAL_SECONDS:
                 try:
-                    requeued = await reconcile_stale_jobs(
-                        redis_client, session_factory
-                    )
+                    requeued = await reconcile_stale_jobs(redis_client, session_factory)
                     if requeued:
                         logger.info(
                             "Reconciled stale ingestion jobs count=%s",
@@ -314,9 +422,7 @@ async def run_worker() -> None:
                 continue
 
             try:
-                await _process_job(
-                    job_id, session_factory, redis_client, llm_provider
-                )
+                await _process_job(job_id, session_factory, redis_client, llm_provider)
             except Exception:  # noqa: BLE001 - one bad job must not kill the loop
                 logger.exception(
                     "Job crashed the processing path job_id=%s; "

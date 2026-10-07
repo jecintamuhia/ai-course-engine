@@ -65,6 +65,39 @@ class Settings(BaseSettings):
         default=SecretStr("development-only-change-this-secret-before-production")
     )
 
+    # ------------------------------------------------------------------
+    # Authentication (JWT)
+    # ------------------------------------------------------------------
+
+    jwt_algorithm: str = "HS256"
+    jwt_access_token_expire_minutes: int = Field(default=720, ge=1)
+
+    # ------------------------------------------------------------------
+    # Registration
+    # ------------------------------------------------------------------
+
+    auth_registration_enabled: bool = Field(default=True)
+
+    auth_registration_allowed_domains: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Restrict self-registration to these email domains "
+            "(e.g. ['gmail.com']). Empty means any valid email address is "
+            "accepted. Registration never grants admin rights."
+        ),
+    )
+
+    # ------------------------------------------------------------------
+    # Google OAuth (Sign in with Google)
+    # ------------------------------------------------------------------
+
+    google_oauth_client_id: SecretStr = Field(default=SecretStr(""))
+    google_oauth_client_secret: SecretStr = Field(default=SecretStr(""))
+    google_oauth_redirect_uri: str = ""
+    google_oauth_frontend_redirect: str = "/login"
+    google_oauth_timeout_seconds: float = Field(default=10.0, ge=1.0, le=60.0)
+    google_oauth_exchange_ttl_seconds: int = Field(default=300, ge=30, le=900)
+
     allowed_hosts: list[str] = Field(default_factory=lambda: ["localhost", "127.0.0.1"])
 
     # ------------------------------------------------------------------
@@ -111,6 +144,40 @@ class Settings(BaseSettings):
     ai_max_context_chars: int = Field(default=6_000, ge=1_000)
     ai_min_content_chars: int = Field(default=500, ge=1)
 
+    # Document-wide prerequisite linking (the second analysis pass).
+    # The catalogue is the whole book's topic list shown at once so the
+    # model can link across chapters; it is far smaller than the chapter
+    # text prompts and is budgeted separately.
+    ai_linker_max_catalogue_chars: int = Field(default=24_000, ge=1_000)
+    ai_linker_batch_size: int = Field(default=60, ge=1, le=500)
+    ai_linker_max_prerequisites: int = Field(default=4, ge=0, le=20)
+
+    # ------------------------------------------------------------------
+    # Course content generation (lessons, diagrams, resources, activities)
+    # ------------------------------------------------------------------
+
+    content_max_lessons_per_week: int = Field(default=5, ge=1, le=20)
+    content_max_tokens: int = Field(default=4000, ge=512, le=32768)
+    content_max_knowledge_checks: int = Field(default=3, ge=0, le=10)
+    content_max_activities: int = Field(default=2, ge=0, le=10)
+    content_max_diagrams: int = Field(default=2, ge=0, le=10)
+    content_max_resources: int = Field(default=3, ge=0, le=10)
+    content_resource_timeout_seconds: float = Field(default=8.0, ge=1.0, le=60.0)
+
+    # ------------------------------------------------------------------
+    # Content QA
+    # ------------------------------------------------------------------
+
+    qa_min_major_prose_chars: int = Field(default=600, ge=0)
+    qa_min_supporting_prose_chars: int = Field(default=200, ge=0)
+    qa_duplicate_title_similarity: float = Field(default=0.8, ge=0.0, le=1.0)
+
+    # ------------------------------------------------------------------
+    # External content discovery
+    # ------------------------------------------------------------------
+
+    youtube_api_key: SecretStr = Field(default=SecretStr(""))
+
     # ------------------------------------------------------------------
     # Moodle integration
     # ------------------------------------------------------------------
@@ -150,6 +217,28 @@ class Settings(BaseSettings):
     def is_production(self) -> bool:
         """Return whether the application runs in production."""
         return self.environment == "production"
+
+    @property
+    def google_oauth_enabled(self) -> bool:
+        """Return whether Sign in with Google is configured and usable."""
+        return bool(
+            self.google_oauth_client_id.get_secret_value().strip()
+            and self.google_oauth_client_secret.get_secret_value().strip()
+        )
+
+    @property
+    def effective_google_redirect_uri(self) -> str:
+        """
+        Return the OAuth callback URI registered with Google.
+
+        Falls back to a same-origin callback on the API's own prefix, which
+        is correct for the SPA-served-by-FastAPI deployment and for the
+        Vite dev proxy. Deployments that split the origins must set
+        GOOGLE_OAUTH_REDIRECT_URI explicitly.
+        """
+        if self.google_oauth_redirect_uri.strip():
+            return self.google_oauth_redirect_uri.strip()
+        return f"{self.api_v1_prefix}/auth/google/callback"
 
     @field_validator("secret_key")
     @classmethod

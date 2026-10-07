@@ -30,9 +30,7 @@ async def test_successful_structured_parse_returns_typed_object(
     fake_choice = MagicMock(message=fake_message)
     fake_completion = MagicMock(choices=[fake_choice])
 
-    provider._client.chat.completions.parse = AsyncMock(
-        return_value=fake_completion
-    )
+    provider._client.chat.completions.parse = AsyncMock(return_value=fake_completion)
 
     result = await provider.complete_structured(
         system_prompt="extract",
@@ -52,9 +50,7 @@ async def test_refusal_raises_ai_provider_error(
     fake_choice = MagicMock(message=fake_message)
     fake_completion = MagicMock(choices=[fake_choice])
 
-    provider._client.chat.completions.parse = AsyncMock(
-        return_value=fake_completion
-    )
+    provider._client.chat.completions.parse = AsyncMock(return_value=fake_completion)
 
     with pytest.raises(AIProviderError) as exc_info:
         await provider.complete_structured(
@@ -151,9 +147,7 @@ async def test_null_parsed_output_raises(provider: OpenAIProvider) -> None:
     fake_choice = MagicMock(message=fake_message)
     fake_completion = MagicMock(choices=[fake_choice])
 
-    provider._client.chat.completions.parse = AsyncMock(
-        return_value=fake_completion
-    )
+    provider._client.chat.completions.parse = AsyncMock(return_value=fake_completion)
 
     with pytest.raises(AIProviderError):
         await provider.complete_structured(

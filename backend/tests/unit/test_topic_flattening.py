@@ -40,8 +40,9 @@ def test_flattens_nested_topics_with_correct_parent_linkage() -> None:
                             estimated_workload_minutes=15,
                             concepts=[
                                 ExtractedConcept(
-                                name="Openness", description="Exchange with environment"
-                            )
+                                    name="Openness",
+                                    description="Exchange with environment",
+                                )
                             ],
                         )
                     ],
@@ -145,9 +146,7 @@ def test_source_links_carry_a_resolvable_topic_fk() -> None:
     nested_links = [
         link for link in links if link.topic_id == topics[0].subtopics[0].id
     ]
-    assert sorted(link.chunk_id for link in top_links) == sorted(
-        [chunk_a, chunk_b]
-    )
+    assert sorted(link.chunk_id for link in top_links) == sorted([chunk_a, chunk_b])
     assert [link.chunk_id for link in nested_links] == [chunk_a]
 
 

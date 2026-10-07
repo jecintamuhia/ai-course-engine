@@ -414,9 +414,7 @@ async def test_transient_failures_exhausted_raises(
 
 
 @pytest.mark.asyncio
-async def test_timeout_then_success(
-    provider: OpenRouterProvider, monkeypatch
-) -> None:
+async def test_timeout_then_success(provider: OpenRouterProvider, monkeypatch) -> None:
     _disable_sleep(monkeypatch)
     client = _QueuedClient(
         [
@@ -474,9 +472,7 @@ async def test_empty_content_with_length_finish_reason_advises_tokens(
 
 
 @pytest.mark.asyncio
-async def test_refusal_raises(
-    provider: OpenRouterProvider, monkeypatch
-) -> None:
+async def test_refusal_raises(provider: OpenRouterProvider, monkeypatch) -> None:
     body = {
         "choices": [
             {

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import DateTime, MetaData, func
@@ -35,19 +35,33 @@ class UUIDPrimaryKeyMixin:
     )
 
 
+def utcnow() -> datetime:
+    """Timezone-aware current time for client-side column defaults."""
+    return datetime.now(UTC)
+
+
 class TimestampMixin:
-    """Reusable timezone-aware creation/update timestamps."""
+    """Reusable timezone-aware creation/update timestamps.
+
+    Values are computed client-side (with a ``server_default`` fallback
+    for rows created outside the ORM) so SQLAlchemy never has to refresh
+    them from the database after flush; otherwise a post-commit read of
+    ``created_at``/``updated_at`` triggers a lazy load that raises
+    ``MissingGreenlet`` in async contexts.
+    """
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
+        default=utcnow,
         server_default=func.now(),
         nullable=False,
     )
 
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
+        default=utcnow,
+        onupdate=utcnow,
         server_default=func.now(),
-        onupdate=func.now(),
         nullable=False,
     )
 
@@ -60,6 +74,5 @@ def model_to_dict(model: Base) -> dict[str, Any]:
     traverse relationships.
     """
     return {
-        column.name: getattr(model, column.name)
-        for column in model.__table__.columns
+        column.name: getattr(model, column.name) for column in model.__table__.columns
     }

@@ -10,8 +10,7 @@ from pathlib import Path
 ALLOWED_EXTENSIONS: dict[str, str] = {
     ".pdf": "application/pdf",
     ".docx": (
-        "application/vnd.openxmlformats-officedocument"
-        ".wordprocessingml.document"
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     ),
 }
 
@@ -43,16 +42,13 @@ def validate_extension(filename: str) -> str:
     if extension not in ALLOWED_EXTENSIONS:
         allowed = ", ".join(sorted(ALLOWED_EXTENSIONS))
         raise FileValidationError(
-            f"Unsupported file extension {extension!r}. "
-            f"Allowed extensions: {allowed}."
+            f"Unsupported file extension {extension!r}. Allowed extensions: {allowed}."
         )
 
     return extension
 
 
-def validate_declared_mime_type(
-    content_type: str | None, extension: str
-) -> None:
+def validate_declared_mime_type(content_type: str | None, extension: str) -> None:
     """
     Validate that a client-declared MIME type is consistent with the
     file extension.
@@ -157,9 +153,7 @@ def compute_sha256(content: bytes) -> str:
     return hashlib.sha256(content).hexdigest()
 
 
-def resolve_safe_storage_path(
-    upload_root: Path, storage_filename: str
-) -> Path:
+def resolve_safe_storage_path(upload_root: Path, storage_filename: str) -> Path:
     """
     Resolve a storage filename against the configured upload root and
     verify the resulting path does not escape that root.

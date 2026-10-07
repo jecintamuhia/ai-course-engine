@@ -1,0 +1,5028 @@
+PROFESSIONAL TRAININGPROGRAMME
+cPanel&WHM |
+DirectAdmin | Plesk
+CompleteProfessionalTextbook
+FromFoundationstoMulti-PanelMastery—ACompleteLearningJourney
+Covers5CompleteLearningSections • Over400PagesofComprehensiveContent
+Beginner • CoreAdministration • Advanced • Business • CertificationPrep
+30+Quizzes • 15Hands-OnExercises • 5CapstoneProjects • CertificationStudyGuides
+LinuxFundamentals • DNSMastery • SSL/TLS • SecurityHardening • APIAutomation
+Developedby: HOSTAFRICATrainingInstitute
+Edition:2026 | cPanelv116+ • DirectAdmin1.6x • PleskObsidian18.x
+AboutThisCourse
+Thisprogrammeisthemostcomprehensivemulti-panelwebhostingadministrationtextbookavailable
+intheEastAfricanmarket.Itiswrittentoserveasacompleteself-studyguideandclassroomtextbook
+forstudents,aspiringhostingprofessionals,systemadministrators,andentrepreneurswhowishto
+buildormanageprofessionalwebhostinginfrastructure.
+Unlikeintroductoryguidesthatskimthesurface,thistextbookgoesdeep.Everyconceptisexplained
+fromfirstprinciples—whyatechnologyexists,howitworksinternally,andhowtoconfigureand
+troubleshootitonallthreeoftheindustry'smostwidelydeployedcontrolpanels:cPanel/WHM,
+DirectAdmin,andPlesk.Real-worldscenariosdrawnfromtheEastAfricanhostingmarketground
+everytopicinpracticalreality.
+Thetextbookisorganisedintofivesectionsthatbuildprogressively.Section1establishesthe
+conceptualandtechnicalfoundationeveryhostingprofessionalmusthave.Section2coversthecore
+administrativetasksperformeddaily.Section3advancesintoenterprise-gradetopicsincluding
+automation,migration,anddisasterrecovery.Section4coversthebusinesssideofrunningahosting
+company.Section5preparesstudentsforprofessionalcertificationexaminations.
+HowtoUseThisTextbook
+Thisbookworksbothasastructuredcourseandasareferencemanual.Whenstudyingforthefirst
+time,readeachsectioninorder—everychapterassumesknowledgefrompreviouschapters.When
+usingitasareferenceduringdailyoperations,theappendicesandpanel-comparisontablesprovide
+fastanswers.
+• Readevery explanationbefore attempting the practical exercise—exercises buildonthe theory
+• Attemptevery quiz question beforereadingthe answer —honestself-assessmentaccelerates
+learning
+• Complete every hands-on exerciseon alivetrainingserver, notjustbyreading the steps
+• Complete eachCapstone Projectindependentlybefore consulting the solution guide
+• Return tosectionswhen you encounterreal-worldproblems—this book isalifelongreference
+WhoThisCourseIsFor
+Audience WhatYouWillGain
+Completebeginners Fulljourneyfromzerotoaprofessionalhostingadministratorcapableof
+managingshared,VPS,andresellerhostinginfrastructure
+Webdevelopers Deepunderstandingofthehostingenvironment yourcoderunsin—PHP
+configuration,databases,cronjobs, SSL,andperformancetuning
+ITsupportstaff Structuredknowledgetoconfidentlyresolvehostingtickets,diagnoseemail
+failures,investigatesecurityincidents,andcommunicatetechnically
+Hostingentrepreneurs End-to-endknowledgeofbuildingandoperatingahostingbusinessincluding
+billing,customermanagement, pricing,andmarketing
+Studentsseekingcertification ComprehensivepreparationforthecPanelProfessional(CPP),DirectAdmin,
+andPleskProfessionalexaminations
+CourseStructure
+# SectionTitle Level Duration(Self-
+Study)
+KeyOutcome
+1 Foundational—Hosting
+Literacy&PanelOrientation
+Beginner 20–25hrs Understandthewebhostingecosystem;
+navigateallthreepanelsconfidently
+2 CoreAdministration Intermediate 25–30hrs Administerservers, manageaccounts,
+implement security,configureemail
+3 AdvancedAdministration Advanced 30–35hrs Enterprisesecurity,migration,DR,API
+automation,complextroubleshooting
+4 Business&ProfessionalSkills Business 20–25hrs Runahostingcompany—billing,
+support,pricing,marketing
+5 SpecialisedTopics&
+Certification
+Expert 25–30hrs WordPressmastery,emaildeliverability,
+certificationexampreparation
+SECTION1—FOUNDATIONAL/BEGINNER
+COURSE
+HostingLiteracy,LinuxEssentials,DNSMastery&AllThreeControlPanelsFromtheGround
+Up
+ LearningOutcomes
+Bytheendofthissection,you will beableto:
+• Explainhowtheinternet,servers,DNS,and webhostingwork togetheras asystem
+• DifferentiatebetweenShared,VPS,Dedicated,Cloud,andManagedhostingenvironmentsand
+choosetherightoneforagivenscenario
+• Navigateallthree majorcontrolpanelinterfaces—cPanel,DirectAdmin,andPlesk —with
+confidence
+• Understandthearchitecturaldifferences,strengths,licensingmodels,andideal usecasesofeach
+panel
+• ExecutecoreLinux commandsrequiredfordailyhostingadministration
+• ConfigureDNSrecords (A,CNAME,MX,TXT,SPF)acrossall threepanels andverifypropagation
+• Createemailaccounts,manage databases,upload filesviaFTPandFile Manager,andinstall SSL
+certificates
+• Deployacomplete,fullyfunctionalWordPress websitefromscratchusingany ofthe threepanels
+1.1 TheWebHostingEcosystem—HowItAllWorks
+Beforeconfiguringasinglesettinginanycontrolpanel,youneedtounderstandtheecosystemthose
+panelsoperatewithin.Mosthostingproblems—fromwebsitesnotloadingtoemailsbouncing—trace
+backtoamisunderstandingofhowthecomponentsofthewebhostingstackconnect.Thissection
+buildsthatmentalmodelfromscratch.
+1.1.1 FromBrowsertoWebPage—TheFullJourney
+WhenavisitortypesaURLintotheirbrowserandpressesEnter,acomplexsequenceofevents
+happensinunderonesecond.Understandingthissequenceisthefoundationofallhostingknowledge.
+1. Thevisitor'sbrowserextractsthe domain namefrom the URL—e.g.'example.co.ke'
+2. Thebrowserasks aDNS Resolver(usually provided by the ISP)totranslate that domain nameinto
+anIPaddress
+3. TheDNSResolverqueries authoritative nameservers andreturns an IPaddress —e.g.
+102.215.8.45
+4. Thebrowseropens aTCPconnection toport80 (HTTP)orport443(HTTPS)on thatIPaddress
+5. Theweb serversoftware(Apacheor Nginx)atthatIPreceivesthe requestand locatesthe
+requestedfile
+6. Theserverprocessesany server-side code (PHP,Python,Node.js)andconstructs aresponse
+7. Theserversends the HTMLresponse backtothe browser,whichrenders itas aweb page
+WhyThisMattersforSupport
+Everycommonhostingcomplaintmapstooneofthesesevensteps.'Sitenot loading'=usually Step3(DNS)
+orStep5(webserver).'Blank whitepage'=Step6(PHPerror).'SSLwarning' =Step4(certificateissue).
+Knowingthe journeytells youexactly wheretolook.
+1.1.2 WhatisaWebServer?
+AwebserverisacomputerrunningserversoftwarethatlistensforincomingHTTP/HTTPSrequests
+andreturnsfilesordynamicallygeneratedcontentinresponse.Inprofessionalhosting,thetwo
+dominantwebserversoftwarepackagesare:
+• ApacheHTTPServer—the mostwidely deployed web server globally; used bydefault oncPanel,
+DirectAdmin,andPleskLinux servers.Apacheusesa modulararchitecture—additionalmodules
+(mod_rewrite,mod_security, mod_ssl)extendits functionality.
+• Nginx (pronounced'Engine-X')—ahigh-performance, event-drivenweb serverdesigned for
+concurrency. Used byPlesk asthe front-end reverseproxy inits default'Nginx +Apache'stack,and
+optionally asthe soleweb server.
+• IIS(InternetInformationServices)—Microsoft'sweb server,usedon Windows servers.Only Plesk
+supports Windows hosting;cPanel and DirectAdminareLinux-only.
+1.1.3 TypesofWebHosting—ChoosingtheRightEnvironment
+Everyhostingprofessionalmustbeabletomatchaclient'srequirementstothecorrecthosting
+environment.Oversellinganexpensivesolutionwastestheclient'smoney;undersellingcauses
+performancedisastersthatdestroytrust.
+HostingType Resources Performance Isolation TypicalCost
+(KES/mo)
+ControlPanels
+Used
+Best For
+SharedHosting Allaccountsshare
+oneserver's
+RAM,CPU,and
+disk
+Variable—
+onenoisy
+account
+affectsothers
+No
+isolation—
+sameOS,
+sameIP
+pool
+300–800 cPanel,
+DirectAdmin,
+Plesk
+Blogs,SMBwebsites,students
+learning
+VPSHosting Dedicatedsliceof
+physicalserver
+resourcesvia
+virtualisation
+(KVM/OpenVZ)
+Consistent—
+resource
+guarantees
+OS-level
+—
+separate
+kernelor
+container
+1,500–8,000 Allthreepanels Growingbusinesses,
+developers,resellers,
+WooCommerce
+Dedicated
+Server
+Entirephysical
+serverexclusively
+foronecustomer
+Maximum—
+nocontention
+Complete
+hardware
+isolation
+15,000–80,000 Allthreepanels Largee-commerce,high-traffic
+applications,enterprise
+CloudHosting Distributedacross
+multiplevirtual
+nodes;scales
+horizontally
+Highly
+scalableon
+demand
+Virtual
+isolation
+Pay-as-you-go
+(varies)
+cPanel,Plesk
+mostcommon
+Applicationsneeding
+autoscaling,geographic
+redundancy
+Managed
+WordPress
+SharedorVPS
+environment
+optimised
+specificallyfor
+High—server
+stacktuned
+forWP
+Account-
+level
+800–5,000 Plesk(WP
+Toolkit),cPanel
+(WPManager)
+WordPress-onlybusinesses,
+agencies,blognetworks
+WordPress
+ResellerHosting Sharedserver
+withWHM/reseller
+panelaccessto
+createsub-
+accounts
+Sharedserver
+performance
+Account-
+level
+isolation
+3,500–15,000 cPanel/WHM,
+DirectAdmin,
+PleskReseller
+Webagencies,freelancers,
+smallhostingstartups
+1.1.4 DataCentresandServerInfrastructure
+Professionalhostingserversliveinpurpose-builtfacilitiescalleddatacentres.Understandingdata
+centreconceptshelpswhenadvisingclientsonserverlocation,latency,andcompliancerequirements.
+• TierClassification —Datacentres arerated TierI(basic)toTierIV(fault-tolerantwith 99.995%
+uptimeSLA).Enterprisehosting runsonTierIII orIVfacilities.
+• PowerRedundancy —TierIII+facilitieshaveN+1 UPSsystemsand dieselgenerators tomaintain
+powerduring outages.
+• NetworkRedundancy —Multiple upstream ISPconnections (multi-homing)ensure the facilitystays
+onlineif oneproviderfails.
+• Cooling—Servers generate enormous heat;data centresuse precisionairconditioningand hot/cold
+aislecontainment.
+• PhysicalSecurity—Biometric access control,CCTV,security personnel, and cage systemsprotect
+hardwarefromphysical tampering.
+• LatencyConsiderations —Aserverin Nairobiserves Kenyan visitors fasterthan one in London.For
+abusinessprimarily serving EastAfrican customers,chooseservers inornearthe region(e.g.,
+NairobiIXP-connected datacentres).
+1.2 LinuxFundamentalsforHostingAdministrators
+AllthreemajorcontrolpanelsrunonLinux.Whilethepanelprovidesagraphicalinterfaceformost
+tasks,everyprofessionalhostingadministratormustbecomfortableworkingdirectlyintheLinux
+commandline—becausesomeproblemscanonlybediagnosedorfixedviaSSH,andbecause
+automationrequiresscripting.
+1.2.1 ConnectingviaSSH
+SSH(SecureShell)istheencryptedprotocolusedtoconnecttoaremoteLinuxserverandrun
+commands.Itreplacestheolder,insecureTelnetprotocol.
+ConnectingfromDifferentOperatingSystems
+OS Tool Command
+Linux/macOS Terminal(built-in) sshusername@server-ip-p22
+Windows10/11 PowerShellorCommandPrompt sshusername@server-ip-p22
+Windows(older) PuTTY(freedownload) EnterIPandportinPuTTYGUI→Open
+AnyOS Termius/MobaXterm GUISSHclient—enterhost,user,port
+SSHKey Authentication—TheProfessionalStandard
+Passwordscanbeguessedorbrute-forced.ProfessionaladministratorsuseSSHkeypairs—a
+mathematicallylinkedpublic/privatekeypairwhereonlytheprivatekeyholdercanauthenticate.
+# Step 1 — Generate a key pair on your LOCAL machine:
+ssh-keygen -t ed25519 -C 'admin@youremail.com'
+# Step 2 — Copy your public key to the server:
+ssh-copy-id -i ~/.ssh/id_ed25519.pub username@server-ip
+# Step 3 — Test key authentication:
+ssh username@server-ip
+# Step 4 — Disable password auth (in /etc/ssh/sshd_config on server):
+PasswordAuthentication no
+PubkeyAuthentication yes
+systemctl restart sshd
+1.2.2 EssentialLinuxCommands—DailyHostingOperations
+Thesearethecommandsyouwilluseeverysingledayasahostingadministrator.Memorisethem.
+FileSystemNavigation
+pwd # Print Working Directory — where am I?
+ls -lah # List files with sizes, permissions, hidden files
+cd /home/username/public_html # Change to a specific directory
+cd .. # Go up one directory level
+cd ~ # Go to home directory
+tree -L 2 # Show directory tree (2 levels deep)
+FileOperations
+cp file.txt /backup/file.txt # Copy a file
+mv file.txt newname.txt # Move or rename a file
+rm -f unwanted.php # Delete a file (force, no prompt)
+rm -rf /tmp/testdir/ # Delete a directory and all contents (CAUTION)
+mkdir -p /home/user/logs # Create directory (and parents if needed)
+touch index.html # Create an empty file
+cat /var/log/exim_mainlog # Display file contents
+less /var/log/apache/error.log # Page through a large file (q to quit)
+tail -f /var/log/exim_mainlog # Watch a log file in real-time (Ctrl+C to stop)
+grep 'error' /var/log/apache/error.log # Search for 'error' in a file
+grep -i 'rejected' /var/log/exim_mainlog | tail -50 # Last 50 rejections
+FilePermissions—CriticalforHosting
+Incorrectfilepermissionsarethesourceof'PermissionDenied'errorsandsecurityvulnerabilities.The
+hostingstandardis755fordirectoriesand644forfiles.
+Permission Number WhoCan DoWhat UseFor
+rwxr-xr-x 755 Owner:read+write+execute|Group: read+execute|
+Others:read+execute
+Directories
+rw-r--r-- 644 Owner:read+write|Group:read|Others: read Websitefiles(HTML, CSS,
+PHP)
+rw------- 600 Owner:read+write|Nooneelse wp-config.php,.envfileswith
+credentials
+rwx------ 700 Owner:all|Nooneelse Privatescripts
+rw-rw-rw- 666 Everyonecanreadandwrite NEVERuse—securityrisk
+rwxrwxrwx 777 Everyonecandoeverything NEVERuse—severe
+securityrisk
+# View permissions:
+ls -la /home/username/public_html/
+# Fix all directory permissions to 755:
+find /home/username/public_html -type d -exec chmod 755 {} \;
+# Fix all file permissions to 644:
+find /home/username/public_html -type f -exec chmod 644 {} \;
+# Change ownership (important after copying files as root):
+chown -R username:username /home/username/public_html/
+# Make a script executable:
+chmod +x myscript.sh
+ServerMonitoringCommands
+top # Real-time CPU/RAM/process monitor (press q to quit)
+htop # Enhanced process viewer (more readable than top)
+uptime # Server load averages (1, 5, 15 minute averages)
+free -m # Memory usage in megabytes
+df -h # Disk space usage (all mounted filesystems)
+du -sh /home/* # Disk usage per home directory
+du -sh * | sort -h # Sort items by size (largest last)
+netstat -tulnp # List all listening ports and their processes
+ss -tulnp # Modern alternative to netstat
+ps aux | grep apache # Find all Apache processes
+ps aux --sort= -%cpu | head -20 # Top 20 CPU-consuming processes
+iostat -x 1 # Disk I/O statistics (every 1 second)
+vmstat 1 10 # Virtual memory stats (10 readings, 1-second interval)
+ServiceManagement
+systemctl status httpd # Check Apache status
+systemctl restart httpd # Restart Apache
+systemctl reload httpd # Reload Apache config without downtime
+systemctl status mysql # Check MySQL/MariaDB status
+systemctl restart mysql # Restart MySQL
+systemctl status exim # Check Exim mail server status (cPanel/DA)
+systemctl status postfix # Check Postfix status (Plesk)
+systemctl status dovecot # Check Dovecot IMAP/POP3 server status
+systemctl enable httpd # Set Apache to start automatically on boot
+systemctl disable firewalld # Stop a service from starting on boot
+ PRACTICAL EXERCISE:LinuxCommand-LineOrientation
+8. Connecttoyourtraining serverviaSSHusingtheprovidedcredentials
+9. Run'pwd' —noteyour currentdirectory. Run'ls -lah'—whatfiles doyou see?
+10.Navigateto/home/using 'cd/home/' andlistall userdirectorieswith 'ls-lah'
+11.Checkdiskspacewith'df-h'—what percentageofdisk isused?
+12.Checkmemorywith 'free-m'—howmuchRAMis available?
+13.Run'uptime'—what istheserver's1-minuteloadaverage?
+14.Run'ss-tulnp' —canyouidentifywhichports80,443,21,22,and 25areinuse?
+15.Run'tail-50/var/log/exim_mainlog' (cPanel/DA)or'tail -50/var/log/maillog' (Plesk)—whatemail
+activitydoyou see?
+16.Createatestfile:'touch/tmp/testfile.txt',verifyitexistswith 'ls-la/tmp/testfile.txt',then deleteitwith
+'rm/tmp/testfile.txt'
+✔ Youcan navigatetheLinuxfilesystem,check serverhealth,andreadlog files—foundational
+skillsforallpaneladministration.
+1.3 DNS—TheDomainNameSystem,Explainedin
+Full
+TheDomainNameSystemistheinternet'sphonebook—anditisalsothesourceofmorehosting
+supportticketsthananyothertechnology.AprofessionalhostingadministratormustunderstandDNS
+sothoroughlythattheycandiagnoseaDNSprobleminundertwominutes,configureeveryrecordtype
+frommemory,andexplainpropagationtoafrustratedclient.
+1.3.1 HowDNSResolutionWorks—StepbyStep
+WhenabrowserneedstofindtheIPaddressfor'example.co.ke',itgoesthroughastructuredquery
+process:
+17.Browserchecksitslocal cache—has italreadylookedthis uprecently?
+18.Ifnotcached, itqueries the OperatingSystem'sDNSresolver (configuredin /etc/resolv.conf on
+Linux)
+19.TheOSresolverchecksits cache,thenqueriesaRecursive Resolver(e.g.,8.8.8.8 forGoogle DNS)
+20.TheRecursiveResolverqueriesaRootNameservertofind the.ke TLDnameservers
+21.Itqueriesthe .keTLDserver tofind the authoritativenameservers for'example.co.ke'
+22.Itqueriesthoseauthoritativenameservers and retrievesthe Arecord with theIPaddress
+23.TheIPisreturned tothe browserand cached(forthe TTLduration)toavoid repeatingthis process
+1.3.2 DNSRecordTypes—Comprehensive Reference
+Record
+Type
+FullName Purpose Example
+A Address MapsahostnametoanIPv4address example.co.ke→102.215.8.45
+AAAA IPv6Address MapsahostnametoanIPv6address example.co.ke→2001:db8::1
+CNAME CanonicalName Createsanaliaspointingtoanother
+hostname
+www→example.co.ke(nevertoanIP)
+MX MailExchanger Specifiesmailservers forthedomain
+withprioritynumbers
+10mail.example.co.ke(lower=higher
+priority)
+TXT Text Free-textrecordusedforSPF,DKIM,
+DMARC,andverification
+v=spf1include:amazonses.com~all
+NS NameServer SpecifiesauthoritativeDNSserversfor
+thedomain
+ns1.hostafrica.com, ns2.hostafrica.com
+PTR Pointer(Reverse
+DNS)
+MapsanIPaddressbacktoa
+hostname—criticalforemail
+45.8.215.102.in-addr.arpa→
+mail.example.co.ke
+SOA StartofAuthority Containsadministrativeinfoaboutthe
+zone—serial,refreshintervals
+PrimaryNS,adminemail,serialnumber
+SRV Service Specifiesthelocationofspecific
+services(e.g.,SIP,XMPP)
+_sip._tcp.example.com→priorityweight
+port host
+CAA CertAuthorityAuth ControlswhichCertificateAuthorities
+canissueSSLforthedomain
+0issue'letsencrypt.org'
+1.3.3 DNSTTL andPropagation
+TTL(TimeToLive)isthenumberofsecondsthataDNSrecordcanbecachedbyresolversbefore
+theymustre-queryforanupdatedvalue.UnderstandingTTLiscriticalformigrations.
+TTLValue CacheDuration WhentoUse
+300 5minutes Beforeamigration—lowTTLsochangespropagatequickly
+3600 1hour Standardformostrecords duringnormaloperations
+14400 4hours Commondefaultforlessfrequentlychangedrecords
+86400 24hours Long-livedstablerecords—reducesDNSqueryload
+⚠MigrationDNSRule
+ALWAYSlowerTTLto300seconds(5minutes)atleast24hoursBEFOREamigration.Thisensures that
+whenyou updaterecordsonmigrationday, thechangepropagates globallywithin 5minutes.Ifyouforget
+andtheTTLis86400, visitorsmaybedirectedtotheoldserver forupto24hoursafterthemigration.
+1.3.4 ConfiguringDNSAcrossAllThreePanels
+Feature/Area cPanel/WHM DirectAdmin Plesk
+AccessDNSZone WHM→DNSFunctions
+→EditDNSZoneOR
+cPanel→Domains→
+ZoneEditor
+AdminPanel→DNS
+Administration→Manage
+(perdomain)
+Plesk→Websites&
+Domains→DNS Settings
+(perdomain)
+AddARecord ZoneEditor→+Record
+→A→enterhostname&
+IP
+DNSAdmin→Add
+Record→A→hostname
+&IP
+DNSSettings→Add
+Record→A→hostname
+&IP
+AddMX Record ZoneEditor→+Record
+→MX →priority&mail
+server
+DNSAdmin→Add
+Record→MX→priority&
+host
+DNSSettings→Add
+Record→MX →priority&
+host
+AddTXT(SPF) ZoneEditor→+Record
+→TXT→'v=spf1...'
+DNSAdmin→Add
+Record→TXT→
+'v=spf1...'
+DNSSettings→Add
+Record→TXT→
+'v=spf1...'
+AddCNAME ZoneEditor→+Record
+→CNAME →alias&
+target
+DNSAdmin→Add
+Record→CNAME→
+alias&target
+DNSSettings→Add
+Record→CNAME→alias
+&target
+EditTTL ZoneEditor→Advanced
+Mode→editTTLfieldper
+record
+DNSAdmin→editTTL
+columnperrecord
+DNSSettings→editTTL
+fieldperrecord
+Viewfullzonefile WHM→EditDNSZone
+(textviewavailable)
+Notdirectly—records
+listedindividually
+NotdirectlyviaGUI —use
+SSH:cat
+/etc/named/domain.com.db
+DNSClustering WHM→DNSCluster—
+synczones acrossmultiple
+servers
+Notnatively—useBIND
+replicationviaSSH
+PleskDNS Hostingfeature
+formulti-serversetups
+1.3.5 TestingandTroubleshootingDNS
+# Check A record for a domain:
+dig example.co.ke A
+# Check MX records:
+dig example.co.ke MX
+# Check TXT records (SPF, DKIM, DMARC):
+dig example.co.ke TXT
+# Query a SPECIFIC nameserver (bypass your local cache):
+dig @8.8.8.8 example.co.ke A
+# Check which nameservers are authoritative:
+dig example.co.ke NS
+# Reverse DNS lookup (PTR record):
+dig -x 102.215.8.45
+# Windows alternative to dig:
+nslookup example.co.ke 8.8.8.8
+# Trace full resolution path:
+dig +trace example.co.ke
+ Q1.1—Acustomerreportstheirwebsitewasworkingbutstoppedloadingafterthey
+changedtheirnameserverstoanewregistrar.24hourslateritstilldoesnotload.Whatis
+themostlikelycause?
+A)Thewebserver crashed
+B)TheTTLontheirprevious DNSrecords wassetto86400—records arestill propagating
+C)Thedomainregistration expired
+D)Apacheneedstoberestarted
+✔ Answer:B)The TTL was86400 —recordsmaystillbe propagatingglobally
+Explanation:Whennameserversarechanged,thechangepropagatesover theinternetbasedontheoldNS
+records'TTL.IftheoldTTLwas 86400(24hours),someglobalresolversmaystillbedirecting traffictothe
+oldserver forupto24hours.TheprofessionalstandardistolowerTTLto300 beforeanymigration.Confirm
+propagationatdnschecker.org.
+1.4 TheThreeControlPanels—ArchitectureandDeep
+Navigation
+1.4.1 cPanel/WHM—ArchitectureandInterface
+cPanel/WHMisthemostwidelydeployedcontrolpanelintheworld,withthelargestecosystemof
+documentation,plugins,third-partyintegrations,andcommunityresources.ItrunsexclusivelyonLinux
+(AlmaLinux,CloudLinux,CentOSStream).Thelicensingmodelchangedin2021—itisnowpricedper
+accountratherthanperserver,makingitmoreexpensiveatscalebutstilldominantinthemarket.
+TheThree-TierArchitecture
+Tier Interface WhoUsesIt AccessedAt
+Server
+Administrator
+WHM(WebHostManager) Hostingcompanystaff,serverowners https://server:2087
+Reseller WHMwithACL-limitedaccess Webagencies,freelancersreselling
+hosting
+https://server:2087(restrictedview)
+EndUser cPanel Websiteowners,customers https://server:2083or
+yourdomain.com:2083
+WHM—CompleteSectionReference
+WHMSection KeyToolsandWhatTheyDo
+AccountInformation ListAccounts(search,filter,viewusage),Account Summary,ListSuspended
+Accounts,ListParkedDomains,ShowAccountsOverQuota
+AccountFunctions CreateaNewAccount,ModifyanAccount,Suspend/UnsuspendAccount,Terminate
+Account,ChangePassword, ChangePlan/Package,Limit Bandwidth
+DNSFunctions Add/Edit/RemoveDNSZone,DNSZoneEditor,DNSClusterConfiguration,DNSSEC
+Management
+Email EximConfigurationManager, MailQueueManager,TrackDelivery, EmailRouting,
+BoxTrapperWhitelist
+SSL/TLS InstallSSLCertificate,ManageAutoSSL(Let'sEncrypt), SSLStorageManager,
+GenerateCSR
+SecurityCentre cPHulkBruteForceProtection,SecurityAdvisor,PasswordStrengthRequirements,
+WHMAPITokens
+ServerConfiguration BasicWHMSetup(hostname/NS),TweakSettings,NameserverSelection,cPanel
+Analytics
+ServiceConfiguration EximConfigurationManager, FTP ServerSelection/Configuration,SSH
+Configuration,cPAddonsSiteSoftware
+Software EasyApache4(PHP/Apacheversions),MultiPHPManager,MultiPHPINIEditor,
+SoftaculousIntegration
+Packages Add/Edit/DeleteHostingPackages—defineresourcequotasforaccountcreation
+Resellers Create/ManageResellerAccounts,ACLLists(what resellerscando),ResellerCentre
+CloudLinux LVEManager(per-accountresourcelimits),CageFS,MySQLGovernor,PHP
+Selector
+cPanelUserInterface—CompleteSectionReference
+cPanelSection Toolsand Purpose
+Files FileManager(fullweb-basedfilebrowser), FTPAccounts(create/manage), DiskUsage
+(visualiseusage),GitVersionControl,Backups(backup/restorewizard)
+Databases MySQLDatabases(createDB,user,assignprivileges),phpMyAdmin(fullDBGUI), Remote
+MySQL(allowexternalconnections),MySQLDatabaseWizard(guidedcreation)
+Domains Domains(addondomains,subdomains),ZoneEditor(DNS records),Redirects(301/302),
+DynamicDNS,Aliases(parkeddomains)
+Email EmailAccounts(create/manage/quota), Forwarders, AutoResponders,MailingLists,Track
+Delivery, EmailFilters,SpamAssassin,BoxTrapper,EmailDiskUsage,Webmail
+Metrics Visitors,Errors, Bandwidth,RawAccessLogs,Awstats,Webalizer, CPU/MemoryUsage
+(CloudLinuxLVEifenabled)
+Security SSL/TLS(install/managecerts),SSHAccess(managepublickeys),IPBlocker,Hotlink
+Protection,LeechProtection,ModSecurity(ifenabledbyWHM)
+Software PHPSelector(CloudLinux),SoftaculousAppsInstaller,Node.js Selector,PythonSelector,
+RubySelector,OptimizeWebsite(mod_deflate/gzip)
+Advanced CronJobs(scheduledtasks),TrackDNS(tracepropagation), ErrorPages(custom404/500),
+MIMETypes, Indexes(directorylisting),ApacheHandlers
+1.4.2 DirectAdmin—ArchitectureandInterface
+DirectAdminisalean,efficientcontrolpanelwiththelowestlicensingcostofthethree($2–4/monthper
+server).ItsupportsmoreLinuxdistributionsthancPanel(includingDebianandUbuntu,inadditionto
+AlmaLinuxandCloudLinux).Itsstraightforwardthree-tiermodelandfastinterfacemakeitpopularwith
+budgethostingprovidersandVPSoperators.
+DirectAdminThree-TierArchitecture
+Tier AccessLevel LoginURL KeyCapabilities
+Admin Fullserver control https://server:2222(adminuser) Createresellers,manageserver, viewallusers,configureservices
+Reseller Createandmanage
+useraccounts
+https://server:2222(reselleruser) Createusers,managepackages,setresourcelimitsfortheirpool
+User Managetheirown
+hostingaccount
+https://server:2222(regularuser) Managedomains,email,databases,FTP,files,DNS
+DirectAdminAdminPanel—CompleteSectionReference
+Section ToolsandPurpose
+ServerManager AdministratorSettings(hostname, email,NS),ServicesStatus(start/stop/restart
+services),ServiceMonitor,LicenseManagement, SystemInformation
+AdminTools AdministratorLog,DNSAdministration(manageallzones), AdminBackup/Transfer
+(create/restoreserverbackups),RunaCommand(SSHviaGUI—limited)
+UserManagement ShowAllUsers(list/search/filter), CreateReseller,CreateUser, Suspend/Unsuspend,
+DeleteUser,ShowResellers
+IPManagement Add/RemoveIPs,AssignIPstoresellers,ViewIPallocationacrossaccounts
+EmailSettings ConfigureExim(MTAsettings,spamoptions,relaying),SPF/DKIMdefaults,Mailserver
+configuration(Dovecot)
+SSLManagement ManageSSLcertificatesacrossallaccounts,Let'sEncrypt auto-SSLconfiguration
+PHPConfiguration SelectPHPhandler(PHP-FPM, FastCGI, CGI), configurePHPversionsavailableper
+account,setPHP.inidefaults
+BruteForceMonitor ConfigureIPbanrules—numberoffailures,banduration,whitelistIPs
+AdminStatistics Diskusageoverview,bandwidthsummary, accountcount,serverloadstats
+DirectAdminUserPanel—CompleteSectionReference
+Section ToolsandPurpose
+YourAccount ChangePassword,Two-FactorAuthentication,LanguageSelection,APIKey
+Management,SessionManagement
+DomainSetup CreateSubdomain,CreateDomainPointer(alias),CreateRedirect,ViewErrorLog,
+DomainStatistics
+E-MailManagement Create/DeleteEmailAccounts,SetQuota, Forwarders,Auto-Responders,Vacation
+Messages,SpamAssassin,DKIM/SPFManagement, Webmail(Roundcube)
+FileManagement FileManager(upload, edit,extract,permissions),FTPManagement (create/deleteFTP
+accounts),Backup(createanddownloadaccountbackup)
+MySQLManagement Create/DeleteDatabases,Create/DeleteUsers,AssignUsertoDatabase,
+phpMyAdmin,RemoteAccessHosts
+AdvancedFeatures CronJobs,CustomErrorPages,MIME Types, SSHKeys(addpublickeysforSSH
+access),SiteRedirection
+SiteManagement ErrorLogs,DirectoryProtection(.htpasswd),CustomizeErrorPages,DNS Records
+(managezoneforeachdomain)
+1.4.3 Plesk—ArchitectureandInterface
+Pleskisthemostenterprise-orientedofthethreepanels.ItsupportsbothLinuxandWindowshosting,
+hasapolishedmodernUIwithastrongextensionmarketplace,andincludestheindustry-leading
+WordPressToolkitnatively.ItisthedominantpanelinEuropeanhostingandgrowingfastglobally.
+PleskFour-TierArchitecture
+Tier Interface Accessed At KeyCapabilities
+Administrator PleskAdminPanel https://server:8443(admin
+user)
+Fullservercontrol,servicemanagement, resellermanagement,
+systemupdates
+Reseller PleskResellerPanel https://server:8443(reseller
+account)
+Createcustomersubscriptions,setresourcequotas,white-label
+interface
+Customer PleskCustomerPanel https://server:8443
+(customeraccount)
+Managesubscriptions,domains,email,databases,WordPress
+DomainUser Limiteddomainaccess https://server:8443
+(domain-specificuser)
+Accessonlytofeaturesgrantedbycustomerforaspecificdomain
+PleskAdminPanel—CompleteSectionReference
+Section ToolsandPurpose
+Websites&Domains Create/managesubscriptionsanddomains,configurewebhostingsettings(PHP
+version,documentroot, HTTPS),SSL,subdomainmanagement, DNSperdomain
+Mail Createemailaccounts,configurespamfiltering(SpamAssassin),enableDKIM,manage
+mailinglists,viewmailstatistics,accesswebmail
+Databases Create/manageMySQLandPostgreSQLdatabases,createDBusers,assign
+permissions,accessphpMyAdmin,configureremotedatabaseaccess
+Files Web-basedFileManagerwithcodeeditor,FTPaccountmanagement
+Applications AccessPleskapplicationcatalogue—installWordPress,Joomla,Drupal,and100+
+appsviaSoftaculous
+WordPress DedicatedWordPressToolkit—install,update,stage,clone,secure,andbulk-manage
+allWPsitesontheserver
+Statistics Diskusage,trafficstatistics,errorlogviewer, visitoranalytics
+Tools&Settings(Admin) ServiceManagement (start/stop/restartservices),Updates (panelandextension
+updates),Firewall,Fail2Ban,ModSecurity, PHPsettings,SSL/TLS,Notifications,
+BackupManager
+Resellers(Admin) Createandmanagereselleraccounts,setresourcelimits,viewresellerusage
+Subscriptions(Admin) Viewandmanageallcustomersubscriptions,suspend/unsuspend,viewresourceusage
+ServicePlans(Admin) Createhostingpackageswithdefinedresourcequotasforsubscriptioncreation
+Extensions PleskExtensionMarketplace—addfunctionality:Let'sEncrypt,Cloudflare,WordPress
+ToolkitPro,SEOToolkit,BackuptoCloud,etc.
+1.4.4 Three-PanelArchitectureComparison
+Feature/Area cPanel/WHM DirectAdmin Plesk
+Userhierarchy ServerAdmin→
+Reseller→User(3
+tiers)
+Admin→Reseller→User(3tiers) Admin→Reseller→
+Customer→DomainUser
+(4tiers)
+Accountterm cPanelAccount UserAccount Subscription
+Packageterm HostingPackage UserPackage ServicePlan
+Primarywebroot ~/public_html/ ~/domains/domain.com/public_html/ ~/httpdocs/(Linux)|
+~/httpsdocs/(Windows
+HTTPS)
+Additional
+domains
+AddonDomain
+feature
+Eachdomainhasowndirectoryin
+~/domains/
+Multipledomainsper
+subscription
+Subdomains sub.domain.com→
+~/public_html/sub/
+sub.domain.com→
+~/domains/domain.com/public_html/sub/
+sub.domain.com→
+~/subdomains/sub/httpdocs/
+Webserver
+software
+Apache
+(EasyApache4)
+Apache(default)orNginx Nginx+Apache(default)or
+Nginx-onlyorApache-only
+PHPmanager MultiPHPManager+
+EasyApache4
+PHPConfigurationinAdminPanel PHPSettingsper
+subscription
+FTPserver Pure-FTPd(default) ProFTPdorvsftpd ProFTPdorPure-FTPd
+ControlpanelDB MySQL(stores
+cPanelmetadata)
+MySQL MySQLorPostgreSQL
+Backupformat .tar.gzcpmovefile DAbackuparchive PleskXML+dataarchive
+ResellerWHM
+access
+FullWHMwithACL
+restrictions
+ResellerpanelinDA Separateresellerpanel
+viewinPlesk
+1.5 FTP—FileTransferProtocol
+FTP(FileTransferProtocol)remainsastandardmethodfortransferringfilesbetweenalocalcomputer
+andawebserver.Inmodernhosting,SFTP(SSHFileTransferProtocol)ispreferredoverplainFTP
+becauseitencryptsdataintransit.Allthreepanelssupportboth.
+1.5.1 FTP vs SFTP vs FTPS
+Protocol Port Encryption Security Recommendation
+FTP 21 None—passwords
+anddatasentin
+plaintext
+Poor—never
+useoverpublic
+networks
+Legacyonly—useSFTPinstead
+FTPS(FTP-
+SSL)
+21(explicit)or
+990(implicit)
+SSL/TLSencrypted Good AcceptableifSFTPnotavailable
+SFTP 22(sameas
+SSH)
+FullSSHencryption Excellent Alwayspreferred—sameSSHkeys
+work
+1.5.2 CreatingFTP AccountsAcrossAllThreePanels
+Feature/Area cPanel/WHM DirectAdmin Plesk
+CreateFTPAccount cPanel→Files→FTP
+Accounts→CreateFTP
+Account
+FileManagement→FTP
+Management→Create
+FTPAccount
+Websites&Domains→
+FTPAccess→AddFTP
+Account
+FTPUsernameFormat user@domain.com(full
+formatincludingdomain)
+user@domain.com user@domain.comor
+standaloneusername
+DirectoryRestriction Sethomedirectoryduring
+creation—restrictsFTPto
+thatfolder
+Sethomedirectory—
+restrictstothatpath
+Sethomedirectoryper
+account
+AnonymousFTP DisableincPanel→FTP
+Accounts→Anonymous
+FTP
+Notavailablebydefault—
+disabled
+Notenabledbydefault
+FTPLogLocation /var/log/pure-ftp.log /var/log/proftpd.logor
+vsftpd.log
+/var/log/plesk/xferlog.log
+ViewActiveSessions cPanel→FTP Accounts
+→FTPSessionControl
+AdminPanel→FTP
+Management
+Plesk→FTPAccess→
+ActiveSessions
+1.5.3 RecommendedFTP Clients
+Client Platform ProtocolSupport Best Feature
+FileZilla(free) Windows/Mac/Linux FTP, FTPS,SFTP Industrystandard—excellentsitemanagerfor
+multipleconnections
+WinSCP(free) Windows FTP, FTPS,SFTP,SCP Synchroniselocalandremotedirectories;built-
+intexteditor
+Cyberduck(free) Mac/Windows FTP, FTPS,SFTP,S3,
+Dropbox
+BookmarksintegratewithmacOSKeychain
+Transmit Mac FTP, SFTP,S3 FastestMac FTPclient—excellentfor
+agencies
+CommandLine
+scp
+Linux/MacTerminal SCP(SSH) scplocalfileuser@server:/remote/path/
+1.6 EmailAccountAdministration—AllThreePanels
+Professionalbusinessemail(name@yourdomain.com)isoneofthemostrequestedhostingfeatures
+andoneofthemostfrequentlybroken.Ahostingadministratormustbeabletocreate,configure,
+troubleshoot,andmigrateemailaccountsconfidentlyacrossallthreepanels.
+1.6.1 HowEmailWorks—TheFullDeliveryChain
+Understandinghowemailtravelsfromsendertorecipientexplainswhyemailproblemsoccurand
+wheretolookwhentheydo.
+24.Sender'semailclient connectstotheiroutgoingmail server(MTA) onport587 (SMTPsubmission)
+or465(SMTPS)
+25.Thesending MTAperformsaDNSMX lookup tofind therecipient's mail server
+26.Thesending MTAconnectsto therecipient's MTAon port25(SMTP)anddelivers the message
+27.Therecipient'sMTA acceptsthe messageand storesit inthe user'smailbox
+28.Therecipient'semail clientretrieves the messagevia IMAP(port993)orPOP3 (port 995)
+1.6.2 CreatingandManagingEmailAccounts
+Feature/Area cPanel/WHM DirectAdmin Plesk
+CreateAccount Email→EmailAccounts
+→+Create
+E-MailManagement→
+CreateAccount
+Mail→CreateEmail
+Address
+SetQuota Duringcreation—enter
+MBlimitorsetUnlimited
+Duringcreation—enter
+quotainMB
+Duringcreation—enter
+quotainMB
+ChangePassword EmailAccounts→
+Manage→Update
+Password
+E-MailManagement→
+Manage→Change
+Password
+Mail→emailaddress→
+ChangePassword
+ConfigureinClient(IMAP) EmailAccounts→
+ConnectDevices→auto-
+configureinstructions
+UserPanel→Webmail→
+IMAPsettingslisted
+Mail→emailaddress→
+ConfigureMailClient
+IncomingServer(IMAP) mail.yourdomain.com,port
+993,SSL
+mail.yourdomain.com,port
+993,SSL
+mail.yourdomain.com,port
+993,SSL
+OutgoingServer(SMTP) mail.yourdomain.com,port
+587,STARTTLS
+mail.yourdomain.com,port
+587,STARTTLS
+mail.yourdomain.com,port
+587,STARTTLS
+WebmailAccess yourdomian.com/webmail
+orserver:2096
+yourdomain.com/webmail
+orserver:2096
+webmail.yourdomain.com
+orserver:8443/webmail
+WebmailClientsAvailable Roundcube(default),
+Horde, SquirrelMail
+Roundcube,SquirrelMail Roundcube,Horde
+DeleteAccount EmailAccounts→
+Manage→Delete
+E-MailManagement→
+Delete
+Mail→emailaddress→
+Remove
+1.6.3 EmailForwardersandAuto-Responders
+Feature/Area cPanel/WHM DirectAdmin Plesk
+CreateForwarder Email→Forwarders→
+AddForwarder
+E-MailManagement→
+Forwarders→Add
+Mail→Forwarding→Add
+ForwardingAddress
+ForwardtoExternal Yes—forwardtoany
+externalemail
+Yes Yes
+Catch-AllAddress Email→DefaultAddress
+→setcatch-all
+E-MailManagement→
+Catch-AllEmail
+Mail→Catch-AllAddress
+Auto-Responder Email→AutoResponders
+→AddAutoResponder
+E-MailManagement→
+AutoResponders→
+Create
+Mail→Autoresponders→
+CreateAutoresponder
+MailingLists Email→MailingLists→
+AddMailingList(Mailman)
+Notnativelysupported Mail→MailingLists
+(Mailmanintegration)
+ PRACTICAL EXERCISE:EmailAccountSetupandVerification
+29.IncPanel: Createemailaccount'admin@yourdomain.com'witha500MB quota.Logintowebmailat
+yourdomain.com/webmailusingRoundcube.Sendatestemail toaGmailaddressand confirm
+delivery.
+30.InDirectAdmin:Create 'support@yourdomain.com'with 500MBquota.Accesswebmail.Setupa
+forwardersothatemailsto'info@yourdomain.com'forwardto'support@yourdomain.com'.
+31.InPlesk:Create 'sales@yourdomain.com'.Enableauto-responderwiththemessage:'Thankyou for
+yourenquiry. Wewillrespondwithin24hours.'
+32.Inall threepanels:Configuretheemail accountinThunderbirdoranother clientusingIMAPonport
+993(SSL)andSMTPonport587 (STARTTLS).Sendandreceiveatestmessage.
+33.Usemxtoolbox.comtolookuptheMXrecordsforyourtraining domainandverifythey pointtothe
+correctmail server.
+✔ Emailaccountscreatedand verified acrossallthreepanels; webmailanddesktop client access
+confirmed;MXrecordsverified.
+1.7 MySQLDatabaseAdministration
+Dynamicwebsites—WordPress,WooCommerce,Joomla,customapplications—allstoretheirdatain
+databases.Everyhostingadministratormustbeabletocreate,manage,backup,restore,and
+troubleshootMySQLdatabases.Thissectioncoversthecompleteworkflowacrossallthreepanelsand
+includesdirectSQLcommandknowledge.
+1.7.1 MySQLConceptsEveryAdministratorMustKnow
+Concept Explanation
+Database Acontainerthatholdstables.Oneapplicationtypicallyneedsonedatabase.
+Table Astructuredgridofrows andcolumns—theactualdatastorageunitwithinadatabase.
+User AMySQLuseraccountwithausername, password,andsetofprivileges.
+Privilege Permissiongrantedtoauseronadatabase:SELECT,INSERT,UPDATE,DELETE,ALL
+PRIVILEGES.
+Host TheaddressfromwhichaMySQLuserisallowedtoconnect.'localhost'means same-server
+only.
+RootUser ThemasterMySQLadministratoruserwithallprivileges.Neveruserootforapplication
+databases.
+Prefix cPanelandDirectAdminprefixDBnamesanduserswiththeaccountusername(e.g.
+'bob_wpdb').
+1.7.2 CreatingDatabasesAcrossAllThreePanels
+Feature/Area cPanel/WHM DirectAdmin Plesk
+CreateDatabase Databases→MySQL
+Databases→CreateNew
+Database
+MySQLManagement →
+CreateNewDatabase
+Databases→Add
+Database
+DBNameFormat username_dbname(prefix
+auto-addedbycPanel)
+username_dbname(prefix
+auto-addedbyDA)
+dbname(noprefixinPlesk
+bydefault)
+CreateDBUser MySQLDatabases→Add
+NewUser
+MySQLManagement →
+CreateUser
+Databases→Add
+DatabaseUser
+AssignUsertoDB MySQLDatabases→Add
+UsertoDatabase→set
+privileges
+MySQLManagement →
+UserPermissions→
+assignDB
+Databases→User
+Management→assign
+usertoDB
+RecommendedPrivileges AllPrivileges(for
+applicationDBs)
+AllPrivileges ReadandWrite(orAll
+PrivilegesforappDBs)
+phpMyAdminAccess Databases→
+phpMyAdmin(auto-login
+asaccountuser)
+MySQLManagement →
+phpMyAdmin
+Databases→
+phpMyAdmin(clicklink)
+RemoteMySQLAccess Databases→Remote
+MySQL→addremoteIP
+MySQLManagement →
+ManageHosts→addIP
+Databases→AddRemote
+Host
+DBnamecharacterlimit 64chars(incl.prefix) 64chars(incl.prefix) 64chars(noprefix)
+1.7.3 MySQLCommandLine—EssentialOperations
+# Connect to MySQL as root (enter password when prompted):
+mysql -u root -p
+# List all databases:
+SHOW DATABASES;
+# Select a database to work with:
+USE bob_wordpress;
+# List all tables in the current database:
+SHOW TABLES;
+# View structure of a table:
+DESCRIBE wp_options;
+# Create a database:
+CREATE DATABASE bob_newsite;
+# Create a user and grant privileges:
+CREATE USER 'bob_newuser'@'localhost' IDENTIFIED BY 'StrongPassword123!';
+GRANT ALL PRIVILEGES ON bob_newsite.* TO 'bob_newuser'@'localhost';
+FLUSH PRIVILEGES;
+# Export (dump) a database to a SQL file:
+mysqldump -u root -p bob_wordpress > /backup/wordpress_backup.sql
+# Import a SQL file into a database:
+mysql -u root -p bob_wordpress < /backup/wordpress_backup.sql
+# Repair a corrupted table:
+REPAIR TABLE wp_options;
+# Optimise a table (reclaim space after deletions):
+OPTIMIZE TABLE wp_posts;
+ Q1.2—AWordPresssiteshows'Errorestablishingadatabaseconnection'.Youcheck
+thedatabaseincPanelanditexists.Whatarethethreethingsyouverifynext,inorder?
+A)ReinstallWordPress
+B)Check DBname,DBusername,andDBpasswordinwp-config.phpagainstthevaluesincPanelMySQL
+Databases;thenverifytheDBuseris actuallyassignedtothedatabase
+C)RestartMySQL
+D)Deleteandrecreatethedatabase
+✔ Answer:B)Verify wp-config.php credentialsmatchcPanelexactly, then verify theuser-to-DB
+assignment
+Explanation:Thesequence:(1)Openwp-config.phpandnoteDB_NAME, DB_USER,DB_PASSWORD.(2)
+IncPanel→MySQLDatabases,confirmadatabase withthatexactnameexists(remembertheusername_
+prefix).(3)Confirmthe userexistsandhas'AllPrivileges' onthatspecific databaseviathe'Add Userto
+Database'section.Themostcommoncauseisamissinguser-to-DBassignmentevenwhen bothexist.
+1.8 SSL/TLSCertificates—FromConceptsto
+Configuration
+SSL/TLScertificatesencrypttheconnectionbetweenvisitorsandyourwebserver,displayingthe
+padlockinthebrowser.Since2018,GoogleChromemarksallHTTPsitesas'NotSecure',makingSSL
+non-optionalforanyprofessionalhostingenvironment.Everyhostingadministratormustunderstand
+certificatetypes,installationprocedures,andtroubleshooting.
+1.8.1 SSLCertificateTypes
+Type Validation Level Browser
+Padlock
+WhoIssues BestFor Cost
+DV(Domain
+Validated)
+Domainownership
+only—automated
+Standardpadlock Let'sEncrypt,ZeroSSL,
+Sectigo
+Mostwebsites,blogs,e-
+commerce
+Free(Let's
+Encrypt)or$10–
+50/yr
+OV(Organisation
+Validated)
+Domain+company
+identityverified
+Standardpadlock
++orginfoincert
+Sectigo,DigiCert,
+GlobalSign
+Businesswebsiteswhere
+trustmatters
+$50–300/yr
+EV(Extended
+Validation)
+Strictest—legal
+entityfullyverified
+Standardpadlock
+(nolongergreen
+barinmodern
+DigiCert,GlobalSign Banks,financial
+institutions
+$150–600/yr
+browsers)
+Wildcard Domainvalidatedfor
+*.domain.com
+Coversmain
+domain+all
+subdomains
+AnyCA Siteswithmany
+subdomains
+$50–200/yr (orfree
+viaLet'sEncrypt
+Wildcard)
+Multi-Domain
+(SAN)
+Domainvalidated—
+coversmultiple
+FQDNs
+Onecertfor
+multipledomains
+AnyCA Serverhostingmultiple
+domains
+$30–400/yr
+dependingonCA
+1.8.2 Let'sEncryptAutoSSL—AllThreePanels
+Let'sEncryptprovidesfree,90-dayDVcertificatesthatareautomaticallyrenewed.Allthreepanels
+supportautomatedLet'sEncryptissuance.
+Feature/Area cPanel/WHM DirectAdmin Plesk
+EnableAutoSSL WHM→SSL/TLS→
+ManageAutoSSL→
+SelectLet'sEncrypt
+provider→Save
+AdminPanel→SSL
+Certificates→Enable
+Let'sEncryptforall
+accounts
+Tools&Settings→
+SSL/TLS→Let'sEncrypt
+extension→Enable;then
+per-domaininSubscription
+settings
+ForceHTTPS Redirect cPanel→Domains→
+toggle'ForceHTTPS
+Redirect'perdomain
+Editdomain's.htaccessto
+addpermanentredirect
+Subscription→Websites
+&Domains→Hosting
+Settings→enable
+'PermanentSEO-safe301
+redirectfromHTTP to
+HTTPS'
+RenewManually WHM→AutoSSL→Run
+AutoSSLforAllUsers
+AdminPanel→SSL
+Certificates→Renew
+Plesk→Subscription→
+SSL/TLSCertificates→
+ReneworCLI:pleskbin
+extension--exec
+letsencrypt cli.php-d
+domain
+CertificateLocation /etc/letsencrypt/live/or
+WHMSSLStorage
+/etc/letsencrypt/or
+DirectAdminSSLpath
+/etc/letsencrypt/live/or
+Pleskcertificaterepository
+WildcardSSL WHM→AutoSSL→
+supportedviaDNS
+challenge
+Let'sEncryptwildcardvia
+DNSchallenge(manualor
+DAplugin)
+PleskLet'sEncrypt
+extensionsupports
+wildcardviaDNS
+challenge
+1.8.3 InstallingaCommercialSSLCertificate
+WhenaclienthaspurchasedapaidSSLcertificate(e.g.,fromSectigo,DigiCert,orNamecheapSSL),
+youmustinstallitmanually.Theprocessinvolvesthreecomponents:thecertificate(.crt),theprivate
+key(.key),andtheCABundle(chainoftrust).
+Step cPanel DirectAdmin Plesk
+1.Generate
+CSR
+cPanel→SSL/TLS→GenerateCSR
+(creates.csrand.keyfiles)
+DA→SSLCertificates→Create
+CertificateRequest
+Plesk→Subscription→SSL/TLS
+Certificates→Add→GenerateCSR
+2.Submit
+CSRtoCA
+CopyCSRtexttoyourSSLprovider's
+portal
+CopyCSRtexttoSSLproviderportal CopyCSRtexttoSSLproviderportal
+3.Receive
+certfiles
+CAemails.crtand.ca-bundlefiles CAemails.crtandca-bundlefiles CAemails.crtandca-bundlefiles
+4.Install
+cert
+cPanel→SSL/TLS→InstallSSL→
+pastecert,key,CAbundleper
+domain
+DA→SSLCertificates→pastecert,
+key,CAbundle
+Plesk→SSL/TLSCertificates→Add
+→Upload.crt,.key,CAbundlefiles
+5.Verify Browsetohttps://yourdomain.com—
+checkpadlockandcertdetails
+Browseandcheckpadlock Browseandcheckpadlock
+ Q1.3—Aclient'sSSLcertificatewasinstalledlastweekbutthebrowserstillshows
+'NotSecure'.Whatarethemostlikelycauses?
+A)TheSSLcertificateexpired already
+B)Thecertificatewasinstalledbutthe.htaccessdoesnotredirectHTTPtoHTTPS,ORthesitestillloads
+mixedcontent(images/scriptsoverHTTP)
+C)TheFTPpasswordneedsresetting
+D)Thedomain's DNShasnotpropagated
+✔ Answer:B)MissingHTTP→HTTPSredirect ormixedcontent issues
+Explanation:InstallinganSSLcertificatedoesnotautomaticallyforceHTTPS—you mustaddaredirect.
+Additionally,evenwithHTTPSactive,ifthe pageloadsany resource(image,script,stylesheet) overplain
+HTTP,browsersshowa'NotSecure' ormixedcontentwarning.Checkthe browserconsole (F12)formixed
+contenterrors.Fix withapluginlike'Really SimpleSSL' forWordPress,orupdate.htaccessmanually.
+1.9 DeployingYourFirstWebsite—End-to-EndonAll
+ThreePanels
+1.9.1 StaticWebsiteDeployment—FileManagerMethod
+Feature/Area cPanel/WHM DirectAdmin Plesk
+1.Login https://server:2083 https://server:2222 https://server:8443
+2.NavigatetoFile
+Manager
+Files→FileManager→
+Navigatetopublic_html
+FileManagement→File
+Manager→
+domains/domain.com/public_html
+Files→navigateto
+httpdocs
+3.Uploadfiles ClickUpload→select
+ZIP
+ClickUpload→selectZIP Draganddropfilesor
+clickUpload
+4.Extractarchive Right-clickZIP→Extract SelectZIP →clickExtract SelectZIP →click
+Extract
+5.Verifywebroot index.htmlmustbein
+public_htmlroot
+index.htmlin
+domains/domain.com/public_html
+root
+index.htmlinhttpdocs
+root
+6.Test Browseto
+yourdomain.com
+Browsetoyourdomain.com Browseto
+yourdomain.com
+1.9.2 WordPressInstallation—AllThreePanels
+Feature/Area cPanel/WHM DirectAdmin Plesk
+AccessInstaller Software→Softaculous
+AppsInstaller→
+WordPress
+ExtraFeatures→
+Softaculous(or
+Installatron)→WordPress
+WordPress(leftsidebar)
+→InstallWordPress
+InstallerTool Softaculous SoftaculousorInstallatron WordPressToolkit(native)
+SelectDomain Choosefromdropdown Enterdomainorchoose Selectdomainfrom
+dropdown
+SetAdminUser Configureusername,
+password,emailduring
+install
+Same—configurebefore
+install
+Same
+ConfigureDB Softaculousauto-creates
+DBanduser
+Auto-created Auto-createdbyWP
+Toolkit
+Post-Install ClickinstalledURLto
+verify;noteadminURL
+Same WPToolkitshowssite
+cardwithManagebutton
+AccessWPAdmin yourdomain.com/wp-
+admin
+yourdomain.com/wp-
+admin
+yourdomain.com/wp-
+adminorviaWPToolkit
+ PRACTICAL EXERCISE:CapstoneExercise1—DeployaCompleteWebsite
+34.OnyourcPaneltraining account:InstallWordPressattherootofyour trainingdomainusing
+Softaculous.Configurethesitetitle,adminusername,andastrongpassword.Installthe'Astra'
+themefromtheWordPress themelibrary. Createthreetestpages:Home,About,Contact.Configure
+amenuwithall threepages.EnableSSLusing cPanelAutoSSL.ForceHTTPSredirect.
+35.OnyourDirectAdmintraining account:Deploytheprovidedstatic HTMLwebsitebyuploadingvia
+FTPusingFileZilla.Verifythesiteloads.Createanemailaccountadmin@yourdomain.com.Senda
+testemail fromwebmail.Create aMySQLdatabaseandimporttheprovidedSQLdumpusing
+phpMyAdmin.
+36.OnyourPlesktraining account:InstallWordPressusing theWordPress Toolkit.UsetheSecurity
+Checkfeaturetohardentheinstallation.Enableautomaticupdates forcore,themes,andplugins.
+Activateastagingenvironment.Push atestchangefromstagingtolive.
+37.Forall three:RunaDNSlookup(digAyourdomain.com)andconfirmtheArecordpoints toyour
+server.Run anSSLcheckatssllabs.comandachieve atleastan'A' rating.
+✔ Fullyfunctionalwebsitesdeployed acrossallthreepanelenvironmentswithSSL,email,and
+databaseverified.
+ Q1.4—InPlesk,whatisthecorrectwebrootpathfortheprimarydomainofa
+subscription?
+A)~/public_html/
+B)~/domains/domain.com/public_html/
+C)~/httpdocs/
+D)/var/www/html/
+✔ Answer:C)~/httpdocs/
+Explanation:Pleskuses ~/httpdocs/asthewebrootfortheprimarydomainonLinux.Thefullabsolute path
+istypically/var/www/vhosts/yourdomain.com/httpdocs/.This isthemostimportantstructuraldifferencefrom
+cPanel(~/public_html/)andDirectAdmin(~/domains/domain.com/public_html/).Confusion aboutweb roots
+causesmany404errorsduring fileuploadsand applicationdeployments.
+ Q1.5—YoucreateanFTPaccountincPanelwiththedirectorysetto
+'/public_html/client1/'.WhathappenswhentheFTPusertriestonavigatetotheparent
+directory?
+A)They seetheentireserverfilesystem
+B)They seethefull/home/username/directory
+C)Theycannotgoabove /public_html/client1/—they arejailedtothatdirectory
+D)FTPis automaticallydisabledforsecurity
+✔ Answer:C)Theyare jailedto/public_html/client1/
+Explanation:cPanel'sPure-FTPd(andallpanels' FTPservers)implementdirectoryjailingbasedonthe
+homedirectorysetduringaccountcreation.TheFTPuser seestheirconfigureddirectoryastheir root—
+theycannottraverseaboveit.This isacriticalsecurityfeatureforgivingclientsor developersfileaccess
+withoutexposingother accountsontheserver.
+SECTION2—COREADMINISTRATION
+ServerSetup,AccountLifecycle,Security,Performance,Email&Daily OperationsAcrossAll
+ThreePanels
+ LearningOutcomes
+Bytheendofthissection,you will beableto:
+• Performacompleteinitialserver configurationfromafreshpanelinstallationonallthreepanels
+• Managethefullhostingaccountlifecycle:creation,modification,suspension,andtermination
+• Createandconfigurehostingpackages andserviceplans withappropriateresourcelimits
+• Implementbaselinesecurity includingfirewall,brute-forceprotection,andModSecurity
+• ConfigurePHP handlers,OPcache,andper-accountresourcelimitsforperformance
+• Administer EximandPostfixmailserversand configureSPF,DKIM,andDMARC
+• Monitorserverhealth andrespondtohigh-loadanddisk-fullsituations
+• Managecronjobs,log rotation,androutinemaintenancetasks
+2.1 InitialServerConfiguration—FromFresh
+Installation
+2.1.1 cPanel/WHM—Post-InstallChecklist
+AftercPanel/WHMisinstalledonafreshAlmaLinuxorCloudLinuxserver,completethefollowing
+configurationstepsbeforeplacinganyaccountsontheserver.Skippinganyofthesecreatessecurity
+andreliabilityrisks.
+Step1—BasicWHMSetup
+WHM→ServerConfiguration→BasicWebHostManagerSetup.Configure:
+• ServerContactEmail Address—receives allcriticalserver alerts
+• ServerHostname—mustbeafully qualifieddomain name(e.g.server1.hostafrica.com)with avalid
+Arecord
+• Nameservers—setns1and ns2(e.g.ns1.hostafrica.com /ns2.hostafrica.com)withvalid Arecords
+pointingto serverIPs
+• ResolverConfiguration —usereliable DNSresolvers (1.1.1.1,8.8.8.8 as fallback)
+Step2—TweakSettings(CriticalItems)
+WHM→ServerConfiguration→TweakSettings.Keysettingstoconfigure:
+Setting Recommended
+Value
+Why
+SMTPRestrictions ON Preventsnon-mailusersfromsendingSMTP directly—
+criticalanti-spammeasure
+MaxHourlyEmailperDomain 200–500(adjustper
+usecase)
+Capsoutboundemailtodetectcompromisedaccounts
+Prevent nobodyfromsending
+mail
+ON PreventsPHPscriptsrunningas'nobody'userfrom
+sendingspam
+DefaultPHPVersion 8.1or8.2 Setsecure,modernPHPasdefaultfornewaccounts
+Allowuserstoparksubdomains
+oftheserverhostname
+OFF Preventsdomainhijackingattempts
+Proxysubdomains(mail.,
+cpanel.,webmail.)
+ON Enablesdirectsubdomainaccesswithoutportnumbers
+ReferrerBlankCheck ON ProtectsWHM/cPanelfromCSRFattacks
+PasswordStrength 65minimum Enforcesstrongerpasswordsforhostingaccounts
+Step3—EasyApache4Configuration
+WHM→Software→EasyApache4.Buildaserver-appropriateApache/PHPstack:
+• SelectApacheversion —Apache2.4 (currentstandard;never use2.2)
+• SelectPHP versions —install PHP8.0,8.1,and 8.2to supportdiverseclient needs
+• Enable criticalmodules:mod_rewrite (requiredforWordPress/Joomla), mod_ssl,mod_deflate
+(compression),mod_headers,mod_expires
+• Enable PHPextensions:curl,gd,imagick,intl, mbstring,mysqli, pdo,soap,xml,zip, opcache
+• PHPhandler—selectPHP-FPM forallPHPversions(best performanceandsecurity isolation)
+Step4—AutoSSL/Let'sEncrypt
+# In WHM: SSL/TLS → Manage AutoSSL
+# 1. Select Provider: Let's Encrypt
+# 2. Accept terms of service
+# 3. Enable AutoSSL for all users
+# 4. Run AutoSSL Now — issues certs for all existing domains
+# Verify AutoSSL ran successfully:
+# WHM → SSL/TLS → AutoSSL → Review log for any failures
+# CLI alternative:
+/usr/local/cpanel/bin/autossl_check --all
+Step5—cPHulkBruteForceProtection
+WHM→SecurityCentre→cPHulkBruteForceProtection:
+• Enable cPHulk—blocksIPs afterrepeated failedlogin attempts
+• SetMaximum Failures PerIP:5(blocks the IPafter5failures)
+• SetMaximum Failures PerAccount:10(locksthe accountiftargetedfrom multiple IPs)
+• SetBrute Force Protection Period: 60minutes
+• SetIPBlock Period:1440 minutes (24hours)
+• Addyouroffice/homeIPtothe Whitelisttoprevent accidentallylocking yourselfout
+Step6—SecurityAdvisor
+WHM→SecurityCentre→SecurityAdvisorrunsautomatedchecksandflagsissues.Workthrough
+everyitemitflags—commonfindingsinclude:
+• RootSSHloginenabled —disable it
+• Apacherunningas root—shouldneverhappen; investigateimmediately
+• OutdatedOpenSSL version—update viaOSpackagemanager
+• MySQLrunningwithout arootpassword—setastrong rootpassword
+• World-writablefiles found—fixpermissions
+2.1.2 DirectAdmin—Post-InstallConfigurationChecklist
+AfterDirectAdminisinstalled(viatheofficialinstallscriptatdirectadmin.com),completethesesteps:
+Step1—AdministratorSettings
+AdminPanel→ServerManager→AdministratorSettings:
+• SetServerHostname—FQDN with valid Arecord
+• SetAdministratorEmail—receivesallalerts
+• SetDefault Nameservers —ns1 andns2 withvalid Arecords
+• SetServerTimeZone —should match datacentre location
+Step2—ServicesStatusandConfiguration
+AdminPanel→ServerManager→ServicesStatus—verifyallrequiredservicesarerunning:
+Service Statusto Expect IfNotRunning
+httpd(Apache) Running systemctlstarthttpd;check/var/log/httpd/error_log
+mysqld
+(MySQL/MariaDB)
+Running systemctlstartmysqld;check/var/log/mysqld.log
+exim(EximMTA) Running systemctlstartexim;check/var/log/exim/mainlog
+dovecot(IMAP/POP3) Running systemctlstartdovecot;check/var/log/dovecot.log
+named(BINDDNS) Running systemctlstartnamed; check/var/log/named.log
+proftpdorvsftpd(FTP) Running systemctlstartproftpd;check/var/log/proftpd.log
+Step3—PHPConfiguration
+AdminPanel→PHPConfiguration:
+• Selecthandler: PHP-FPM (recommended forsecurity isolationand performance)
+• AddPHPversions:Enable PHP 8.0,8.1,8.2 soaccounts canchoose
+• Setdefaultversion:PHP8.1 or8.2
+• Configurephp.ini: disable dangerous functions(exec, shell_exec,system,proc_open),set
+upload_max_filesize to64M, post_max_size to64M, memory_limitto256M
+Step4—Enable Let'sEncrypt
+DirectAdminincludesabuilt-inACMEclientforLet'sEncrypt:
+# Via Admin Panel: Admin Panel → SSL Certificates
+# Enable 'Let's Encrypt' option for all users
+# OR via command line:
+cd /usr/local/directadmin/custombuild
+./build letsencrypt
+./build set letsencrypt yes
+./build letsencrypt
+Step5—BruteForce Monitor
+AdminPanel→BruteForceMonitor:
+• Enable blockingafter5failed SSH,FTP,orpanel loginattempts
+• Setblock duration to1440 minutes (24hours)
+• Whitelistyourown IPaddress topreventself-lockout
+• Setalert emailto receivenotificationswhen IPsare blocked
+2.1.3 Plesk—Post-InstallConfigurationChecklist
+Plesk'sguidedsetupwizardrunsonfirstlogin.Aftercompletingit,proceedwiththeseadministrative
+steps:
+Step1—GeneralSettings
+PleskAdmin→Tools&Settings→GeneralSettings:
+• SetFull Hostname—FQDNpointing toserverIP
+• SetDefault AdministratorEmail
+• SetSystem Dateand Time—synchronisewith NTP
+• ConfigureDefault Language andCurrencyforresellerbilling
+Step2—Update PleskandExtensions
+# Via GUI: Tools & Settings → Updates and Upgrades
+# Install all available updates before adding customers
+# Via CLI:
+plesk installer update
+# Install key extensions via CLI:
+plesk bin extension --install letsencrypt
+plesk bin extension --install wordpress-toolkit
+plesk bin extension --install fail2ban
+plesk bin extension --install modsecurity
+Step3—WebServer Configuration
+Tools&Settings→Apache&nginxSettings:
+• SetNginx as reverseproxy with Apacheas backend(default—bestperformancecombination)
+• Enable Nginx staticfileserving —serve CSS,JS,imagesdirectly viaNginx without hittingApache
+• Enable gzipcompression forHTML,CSS,JScontenttypes
+• Setcustom errordocumentsfor404 and500
+Step4—FirewallandFail2Ban
+Tools&Settings→Security→Firewall:
+• Enable PleskFirewall(iptables-based)—blocksallports notexplicitly needed
+• Allow:22 (SSH),25(SMTP),80 (HTTP),443 (HTTPS),587 (submission),993 (IMAPS),995
+(POP3S),8443 (Plesk),8880 (Plesk HTTP),21(FTP), 49152-65535 (FTPpassive range)
+• Tools&Settings→Security→Fail2Ban —enable with defaultjailconfigurationsforSSH, FTP,
+SMTP,and panellogin
+Step5—DefaultServicePlan
+Admin→ServicePlans→AddPlan.Createatleastonedefaultplanbeforecreatingcustomer
+subscriptions.
+• Setdiskspace,bandwidth, numberofdomains,mailboxes,databases,FTPaccounts
+• SetPHP version andhandlerforthe plan
+• Configurewhich featuresare enabled(SSH access,remote MySQL,custom DNS, etc.)
+2.2 HostingPackageandServicePlanDesign
+Packages(cPanel/WHM),UserPackages(DirectAdmin),andServicePlans(Plesk)arereusable
+resourcetemplatesthatdefinewhateachhostingaccountisallowedtouse.Creatingwell-designed
+packagesbeforecreatingaccountssavestimeandensuresconsistentresourceallocation.
+2.2.1 DesigningPackages—ResourcePlanning
+Resource WhatItControls SharedHosting
+TypicalValue
+VPS/Reseller
+TypicalValue
+DiskSpace Totalstorageforfiles,databases,
+andemail
+2GB–20GB 50GB–unlimited
+Bandwidth/Transfer Totaldatatransferredpermonth 10GB–unlimited 100GB–unlimited
+EmailAccounts Maximumnumberofemail
+addresses
+10–unlimited unlimited
+Databases MaximumnumberofMySQL
+databases
+5–unlimited unlimited
+FTPAccounts MaximumnumberofFTP user
+accounts
+3–unlimited unlimited
+Subdomains Maximumnumberofsubdomains 10–unlimited unlimited
+AddonDomains(cPanel) Additionaldomainsonsame
+account
+0–unlimited unlimited
+ParkedDomains Domainaliasespointingtosame
+content
+2–unlimited unlimited
+MailingLists Mailmanmailinglistquantity 0–5 unlimited
+CronJobs Scheduledautomatedtasks 2–unlimited unlimited
+Shell/SSHAccess Command-lineserveraccess Disabled(shared)/
+Enabled(VPS)
+Enabled
+2.2.2 CreatingPackages—AllThreePanels
+Feature/Area cPanel/WHM DirectAdmin Plesk
+CreatePackage WHM→Packages→Add
+aPackage→nameit,set
+resources→Add
+AdminPanel→Reseller
+Panel→Manage
+Packages→Create
+Package
+Admin→ServicePlans→
+AddPlan→name,set
+resources→OK
+EditPackage WHM→Packages→Edit
+aPackage→change
+values→Save
+ManagePackages→Edit
+→update→Save
+ServicePlans→EditPlan
+ApplytoAccount WHM→Modifyan
+Account→change
+Package
+AdminPanel→Modify
+User→changePackage
+Admin→Subscriptions→
+edit→changeService
+Plan
+FeatureLists(cPanel) WHM→Packages→
+FeatureManager→
+createlist,assignto
+package
+Notapplicable—features
+setperpackage
+Notapplicable—features
+setinplan
+ResellerPackages WHM→Packages→Add
+aPackage(selectfor
+reselleruse)
+AdminPanel→Reseller
+Packages→Create
+Admin→Resellers→set
+resourcelimitsperreseller
+ PRACTICAL EXERCISE:CreateaThree-TierPackageStructure
+38.InWHM:Createthreepackages—'Starter' (5GBdisk,50GBBW,5DBs,10emailaccounts),
+'Business'(20GBdisk,unlimitedBW,unlimitedDBs,unlimitedemail),'Developer' (50GBdisk,
+unlimitedBW,unlimitedDBs,unlimitedemail,SSHaccessenabled).
+39.InDirectAdmin:Create matchingUserPackageswith thesameresourceallocations.
+40.InPlesk:Create threeServicePlans matchingthesametiers.
+41.Inall three:Createatestaccountoneachtierandverifythequotas areenforcedbycheckingthe
+account'sresourcedisplay.
+42.Attempttocreateadatabasebeyond thelimitontheStarter account—verifythepanelrefusesand
+showsanappropriateerror.
+✔ Three-tierpackagestructurecreatedand resourcelimitsverified asenforcedacrossallthree
+panels.
+2.3 AccountLifecycleManagement—FullWorkflow
+2.3.1 CreatingAccounts—DetailedProcess
+Feature/Area cPanel/WHM DirectAdmin Plesk
+Path WHM→Account
+Functions→Createa
+NewAccount
+AdminPanel→Create
+User(orCreateReseller
+forresellertier)
+Admin→Subscriptions→
+AddSubscription
+RequiredFields Username(max16chars,
+alphanumeric),Domain,
+Password,Email,Package
+Username,Email,
+Password,Domain,
+Package
+Domainname, Customer
+(existingornew), Service
+Plan
+UsernameRestrictions Lowercaselettersand
+numbersonly,max16
+chars,cannotstartwitha
+number
+Lowercase
+letters/numbers,max 10
+chars
+Nousernameperse—
+customername+domain
+DNSZoneCreation Automaticallycreatedin
+BIND
+Automaticallycreatedin
+BIND
+Automaticallycreatedin
+BIND
+WelcomeEmail WHM→TweakSettings
+→configurewelcome
+emailtemplate
+AdminSettings→
+configurewelcomeemail
+Tools&Settings→
+Notifications→configure
+welcomemessage
+AccountVerifyPost-
+Create
+WHM→ListAccounts→
+confirmnewaccountlisted
+Admin→ShowAllUsers
+→confirmuserlisted
+Admin→Subscriptions→
+confirmsubscriptionlisted
+2.3.2 ModifyingAccounts
+Feature/Area cPanel/WHM DirectAdmin Plesk
+ChangePassword WHM→Account
+Functions→Changea
+Password
+Admin→ShowAllUsers
+→username→Change
+Password
+Admin→Subscriptions→
+Customername→
+ChangePassword
+ChangePackage WHM→Account
+Functions→Modifyan
+Account→selectnew
+package
+Admin→ShowAllUsers
+→username→Modify
+User→changepackage
+Admin→Subscriptions→
+edit→changeService
+Plan
+ChangeDomain WHM→Account
+Functions→Modifyan
+Account→Domainfield
+(requireszonerecreation)
+Notdirectly—requires
+manualDNSandfilepath
+update
+Notavailablenatively—
+requiresre-addingdomain
+IncreaseDiskQuota WHM→ModifyAccount
+→adjustdiskquotaOR
+changetohigherpackage
+ModifyUser→update
+diskquota
+EditSubscription→adjust
+diskspaceinplanor
+override
+EnableSSHAccess WHM→ModifyAccount
+→Shell:/bin/bash
+Admin→ModifyUser→
+enableshellaccess
+Subscription→Hosting
+Settings→enableSSH
+access
+ResetAccountPassword WHM→Changea
+Password→select
+account→newpassword
+Admin→ShowAllUsers
+→ChangePassword
+Admin→Subscriptions→
+Customer→Reset
+Password
+2.3.3 AccountSuspensionandTermination
+Suspensionretainsallaccountdatabutdisablesaccess.Terminationpermanentlydeletesalldata.
+Alwaysverifywithamanagerbeforeterminatinganyaccount—datacannotberecoveredunlessa
+backupexists.
+Feature/Area cPanel/WHM DirectAdmin Plesk
+SuspendAccount WHM→Account
+Functions→Manage
+AccountSuspension→
+selectuser→Suspend
+Admin→ShowAllUsers
+→checkbox→Suspend
+Selected
+Admin→Subscriptions→
+Actions→Suspend
+UnsuspendAccount WHM→ListSuspended
+Accounts→select→
+Unsuspend
+Admin→ShowAllUsers
+(suspendedfilter)→
+Unsuspend
+Admin→Subscriptions→
+Actions→Unsuspend(if
+withinbillingperiod)
+TerminateAccount WHM→Account
+Functions→Terminate
+Accounts→select→
+RemoveAccount
+Admin→ShowAllUsers
+→select→Delete
+Selected→confirm
+Admin→Subscriptions→
+RemoveSubscription
+SuspensionPage Browsershows'This
+AccountHasBeen
+Suspended'—cPanel
+auto-generates
+DefaultApacheerroror
+customsuspensionpage
+Pleskshowscustom
+suspensionpage
+Auto-suspend(WHMCS) WHMCScallsWHMAPIto
+suspendonoverdue
+invoice
+WHMCScallsDAAPI WHMCScallsPleskAPI
+⚠DataLossWarning
+Accounttermination inall threepanels isIRREVERSIBLEunlessyouhaveabackup.Always takeafull
+accountbackupbeforeterminating.InWHM:cPanel →BackupbeforeWHM→Terminate.InDirectAdmin:
+downloaduserbackupfirst.InPlesk:createasubscriptionbackupbeforeremoval.Litigationanddata
+recoveryrequestsafterterminationareexpensiveand oftenunsuccessful.
+2.4 SecurityHardening—Comprehensive Panel-by-
+PanelGuide
+2.4.1 FirewallConfiguration
+CSF(ConfigServerSecurity&Firewall)—cPanelandDirectAdmin
+CSFisthedefactofirewallforcPanelandDirectAdminservers.Itisaniptables-basedfirewallwitha
+richconfigurationfileandaWHM/DAadminGUIplugin.
+# Install CSF (run as root on server):
+cd /tmp && wget https://download.configserver.com/csf.tgz
+tar -xzf csf.tgz && cd csf && sh install.sh
+# Key CSF configuration file: /etc/csf/csf.conf
+# After editing csf.conf, always restart:
+csf -r
+# Essential CSF configuration items in /etc/csf/csf.conf:
+TESTING = '0' # MUST set to 0 to enable blocking (default is 1 = test
+mode)
+SMTP_BLOCK = '1' # Block outbound SMTP from all users except Exim/Postfix
+TCP_IN = '22,25,53,80,110,143,443,465,587,993,995,2082,2083,2086,2087,2095,2096'
+TCP_OUT = '22,25,53,80,443,587'
+UDP_IN = '53'
+UDP_OUT = '53'
+LF_TRIGGER = '5' # Trigger lfd after 5 failures
+LF_TRIGGER_PERM = '1' # Permanently block after trigger
+# Block an IP immediately:
+csf -d 192.168.1.100 'Brute force attacker'
+# Unblock an IP:
+csf -dr 192.168.1.100
+# Allow an IP permanently:
+csf -a 192.168.1.200 'Office IP'
+# Check if an IP is blocked:
+csf -g 192.168.1.100
+Fail2Ban—Plesk
+PleskusesFail2Banasitsprimaryintrusionpreventionsystem.Fail2Banmonitorslogfilesandbans
+IPsthatshowmaliciouspatterns.
+Fail2BanJail LogFileMonitored TriggersOn
+sshd var/log/secure FailedSSHloginattempts
+plesk-panel var/log/sw-cp-server/error_log FailedPleskpanellogins
+plesk-postfix var/log/maillog SMTPauthenticationfailures
+proftpd var/log/proftpd.log FailedFTPlogins
+plesk-apache var/log/httpd/error_log Apacheauthenticationfailures
+recidive var/log/fail2ban.log IPsbanned3+times—permanent ban
+# Via Plesk GUI: Tools & Settings → Security → Fail2Ban
+# Enable, configure ban period, max retries, find time per jail
+# CLI — check Fail2Ban status:
+fail2ban-client status
+# Check specific jail:
+fail2ban-client status sshd
+# Unban an IP:
+fail2ban-client set sshd unbanip 192.168.1.100
+# View banned IPs:
+fail2ban-client banned
+2.4.2 ModSecurity—WebApplicationFirewall
+ModSecurityisanApachemodulethatactsasaWebApplicationFirewall(WAF).Itinspectsall
+incomingHTTPrequestsagainstarulesetandblockscommonattackpatternsincludingSQLinjection,
+XSS,andfileinclusionattacks.
+Feature/Area cPanel/WHM DirectAdmin Plesk
+EnableModSecurity WHM→SecurityCentre
+→ModSecurityVendors
+→EnableOWASPCRS
+AdminPanel→
+ModSecurityManager→
+EnableModSecurity
+Tools&Settings→
+Security→Web
+ApplicationFirewall→
+EnableModSecurity
+RuleSet OWASPCoreRuleSet
+(CRS)—most
+comprehensive
+OWASPCRS OWASPCRSviaPlesk
+ModSecurityextension
+Mode Detection(logonly)or
+Prevention(block)
+DetectionorPrevention DetectionorPrevention
+WhitelistaDomain WHM→ModSecurity→
+AddRuleExclusionfor
+domain
+Admin→ModSecurity→
+Addexclusion
+Plesk→Subscription→
+WebApplicationFirewall
+→switchto'Off'for
+specificdomain
+ViewWAFLogs /var/log/modsec_audit.log /var/log/modsec_audit.log /var/log/modsec_audit.log
+Disableforonesite cPanel→ModSecurity→
+Disablefordomain
+DirectAdminModSecurity
+→disableperdomainrule
+Subscription→Web
+ApplicationFirewall→Off
+⚠ModSecurityFalsePositives
+ModSecurityinPreventionmodesometimesblockslegitimatewebsiteactions—especially inWordPress
+admin,WooCommercecheckout,orcomplexformsubmissions.Whenaclientreports amysterious403
+Forbiddenerroronaspecific formaction,check/var/log/modsec_audit.logfortheblockedrequest.Youcan
+thenaddaspecificruleexclusionrather than disablingModSecurityentirely.
+2.4.3 SSHHardening
+SSHisthemosttargetedserviceonanypubliclyexposedserver.Thesehardeningstepsapply
+regardlessofwhichcontrolpanelisinstalled.
+# Edit SSH configuration:
+nano /etc/ssh/sshd_config
+# Recommended settings:
+Port 2200 # Change from default 22 (update firewall to allow new
+port)
+PermitRootLogin no # Never allow root to log in directly
+PasswordAuthentication no # Require key-based auth only
+PubkeyAuthentication yes # Enable key authentication
+MaxAuthTries 3 # Lock after 3 failed attempts
+LoginGraceTime 30 # 30-second window to authenticate
+AllowUsers adminuser # Only allow specific users
+Protocol 2 # SSH protocol version 2 only
+X11Forwarding no # Disable X11 forwarding (not needed for hosting)
+# After editing, restart SSH (make sure you have another terminal open!):
+systemctl restart sshd
+# Update CSF firewall to allow new SSH port:
+# Edit /etc/csf/csf.conf → TCP_IN → add 2200
+csf -r
+2.4.4 MalwareScanning
+Feature/Area cPanel/WHM DirectAdmin Plesk
+Scanner Imunify360
+(commercial,
+integrateswithWHM),
+ClamAV(free)
+ClamAV(free),Imunify360
+(commercialadd-on)
+PleskAntivirusextension
+(KasperskyorImunify360)
+ClamAVScan WHM→Virus
+Scanner→scan
+accountdirectories
+SSH:clamscan-r
+/home/username/public_html/
+Plesk→Extensions→Antivirus
+→scansubscription
+Imunify360 WHM→Imunify360
+→Real-time
+protectionand
+proactivedefence
+Imunify360installsasDA
+plugin
+Plesk→Imunify360extension
+ManualScan(CLI) clamscan-ri--bell
+/home/user/ 2>&1|
+grepFOUND
+clamscan-ri--bell
+/home/user/2>&1|grep
+FOUND
+clamscan-ri--bell
+/var/www/vhosts/domain/httpdocs/
+Findrecently
+modifiedPHPfiles
+find/home-name
+'*.php'-mtime-1
+(modifiedinlastday)
+find/home-name'*.php'-
+mtime-1
+find/var/www/vhosts-name
+'*.php'-mtime-1
+# Find recently modified PHP files (potential malware):
+find /home -name '*.php' -mtime -2 -ls 2>/dev/null
+# Find files with suspicious permissions (world-writable):
+find /home -perm -o+w -type f 2>/dev/null
+# Find hidden files (dot files) in public_html:
+find /home/*/public_html -name '.*' -type f
+# Search for common PHP malware patterns:
+grep -r 'eval(base64_decode' /home/*/public_html/ --include= '*.php'
+grep -r 'shell_exec' /home/*/public_html/ --include= '*.php'
+grep -r 'FilesMan' /home/*/public_html/ --include= '*.php'
+ Q2.1—AclientcontactssupportsayingtheirWordPresssiteisshowinga403
+Forbiddenerroronlywhentheytrytosubmitacontactform.Nootherpagesareaffected.
+Whatisthemostlikelycause?
+A)TheMySQLdatabaseiscorrupted
+B)ModSecurityis blockingtheformsubmissionbecausethecontentmatchesaWAFrule
+C)Thedomain's SSLcertificateexpired
+D)TheFTPpasswordwaschanged
+✔ Answer:B)ModSecurity WAF rule blocking the formsubmission
+Explanation:Whenonlyaspecificaction(formPOST)triggersa403with noother affectedpages,
+ModSecurityis almostcertainly thecause.Check/var/log/modsec_audit.logforblockedrequestsmatching
+thesubmissiontimestamp.You'llseethespecificruleIDthattriggered.Add atargetedexclusionforthatrule
+onthedomainrather thandisabling ModSecurityentirely—maintainingprotectionfortherestofthesite.
+2.5 PHPConfigurationandPerformance
+2.5.1 PHPHandlers—DeepComparison
+PHPhandlerchoicesignificantlyaffectsperformance,security,andper-accountisolation.
+Understandingeachoptionisessentialforserverconfigurationdecisions.
+Handler HowItWorks Performance SecurityIsolation PanelSupport Recommendation
+mod_php
+(DSO)
+PHPbuiltintoApacheas
+amodule—every
+Apacheworkercan
+executePHP
+High
+throughput
+Poor—allPHPruns
+astheApacheuser
+(nobody/www-data)
+cPanellegacy Neveruseonshared
+hosting—severe
+securityrisk
+CGI PHPrunsasaseparate
+processperrequestvia
+CommonGateway
+Interface
+Slow—new
+processper
+request
+Better—canrunas
+accountuser
+Allpanels
+(legacy)
+Legacyonly—not
+recommended
+suPHP CGIvariant thatruns
+PHPasthefileowner—
+addspermissionchecks
+Slow—
+process
+overheadper
+request
+Good—runsas
+cPaneluser
+cPanellegacy Acceptablebut
+deprecated—use
+PHP-FPMinstead
+FastCGI PersistentPHPprocess
+pool—fasterthanCGI
+Good Good—separatepool
+peraccountpossible
+Allpanels Acceptable—but
+PHP-FPMisbetter
+PHP-FPM DedicatedPHPprocess
+poolperaccount—
+persistentworkers,
+processmanagement
+Excellent—
+persistent
+workers,
+configurable
+poolsize
+Excellent—fully
+isolatedperaccount
+withseparatesystem
+user
+Allthreepanels ALWAYSUSETHIS
+—production
+standardonallthree
+panels
+2.5.2 ConfiguringPHP-FPM
+Feature/Area cPanel/WHM DirectAdmin Plesk
+EnablePHP-FPM WHM→MultiPHP
+Manager→Sethandlerto
+PHP-FPMforallPHP
+versions
+AdminPanel→PHP
+Configuration→Set
+handlertoPHP-FPM
+Tools&Settings→PHP
+Settings→SetPHP
+handlertoFPMforeach
+domain'sPHPversion
+Per-AccountPHPVersion WHM→MultiPHP
+Manager→changePHP
+versionperdomain
+UserPanel→MyAccount
+→PHPversionselector(if
+CloudLinuxinstalled)
+Subscription→PHP
+Settings→Version
+dropdown
+PHP.iniOverrideper
+Account
+cPanel→PHPSelector
+(CloudLinux)→PHP
+Options
+UserPanel→PHP
+Configuration→PHP
+Options
+Subscription→PHP
+Settings→Performance
+settings
+OPcacheEnable EasyApache4→PHP
+Extensions→opcache
+(enableglobally)
+AdminPanel→PHP
+Extensions→opcache
+Tools&Settings→PHP
+→Extensions→enable
+opcache
+ViewactivePHPconfig Createinfo.phpwith<?php
+phpinfo();?>
+Createinfo.phpwith<?php
+phpinfo();?>
+Createinfo.phpwith<?php
+phpinfo();?>
+2.5.3 PHP.ini—CriticalSettingsforProduction
+; Recommended production PHP.ini settings
+; Apply via WHM MultiPHP INI Editor, DA Admin PHP Config, or Plesk PHP Settings
+memory_limit = 256M ; Max RAM per PHP request (WordPress needs at least
+128M)
+max_execution_time = 300 ; Max seconds a script runs (300 for WooCommerce)
+upload_max_filesize = 64M ; Max file upload size
+post_max_size = 64M ; Must be >= upload_max_filesize
+max_input_vars = 3000 ; Critical for WordPress theme options with many
+fields
+allow_url_fopen = On ; Required by many apps for remote file reads
+display_errors = Off ; NEVER display errors to visitors on production
+log_errors = On ; Log errors to error_log file
+error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT
+; Disabled dangerous functions (security hardening):
+disable_functions = exec,passthru,shell_exec,system,proc_open,popen,
+curl_multi_exec,parse_ini_file,show_source,dl,phpinfo
+; OPcache settings (in opcache section):
+opcache.enable = 1
+opcache.memory_consumption = 128
+opcache.max_accelerated_files = 10000
+opcache.revalidate_freq = 60
+2.5.4 CloudLinuxLVE—Per-AccountResourceLimits
+CloudLinuxLVE(LightweightVirtualEnvironment)isthegoldstandardforsharedhostingisolation.It
+enforcesper-accountlimitsonCPU,RAM,I/O,entryprocesses,andmore.AvailableoncPanel,
+DirectAdmin,andPleskwhenrunningCloudLinuxOS.
+LVEParameter WhatItControls Recommended Shared WhentoIncrease
+HostingValue
+CPU PercentageofaCPUcore
+availabletotheaccount
+100%(1CPUunit) High-trafficWordPresssites:200–
+400%
+PMEM(Physical
+Memory)
+MaximumRAMtheaccount's
+processescanuse
+256MB–512MB WooCommerce,membershipsites:
+512MB–1GB
+IO DiskI/OspeedinKB/s 1024KB/s High-readdatabases:2048–4096
+KB/s
+IOPS DiskI/Ooperationspersecond 1024IOPS Database-heavysites:2048+
+EP(EntryProcesses) Concurrentconnectionstothe
+account
+20 Busysites:50–100
+NPROC(Number of
+Processes)
+Maxsimultaneousprocesses 100 Rarelyneedsincreasingonshared
+hosting
+# View LVE stats for all accounts (CloudLinux):
+lvectl list
+# View usage history for a specific account:
+lveinfo --user username --period= 1d
+# Set LVE limits for a specific user:
+lvectl set username --speed= 200 --pmem= 512M --io= 2048 --ep= 50
+# Identify accounts currently hitting LVE limits:
+lvetop
+# In WHM: Server Configuration → CloudLinux Manager → Users tab
+# Shows per-account usage and allows GUI-based limit adjustment
+2.6 ResellerHostingManagement
+Resellerhostingallows webagencies,freelancers,andsmallhostingstartupstopurchaseserver
+resourceswholesaleandresellthemtotheirownclients.Allthreepanelssupportafullresellertierwith
+appropriateisolationandbrandingcapabilities.
+2.6.1 CreatingResellerAccounts
+Feature/Area cPanel/WHM DirectAdmin Plesk
+CreateReseller WHM→Account
+Functions→Createa
+NewAccount→check
+'Maketheaccounta
+reseller'
+AdminPanel→Create
+Reseller(separatefrom
+CreateUser)
+Admin→Resellers→Add
+Reseller
+SetResellerLimits WHM→Resellers→
+ResellerCentre→edit
+ACLandresourcelimits
+AdminPanel→Reseller
+Packages→assign
+packagetoreseller
+Admin→Resellers→edit
+→setresourcequotas
+ResellerWHMAccess LimitedWHM—reseller
+seesonlytheiraccounts
+andapprovedfeatures
+Separateresellerpanel
+withsubsetofadmin
+features
+DedicatedResellerpanel
+view
+ResellerCreatesUsers ResellerlogsintoWHM
+withtheircredentials→
+CreateAccount
+Resellerlogsintopanel→
+CreateUser
+Resellerlogsintopanel→
+AddSubscription
+AdminViewsReseller
+Accounts
+WHM→ListAccounts→
+filterbyreseller
+Admin→ShowAllUsers
+→filterbyreseller
+Admin→Subscriptions→
+filterbyreseller
+Overselling WHM→Resellers→
+allow/disallowoverselling
+disk/BW
+ResellerPackages→
+allow/disallowoverselling
+Resourcelimitsenforced
+atplanlevel
+2.6.2 ACLLists—cPanelResellerFeatureControl
+WHM→Packages→FeatureManagerandWHM→Resellers→ACLListscontrolexactlywhich
+WHMfeaturesaresellercanaccess.Well-configuredACLsprotecttheserverfromresellermisuse.
+ACLCategory FeaturestoEnableforResellers FeaturestoRestrict
+AccountManagement Create,modify, suspend,unsuspend,
+terminatetheirownaccounts
+Terminateaccountswithoutbackup;change
+server-widesettings
+DNS Create/editDNSzonesfortheiraccounts EditDNSofaccountsbelongingtoother
+resellers
+Email Manageemailfortheiraccounts Accessmailqueueofotheraccounts
+Packages Createpackageswithintheirallocatedlimits Createpackagesexceedingresellerquota
+SSL InstallSSLontheiraccounts AccessWHM-levelSSLstorageforother
+accounts
+WHMFunctions Viewserverload,basicserverinfo Shellaccess,EasyApache,kernelupdates,
+firewall
+2.7 CronJobs—SchedulingAutomatedTasks
+CronistheLinuxtaskscheduler.Itrunsscriptsorcommandsautomaticallyatspecifiedintervals—
+fromonceayeartoeveryminute.Hostingadministratorsusecronforbackups,logrotation,cache
+clearing,reportgeneration,andapplicationmaintenancetasks.
+2.7.1 CronSyntax
+Field Position ValidValues Example
+Minute 1st 0–59 30=at:30pastthehour
+Hour 2nd 0–23 2=at2:00AM
+DayofMonth 3rd 1–31 15=onthe15th
+Month 4th 1–12 *=everymonth
+DayofWeek 5th 0–7(0and7= 1=Monday
+Sunday)
+CronExpression Meaning
+***** Everyminute
+0**** Everyhourat:00
+02*** Everydayat2:00AM
+02**0 EverySundayat2:00AM
+021** Firstdayofeverymonthat2:00AM
+*/5**** Every5minutes
+02,14*** Everydayat2:00AMand2:00PM
+2.7.2 ConfiguringCronJobsAcrossAllThreePanels
+Featur
+e/
+Area
+cPanel/WHM DirectAdmin Plesk
+Access
+Cron
+cPanel→Advanced→
+CronJobs
+UserPanel→AdvancedFeatures→Cron
+Jobs
+Subscription→ScheduledTasks
+(CronJobs)
+Add
+Cron
+Job
+Selectfrequencyfrom
+dropdownsORenter
+customexpression→
+entercommand→Add
+Entercronexpressionfields→enter
+command→Save
+Selectstandardperiod(hourly/daily
+etc.)ORentercustomexpression→
+entercommand→OK
+Comm
+onWP
+Cron
+*/5****php
+/home/user/public_html
+/wp-cron.php
+*/5****php
+/home/user/domains/domain.com/public_h
+tml/wp-cron.php
+*/5****php
+/var/www/vhosts/domain.com/httpdo
+cs/wp-cron.php
+Email
+on
+Error
+cPanel→CronJobs→
+set'Emailoutputto'
+address
+UserPanel→CronJobs→setemailfor
+output
+ScheduledTasks→Notifymewhen
+taskfails
+View
+Cron
+Log
+Nobuilt-inlog—
+redirectoutput:
+command>>
+/tmp/cron.log2>&1
+Nobuilt-inlog—redirectoutput Plesk→ScheduledTasks→Last
+Resultcolumn
+2.8 ServerMonitoringandHealthManagement
+2.8.1 KeyMetricsandThresholds
+Metric HealthyRange Warning Threshold Critical—ActionRequired
+CPULoadAverage(1min) <numberofCPUcores 1xnumberofcores 2x+numberofcores—identify
+topprocesses
+RAMUsage <70%oftotal 70–85% 85%+—checkformemory
+leaks,addswapifneeded
+DiskUsage <75% 75–85% 85%+—identifylargefiles,clean
+logs,upgradedisk
+SwapUsage 0%ideally >20%oftotalswap >50%swap—serveris
+memory-starved, upgradeRAM
+ApacheConnections <MaxClientssetting ApproachingMaxClients AtMaxClients—requestsare
+queuing;optimiseorscale
+MySQLConnections <max_connections
+setting
+80%ofmax_connections Atlimit—connectionsrefused;
+tuneorincreaselimit
+EximQueue <50messages 50–500 500+—investigatefor
+compromisedaccountsending
+spam
+2.8.2 MonitoringToolsbyPanel
+Feature/Area cPanel/WHM DirectAdmin Plesk
+ServerLoad WHM→ServerStatus AdminPanel→Admin
+Statistics→ServerLoad
+Plesk→Tools&Settings
+→Statistics
+DiskUsage WHM→ListAccounts
+(showsper-account
+usage)
+Admin→ShowAllUsers
+(diskcolumn)
+Admin→Subscriptions
+(diskcolumn)
+ApacheStatus WHM→ServerStatus→
+ApacheStatus
+SSH:apachectlstatus Plesk→Tools&Settings
+→ServicesManagement
+MySQLStatus WHM→MySQL→
+DatabaseServer
+Configuration
+SSH:mysql-uroot -p-e
+'SHOWSTATUS'
+Plesk→Databases→DB
+Serversettings
+EmailQueue WHM→Email→Mail
+QueueManager
+AdminPanel→Email→
+MailQueue(SSH:exim-
+bp)
+Plesk→Tools&Settings
+→Mail→QueueManager
+Real-timeMonitoring WHM→ServerStatus→
+taillogsinSSH
+SSH:top,htop, tail-flogs Plesk→Statistics+SSH
+monitoring
+Bandwidth WHM→Account
+Functions→Limit
+Bandwidth→viewby
+account
+Admin→Bandwidth→
+peruser
+Admin→Subscriptions→
+Bandwidthcolumn
+2.8.3 HighServerLoad—InvestigationWorkflow
+WhentheserverloadaverageexceedsthenumberofCPUcores,performthissystematicinvestigation:
+43.Run 'top' or'htop'—identifythe top CPU-consuming process.Note the usernameand command.
+44.IfitisApache: run 'apachectlfullstatus |grep-cPOST'to countPOST requests.HighPOSTs
+suggestabrute-force attack orpoorlycoded form.
+45.IfitisMySQL: run 'mysqladminprocesslist' toseeslow/stuckqueries.Identifythe database and
+account.
+46.IfitisPHP: identifythe accountviausernameinthe process list.Check theirerrorlogforPHP errors
+orinfiniteloops.
+47.IfitisExim/Postfix:checkthe mail queue ('exim-bp' or'postqueue -p').Alargequeue suggests a
+compromisedaccountsending spam.
+48.CheckCloudLinuxLVEstats ('lvetop')—identifywhichaccount ishitting resourcelimits.
+49.Ifanaccountiscausing the load,suspend ittemporarily whileyou investigate—this protectsother
+clientson the server.
+ PRACTICAL EXERCISE:ServerHealthAudit
+50.Connecttoyourtraining serverviaSSHandrun'uptime'—recordthe1,5,and 15minuteload
+averages.
+51.Run'top' for30secondsand identifythetop3CPU-consumingprocesses.Areany unexpected?
+52.Run'df-h'and 'du-sh/home/*|sort-h|tail-10' —identifythe 10largesthomedirectories.
+53.ChecktheApacheerrorlog:'tail -100/usr/local/apache/logs/error_log' (cPanel),
+'/var/log/httpd/error_log'(DA),orviaPlesk GUI.Noteany recurringerrors.
+54.Checkthemailqueue:'exim-bp|wc-l' (cPanel/DA)or'postqueue -p|wc-l'(Plesk).Howmany
+messagesarequeued?
+55.InWHM/DA/Plesk:Navigatetothe servermonitoringsection andreviewdiskusageper account.
+Identifyanyaccounts over80% oftheirquota.
+56.ReviewCSF/Fail2BanblockedIPs:'csf-l|head-20' (cPanel/DA)or'fail2ban-client banned' (Plesk).
+Arethere activeblocks?
+✔ Fullserverhealthaudit completed;allkeymetricsdocumented;anyissuesidentifiedandaction
+plandrafted.
+ Q2.2—Yoursharedhostingserver'sloadaverageclimbsto24ona4-coreserver.You
+run'lvetop'andseeoneaccountconsuming1800%CPU(18coresworth).Whatshouldyou
+doimmediatelyandtheninvestigate?
+A)RestartApache
+B)Immediately suspendtheoffendingaccounttorestoreserver performanceforall other clients,then
+investigatetheaccount's processes,errorlogs,and recently modifiedfiles todeterminethecause
+C)Increasetheserver's CPUlimit
+D)Reboottheserver
+✔ Answer:B)Immediatelysuspendthe offending account,then investigate
+Explanation:Thepriority isrestoringserviceforallother customers—oneaccountcannotbeallowedto
+denyservicetotheentireserver.Suspendimmediately (WHM→Suspend /DA→Suspend/Plesk→
+Suspendsubscription).Theninvestigate:checkrecentlymodifiedPHP files(find/home/username-name
+'*.php' -mtime-1),checkaccessanderrorlogs,lookformalware (eval(base64_decodepatterns),and
+determinewhether itisacompromisedaccount,apoorly codedscript,or aDDoS againsttheaccount's
+website.
+ Q2.3—AnewWHMTweakSettingcalled'SMTPRestrictions'isnowenabledonyour
+server.Aclientcallssayingtheycannolongersendemailsfromtheirdesktopemailclient.
+Theirsettingsarecorrectandhaven'tchanged.Whatisthecause?
+A)Theiremail passwordwas reset
+B)SMTPRestrictionsblocksalloutboundport25connections fromuser accounts—theclient'semailclient
+mustnow useport587(STARTTLS) or465(SSL)insteadofport25
+C)Thedomain's MXrecordschanged
+D)SpamAssassinisblockingtheiremails
+✔ Answer:B)SMTP Restrictions requiresthe clienttouse port587or465instead ofport25
+Explanation:WHM'sSMTPRestrictions (enabledviaTweak Settings)blocksoutboundSMTPconnections
+onport25fromall usersexceptthesystemmailuser(Exim/Postfix).This prevents PHPscripts and
+compromisedaccounts fromsendingspam.Legitimatedesktopemail clientsmustconnectusingport587
+withSTARTTLSorport465 withSSL/TLSforoutboundmail —theseportsarenotblocked.Updatethe
+client'sSMTPportto587withSTARTTLSauthentication.
+SECTION3—ADVANCEDADMINISTRATION
+EnterpriseSecurity,Backup&DR,Migration,APIAutomation,EmailDeliverability&Expert
+Troubleshooting
+ LearningOutcomes
+Bytheendofthissection,you will beableto:
+• Designand implementacomprehensivebackupanddisaster recovery strategyforallthreepanels
+• Migratehostingaccounts betweenservers,includingcross-panelmigrations
+• AutomateservermanagementtasksusingtheWHMAPI,DirectAdminJSONAPI,andPlesk
+CLI/RESTAPI
+• ConfigureadvancedemailauthenticationincludingSPF,DKIM,andDMARCwithfullDNS
+verification
+• Troubleshootcomplex hostingissuesusingsystematic diagnostic workflowsspecific toeachpanel
+• ImplementDNSclusteringandmulti-serverhostinginfrastructure
+• ManageSSLcertificatesatscaleincludingwildcardand multi-domaincertificates
+• ConfigureRedisandMemcached cachinglayersforhigh-performancehostingenvironments
+3.1 BackupandDisasterRecovery—Enterprise
+Strategy
+3.1.1 The3-2-1BackupRule
+The3-2-1ruleistheindustrystandardforbackupstrategy.Itensuresthatasinglefailure—whether
+hardware,software,ransomware,orhumanerror—cannotdestroyallcopiesofyourdata:
+Principle WhatItMeans ExampleImplementation
+3CopiesofData Keepatleastthreeseparate
+copiesofeverycustomer's data
+Localserverbackup+remoteFTPbackup+cloud
+storagebackup
+2DifferentStorage
+Media
+Storecopiesonatleasttwo
+physicallydifferentstoragetypes
+Serverdisk+remoteFTP server(differentdatacentre)
+1OffsiteCopy Atleastonecopymustbe
+geographicallyseparatefrom
+theproductionserver
+BackuptoAWSS3/Wasabi/BackBlazeB2/Hetzner
+StorageBox
+3.1.2 BackupConfiguration—AllThreePanels
+Feature/Area cPanel/WHM DirectAdmin Plesk
+AccessBackupConfig WHM→Backup→
+BackupConfiguration
+AdminPanel→Admin
+Backup/Transfer
+Tools&Settings→
+BackupManager
+BackupTypes Full(allaccounts),
+Incremental(changes
+sincelastfull)
+Fullaccountbackup(per
+userorallusers)
+Full,Incremental
+ScheduleOptions Daily,Weekly,Monthly
+(configurable
+independently)
+Daily,Weekly Daily,Weekly,Monthly
+RetentionSettings KeeplastNdaily,N
+weekly,Nmonthly
+backups
+KeeplastNbackups KeeplastNbackups
+LocalBackupPath /backup/(WHMBackup
+Configuration→Backup
+Directory)
+DAUserhome~/backups/ Pleskdefault:
+/var/lib/psa/dumps/
+RemoteFTPBackup WHM→Backup
+Configuration→Remote
+Destinations→FTP
+AdminPanel→Admin
+Backup→RemoteFTP
+options
+BackupManager→Add
+RemoteStorage→
+FTP/SFTP
+AWSS3Backup WHM→Backup
+Configuration→Remote
+Destinations→Amazon
+S3
+Third-partypluginorrclone
+viaSSH
+BackupManager→Add
+RemoteStorage→
+AmazonS3
+Per-AccountBackup
+(User)
+cPanel→Backup→
+DownloadFullAccount
+Backup
+UserPanel→Create
+Backup→download
+PleskSubscription→
+Backup→CreateBackup
+RestoreSingleAccount WHM→Backup→
+Restore→selectuser
+AdminPanel→Restorea
+Backup→selectbackup
+BackupManager→
+Restore→select
+subscriptionandbackup
+3.1.3 SettingUpRemoteS3Backup
+BackinguptoAmazonS3(oracompatibleservicelikeWasabiorBackBlazeB2)providestheoffsite
+copyrequiredbythe3-2-1ruleandprotectsagainstentiredatacentrefailures.
+# cPanel/WHM — Configure S3 Remote Destination in Backup Configuration:
+# WHM → Backup → Backup Configuration → Backup Destinations → Add Destination
+# Type: Amazon S3 (or Custom — S3 Compatible for Wasabi/B2)
+# Enter: Bucket Name, Access Key ID, Secret Access Key, Region
+# Test Destination — confirm successful connection
+# DirectAdmin — use rclone for S3 sync:
+# Install rclone:
+curl https://rclone.org/install.sh | bash
+# Configure rclone S3:
+rclone config
+# Follow prompts: name= s3backup, type= s3, provider= AWS, access_key_id= xxx,
+secret_access_key= xxx
+# Create backup sync cron job:
+0 3 * * * rclone sync /home/*/backups/ s3backup:my-bucket/daily/ --log-
+file= /var/log/rclone.log
+# Plesk — Add S3 via GUI:
+# Backup Manager → Add Remote Storage → Amazon S3
+# Enter bucket, access key, secret key → Test Connection → Save
+# Set backup schedule to also upload to S3
+3.1.4 DisasterRecovery—RTO andRPO
+Term Definition PracticalTarget forShared Hosting
+RPO(RecoveryPoint
+Objective)
+Maximumacceptabledataloss
+measuredintime—howoldcana
+restoredbackupbe?
+Dailybackups=max 24-hourRPO.Hourly=1-hour
+RPO.
+RTO(RecoveryTime
+Objective)
+Maximumacceptabledowntime—
+howquicklymustservicebe
+restored?
+<4hoursforsharedhosting;<1hourfor
+VPS/dedicated
+BackupTestFrequency Howoftenyouverifyabackupcan
+actuallyberestored
+Monthlytestrestoresofrandomaccountstoverify
+backupintegrity
+DRPlan Documentedstep-by-step
+proceduretorebuildfromscratch
+Writtenrunbookincluding:newserver provisioning,
+panelreinstall,datarestore,DNScutover, verification
+checklist
+⚠UntestedBackupsAreNotBackups
+Abackupyou haveneversuccessfully restoredfromistheoreticallyworthless.Backupcorruption,incomplete
+transfers,wrongcredentials,andexpiredaccesskeys arecommonfailuremodesthatareonlydiscovered
+duringtheworstpossiblemoment—arealdisaster.Testrestorearandomaccountfromyourbackup
+systemeverymonth.Documentthetestresult.Fixany failures immediately.
+3.1.5 ManualAccountBackupandRestoration
+# cPanel — Generate full account backup via CLI:
+/scripts/pkgacct username /backup/
+# Creates: /backup/cpmove-username.tar.gz
+# cPanel — Restore full account backup:
+/scripts/restorepkg /backup/cpmove-username.tar.gz
+# DirectAdmin — Generate backup via CLI:
+echo 'action= backup&type= full&select0= username' >
+/usr/local/directadmin/data/task.queue
+# OR via SSH script:
+/usr/local/directadmin/scripts/backup_to_user.sh username
+# Plesk — Backup subscription via CLI:
+plesk bin pleskbackup domains domain.com --output-file= /backup/domain-backup.xml
+# Plesk — Restore subscription via CLI:
+plesk bin pleskrestore --restore /backup/domain-backup.xml -level domains
+# MySQL — Backup specific database:
+mysqldump -u root -p databasename | gzip > /backup/databasename_$(date
++%Y%m%d).sql.gz
+# MySQL — Restore from compressed backup:
+gunzip < /backup/databasename_20260115.sql.gz | mysql -u root -p databasename
+ PRACTICAL EXERCISE:BackupandRestoreVerification
+57.InWHM:Configureadailybackupschedulewith7-day retention,destination:local /backup/
+directory. Enablethebackupandforceanimmediaterun.
+58.InWHM:Afterthebackupcompletes,navigatetoBackup→Restoreandlocateatestaccount's
+backup.Restorethedatabaseonlytoverifytherestoreprocessworks.
+59.InDirectAdmin:Create amanual backupofatestuser account.Downloadthe backuptoyourlocal
+machine.
+60.InPlesk:ConfigureS3-compatiblestorage(useWasabifreetrial ifavailable, oralocal S3-mock).
+Createasubscriptionbackupand verifyituploads totheremotedestination.
+61.Forall threepanels: Simulatea'disaster' byrenamingawebsite'sindex.phptosimulatefileloss.
+Restorefrombackupand verifythefileisrecovered.
+62.Documentyourrestoretimes—howlongdideachpanel's restoretakefora500MBaccount?
+✔ Backup systemsconfigured andverified;restoreprocedurestested anddocumented withtiming
+data.
+3.2 ServerMigration—Same-PanelandCross-Panel
+3.2.1 Pre-MigrationChecklist
+Afailedmigrationcancausehoursofdowntimeanddataloss.Completethischecklistbeforebeginning
+anymigration:
+Pre-MigrationStep WhyItMatters
+LowerDNS TTLto300seconds—dothis24–
+48hoursbeforemigration
+EnsuresDNSchangespropagatewithin5minutesonmigrationday
+Takeafullbackupofallaccountsonthe
+sourceserver
+Recoveryoptionifmigrationfailsorcorruptsdata
+Inventoryalldatabases—notenames,users,
+andpasswords
+Requiredforpost-migrationverification
+Inventoryallemailaccountsandforwarders Requiredtoverifypost-migrationemaildelivery
+NoteallSSLcertificates—especially
+commercial/OV/EVcerts
+AutoSSLcanre-issueDV certs;OV/EVcertsrequiremanualreinstall
+NoteallcustomPHPsettingsperaccount PHPversion,customphp.inisettings,disabledfunctions
+Noteallcronjobs—takescreenshots Cronjobsareoftenlostinmigrationsifnotexplicitlymigrated
+Testthedestinationserverisproperly
+configuredbeforemigrating
+Panelinstalled,AutoSSLworking,PHP-FPMconfigured,firewallset
+Notifyclientsofmaintenancewindow Professionalobligation—evenbriefdowntimeneedscommunication
+Planthego/no-godecisionpoint Decideinadvance:ifXhourspastdeadline,reverttosourceserver
+3.2.2 cPanel-to-cPanelMigration
+# Method 1 — WHM Transfer Tool (easiest):
+# WHM on DESTINATION server → Transfers → Transfer Tool
+# Enter source server IP, root SSH credentials
+# Select accounts to transfer → Begin Transfer
+# WHM automatically copies files, databases, email, DNS, and SSL
+# Method 2 — Copy single account (generates cpmove file):
+# On SOURCE server via SSH:
+/scripts/pkgacct username /backup/
+# Transfer cpmove file to destination:
+scp /backup/cpmove-username.tar.gz root@destination-ip:/backup/
+# On DESTINATION server via SSH:
+/scripts/restorepkg /backup/cpmove-username.tar.gz
+# Verify restored account:
+whmapi1 listaccts search= username searchtype= user
+3.2.3 DirectAdmin-to-DirectAdminMigration
+# Method 1 — Admin Backup/Transfer GUI:
+# Source DA: Admin Panel → Admin Backup/Transfer → Select all users → Create Backup
+# Download backup archive to local machine
+# Destination DA: Admin Panel → Admin Backup/Transfer → Restore → upload archive
+# Method 2 — User-level backup and restore:
+# For each user on source:
+# User Panel → Create Backup → Download to local PC
+# On destination — create the user account first,
+# then User Panel → Restore Backup → upload archive
+# Method 3 — rsync files and manual DB import (most control):
+# Sync user files from source to destination:
+rsync -avz --progress /home/username/ root@dest-ip:/home/username/
+# Export all databases on source:
+mysqldump -u root -p --all-databases > /backup/all_databases.sql
+# Transfer and import on destination:
+scp /backup/all_databases.sql root@dest-ip:/backup/
+mysql -u root -p < /backup/all_databases.sql
+3.2.4 Plesk-to-PleskMigration
+# Method 1 — Plesk Migration & Transfer Manager (recommended):
+# Install on DESTINATION Plesk: Extensions → Plesk Migration & Transfer Manager
+# Open extension → Connect to Source Server
+# Enter source IP, admin credentials
+# Select subscriptions to migrate → Start Migration
+# Extension handles files, DBs, email, DNS, SSL
+# Method 2 — Plesk backup and restore:
+# On SOURCE — backup subscription:
+plesk bin pleskbackup domains domain.com --output-file= /tmp/domain-backup.xml
+# Transfer backup files to destination
+scp /tmp/domain-backup.xml root@dest-ip:/tmp/
+# On DESTINATION — restore:
+plesk bin pleskrestore --restore /tmp/domain-backup.xml -level domains
+3.2.5 Cross-PanelMigration—cPaneltoPlesk
+Themostcommonprofessionalcross-panelmigration.Plesk'sMigrationManagernativelysupports
+importingfromcPanelservers.
+Step Action Notes
+1 InstallPleskMigration&
+TransferManagerondestination
+Plesk
+AvailableinPleskExtensions
+2 Openextension→AddSource
+→cPanel
+EntersourceserverIPandWHMroot orAPItokencredentials
+3 Selectaccountstomigrate PleskfetchesaccountlistfromWHMAPI
+4 StartMigration Pleskimports: files,databases,emailaccounts,DNSzones, SSLcerts
+5 Verifyeachaccount Logintoeachmigratedaccount,checkfiles,databaseconnectivity,email,
+SSL
+6 UpdateDNSTTL(already
+loweredinpre-migration)
+Readyforcutover
+7 DNSCutover UpdateArecordstopointtonewPleskserverIP
+8 Monitorfor24–48hours Watcherrorlogsonnewserver; keepsourceserverrunning
+9 Decommissionsourceserver OnlyafterDNShasfullypropagatedandclientsconfirmnoissues
+3.2.6 Cross-PanelMigration—ManualMethod(AnyCombination)
+Whennoautomatedtoolsupportsyourmigrationpath,followthissystematicmanualprocedure:
+63.Create thehosting accounton thedestination panelwith matchingusernameanddomain
+64.Transferallwebsite filesvia rsync orSCP: rsync -avz /home/user/public_html/
+root@dest:/home/user/public_html/
+65.Exportalldatabases on source:mysqldump-uroot-pdbname>dbname.sqlforeachdatabase
+66.Create matchingdatabasesand users on thedestination panel
+67.Importeachdatabase:mysql-u root-pdestdbname<dbname.sql
+68.Updatedatabasecredentials inallapplication configfiles (wp-config.php,configuration.php,etc.)
+69.Recreateallemail accountsonthe destinationpanelwith the sameusernamesandpasswords
+70.Recreateallforwarders,auto-responders,andemailfilters
+71.VerifySSLcertificates —re-issueviaAutoSSL/Let's Encrypton destination
+72.Recreateallcronjobs on the destinationpanel
+73.Testthe site usingahostsfile edit(add:dest-server-ipyourdomain.com to/etc/hosts)before
+changingDNS
+74.UpdateDNSArecords todestination serverIP
+75.Monitorfor24–48 hoursthen decommissionsource
+3.3 APIAutomation—FullReference
+3.3.1 cPanelWHMAPI—ComprehensiveGuide
+cPanelprovidestwomainAPIs:UAPI(foruser-levelactionsincPanel)andtheWHMAPI(forserver-
+leveladminactions).TheWHMAPIusesHTTPcallswithJSONresponses,authenticatedviaAPI
+tokens.
+# Generate WHM API Token:
+# WHM → Development → Manage API Tokens → Generate Token
+# Give it a descriptive name (e.g., 'WHMCS-Integration') and save the token securely
+# API call format:
+curl -H 'Authorization: whm root:YOUR_API_TOKEN_HERE' \
+'https://server:2087/json-api/FUNCTION_NAME?param1= value1&param2= value2'
+# List all accounts:
+curl -H 'Authorization: whm root:TOKEN' \
+'https://server:2087/json-api/listaccts?searchtype= username&search= '
+# Create a new account:
+curl -H 'Authorization: whm root:TOKEN' \
+'https://server:2087/json-
+api/createacct?username= newuser&domain= newdomain.com&password= P@ss123!&plan= starter&cont
+actemail= client@email.com'
+# Suspend an account:
+curl -H 'Authorization: whm root:TOKEN' \
+'https://server:2087/json-api/suspendacct?user= username&reason= Non-payment'
+# Unsuspend an account:
+curl -H 'Authorization: whm root:TOKEN' \
+'https://server:2087/json-api/unsuspendacct?user= username'
+# Terminate an account (IRREVERSIBLE):
+curl -H 'Authorization: whm root:TOKEN' \
+'https://server:2087/json-api/removeacct?user= username'
+# Change account password:
+curl -H 'Authorization: whm root:TOKEN' \
+'https://server:2087/json-api/passwd?user= username&password= NewP@ss!'
+# Change account package:
+curl -H 'Authorization: whm root:TOKEN' \
+'https://server:2087/json-api/changepackage?user= username&pkg= business'
+# Get account bandwidth usage:
+curl -H 'Authorization: whm root:TOKEN' \
+'https://server:2087/json-api/showbw?search= username'
+3.3.2 DirectAdminJSONAPI—Comprehensive Guide
+# DirectAdmin API Authentication:
+# Option 1: Basic Auth (username:password)
+# Option 2: Login key (generate in Admin Panel → Your Settings → Login Keys)
+# List all users:
+curl -u 'admin:password' 'https://server:2222/CMD_API_SHOW_USERS'
+# Create a user account:
+curl -u 'admin:password' -X POST \
+'https://server:2222/CMD_API_ACCOUNT_USER' \
+-d 'action= create&username= newuser&passwd= P@ss123!&passwd2= P@ss123!
+&domain= newdomain.com&email= client@email.com&package= starter
+&ip= server.ip.here&notify= no'
+# Suspend a user:
+curl -u 'admin:password' -X POST \
+'https://server:2222/CMD_API_SELECT_USERS' \
+-d 'action= suspend&select0= username'
+# Unsuspend a user:
+curl -u 'admin:password' -X POST \
+'https://server:2222/CMD_API_SELECT_USERS' \
+-d 'action= unsuspend&select0= username'
+# Delete a user (IRREVERSIBLE):
+curl -u 'admin:password' -X POST \
+'https://server:2222/CMD_API_SELECT_USERS' \
+-d 'action= delete&select0= username'
+# Change user package:
+curl -u 'admin:password' -X POST \
+'https://server:2222/CMD_API_CHANGE_USERS_PACKAGE' \
+-d 'select0= username&package= business'
+# Get server statistics:
+curl -u 'admin:password' 'https://server:2222/CMD_API_ADMIN_STATS'
+# Create a user package:
+curl -u 'admin:password' -X POST \
+'https://server:2222/CMD_API_MANAGE_USER_PACKAGES' \
+-d 'action= create&packagename= starter&bandwidth= 50000&quota= 5000&domainptr= 5&ftp= 5
+&mysql= 5&email= 10&emaill= 500&sysUsers= 0&php= ON&ssl= ON&cgi= ON'
+3.3.3 PleskCLIandRESTAPI—Comprehensive Guide
+# Plesk CLI — run as root via SSH
+# List all subscriptions:
+plesk bin subscription --list
+# Create a subscription:
+plesk bin subscription --create \
+-domain domain.com \
+-owner admin \
+-service-plan 'Starter Plan' \
+-login webuser \
+-passwd 'P@ssw0rd!'
+# Suspend a subscription:
+plesk bin subscription --suspend -subscription-name domain.com
+# Unsuspend a subscription:
+plesk bin subscription --unsuspend -subscription-name domain.com
+# Remove a subscription:
+plesk bin subscription --remove -subscription-name domain.com
+# Create a database and user for a subscription:
+plesk bin database --create mydb -subscription-name domain.com
+plesk bin database-user --create dbuser -database mydb -passwd 'DbP@ss!' \
+-subscription-name domain.com
+# Create an email account:
+plesk bin mail --create user@domain.com -passwd 'EmailP@ss!'
+# Renew Let's Encrypt SSL:
+plesk bin extension --exec letsencrypt cli.php -d domain.com -m admin@domain.com
+# Renew SSL for all domains (batch):
+plesk bin extension --exec letsencrypt cli.php --all
+# Enable/disable WordPress Toolkit for a domain:
+plesk bin wordpress-toolkit --enable -domain-name domain.com
+# List all WordPress installations:
+plesk bin wordpress-toolkit --list
+# Update all WordPress installations:
+plesk bin wordpress-toolkit --update-all
+3.3.4 BuildinganAutomationScript—AccountProvisioning
+ThisexamplebashscriptcreatesaccountsonallthreepanelsfromaCSVfile—demonstratingreal-
+worldmulti-panelautomation:
+#!/bin/bash
+# multi_panel_provision.sh — Provision accounts from accounts.csv
+# CSV format: panel,username,domain,email,package,password
+WHM_TOKEN= 'your-whm-api-token'
+DA_ADMIN= 'admin'
+DA_PASS= 'your-da-admin-password'
+PLESK_ADMIN= 'admin'
+PLESK_PASS= 'your-plesk-admin-password'
+while IFS= ',' read -r panel username domain email package password; do
+echo "Provisioning: $username on $panel ($domain)"
+if [ '$panel' = 'cpanel' ]; then
+curl -s -H "Authorization: whm root:$WHM_TOKEN" \
+"https://cpanel-server:2087/json-api/createacct?username= $username
+&domain= $domain&password= $password&plan= $package&contactemail= $email"
+elif [ '$panel' = 'directadmin' ]; then
+curl -s -u "$DA_ADMIN:$DA_PASS" -X POST \
+'https://da-server:2222/CMD_API_ACCOUNT_USER' \
+-d "action= create&username= $username&domain= $domain&passwd= $password
+&email= $email&package= $package"
+elif [ '$panel' = 'plesk' ]; then
+curl -s -u "$PLESK_ADMIN:$PLESK_PASS" -X POST \
+'https://plesk-server:8443/api/v2/subscriptions' \
+-H 'Content-Type: application/json' \
+-d "{\"service_plan_name\":\"$package\",
+\"domains\":[{\"name\":\"$domain\"}]}"
+fi
+done < accounts.csv
+echo 'All accounts provisioned.'
+3.4 EmailDeliverability—SPF,DKIM,DMARC,and
+PTR
+Emaildeliverabilityisthescienceofensuringoutboundemailreliablyreachesrecipients'inboxesrather
+thanspamfolders.Itinvolvesconfiguringmultipleauthenticationstandardsthatprovetoreceivingmail
+serversthatyourserverisauthorisedtosendemailforyourdomain.Thisisoneofthemostimportant
+technicalskillsforanyhostingadministrator.
+3.4.1 SPF—SenderPolicyFramework
+SPFisaDNSTXTrecordthattellstheworldwhichmailserversareauthorisedtosendemailforyour
+domain.IfareceivingservergetsemailclaimingtobefromyourdomainbutthesendingIPisnotin
+yourSPFrecord,itcanrejectorflagtheemailasspam.
+SPFMechanism Meaning Example
+ip4: ExplicitlyauthorisesaspecificIPv4
+addressorrange
+ip4:102.215.8.45orip4:192.168.0.0/24
+include: AuthorisesallIPslistedinanother
+domain'sSPFrecord
+include:_spf.google.com(forGoogleWorkspace)
+a AuthorisestheIPinthedomain'sA
+record
+a(allowsthedomain'sownIP)
+mx AuthorisesallIPsinthedomain's
+MX records
+mx(allowsallmail servers)
+~all Softfail—acceptbutflagemails
+fromunauthorisedsources
+~all(recommendedwhiletesting)
+-all Hardfail—rejectemailsfrom
+unauthorisedsources
+-all(useinproductionaftertesting)
+?all Neutral—norecommendation ?all(effectivelydisablesSPFchecking—neveruse)
+# Example SPF record for a domain on your hosting server:
+# DNS TXT record for yourdomain.com:
+v= spf1 ip4:102.215.8.45 include:_spf.mandrillapp.com ~all
+# Explanation:
+# v= spf1 — SPF version 1
+# ip4:... — allow your server's IP to send
+# include:... — also allow Mandrill (transactional email service) to send
+# ~all — soft fail all other sources (flag but don't reject)
+# Verify SPF record:
+dig yourdomain.com TXT | grep spf
+# Test SPF evaluation for a specific IP:
+# Use: mxtoolbox.com/spf.aspx
+3.4.2 DKIM—DomainKeys IdentifiedMail
+DKIMaddsacryptographicsignaturetoeveryoutboundemail.Thereceivingserverretrievesthepublic
+keyfromyourDNSandusesittoverifythesignature—confirmingtheemailwassentbyanauthorised
+serverandthecontentwasnotmodifiedintransit.
+Featur cPanel/WHM DirectAdmin Plesk
+e/
+Area
+Enable
+DKIM
+cPanel→Email→Email
+Deliverability→EnableDKIM
+AdminPanel→E-Mail
+Management→DKIM→Enable
+DKIM
+Plesk→Mail→MailSettings→
+toggleEnableDKIM
+View
+Public
+Key
+EmailDeliverability→Viewthe
+DKIMrecord(copytoDNS if
+usingexternalDNS)
+E-MailManagement→DKIM
+Keys→viewpublickey
+MailSettings→DKIMkey→view
+record
+DNS
+Record
+Added
+AutomaticallytocPanel-managed
+zoneasdefault._domainkeyTXT
+record
+AutomaticallyaddedtoDADNS
+zone
+AutomaticallyaddedtoPleskDNS
+zone
+IfUsing
+Externa
+lDNS
+CopyDKIMTXTrecordfrom
+panelandadditmanuallyto
+externalDNSprovider
+CopyandaddtoexternalDNS
+provider
+CopyandaddtoexternalDNS
+provider
+Verify
+DKIM
+dig
+default._domainkey.yourdomain.c
+omTXT
+dig
+default._domainkey.yourdomain.c
+omTXT
+dig
+default._domainkey.yourdomain.c
+omTXT
+# Verify DKIM record exists in DNS:
+dig default._domainkey.yourdomain.com TXT
+# Expected response includes something like:
+# v= DKIM1; k= rsa; p= MIGfMA0GCSqGSIb3DQEBA...
+# Test actual email signing:
+# Send an email to check-auth@verifier.port25.com
+# You will receive a full deliverability report including SPF and DKIM results
+# Check DKIM via mxtoolbox:
+# mxtoolbox.com/dkim.aspx → enter selector 'default' and domain
+3.4.3 DMARC—Domain-basedMessageAuthentication
+DMARCbuilds onSPFandDKIMtotellreceivingserverswhat todowhenanemailfailsauthentication.
+Italsoprovidesareportingmechanismsoyoureceivedailyreportsonemailauthenticationresults—a
+powerfultoolfordetectingphishingandspoofingattacksagainstyourdomain.
+DMARCTag Purpose Values
+v=DMARC1 Version—required AlwaysDMARC1
+p= Policy—what todowithfailed
+emails
+none(monitoronly),quarantine(spamfolder), reject(block)
+rua= Aggregatereport destination—
+dailysummaryreports
+mailto:dmarc@yourdomain.com
+ruf= Forensicreportdestination—
+detailedfailurereports
+mailto:dmarc-failures@yourdomain.com
+pct= Percentageofmailtoapplypolicy
+to
+100(allmail—recommended)
+adkim= DKIMalignment—strictorrelaxed r(relaxed—recommended)ors(strict)
+aspf= SPFalignment—strictorrelaxed r(relaxed—recommended)ors(strict)
+sp= Subdomainpolicy Samevaluesasp=—controlssubdomainsseparately
+# Recommended DMARC record progression:
+# Phase 1 — Monitoring only (no enforcement, gather reports):
+# DNS TXT record for _dmarc.yourdomain.com:
+v= DMARC1; p= none; rua= mailto:dmarc@yourdomain.com; pct= 100
+# Phase 2 — After 2 weeks of monitoring — quarantine:
+v= DMARC1; p= quarantine; rua= mailto:dmarc@yourdomain.com; pct= 100; adkim= r; aspf= r
+# Phase 3 — Full enforcement — reject:
+v= DMARC1; p= reject; rua= mailto:dmarc@yourdomain.com; pct= 100; adkim= r; aspf= r
+# Configure all three across panels:
+# cPanel: Email → Email Deliverability → Enable DMARC (auto-creates record)
+# DirectAdmin: DNS Administration → Add TXT record for _dmarc.domain.com
+# Plesk: Mail → Mail Settings → DMARC → Enable (or add via DNS Settings)
+# Verify:
+dig _dmarc.yourdomain.com TXT
+3.4.4 PTR Record(ReverseDNS)
+APTRrecordmapsaserver'sIPaddressbacktoahostname.ReceivingmailserverscheckPTR
+recordsasabasicspamfilter—ifthesendingIPhasnoPTRrecordorifthePTRdoesnotmatchthe
+HELOhostnameusedbytheMTA,manyserverswillrejecttheemailorheavilypenaliseitsspamscore.
+Step Action Notes
+1 Settheserver'sHELO
+hostname
+Thisisthehostnamethemailserverannouncesitselfas.MustmatchthePTR
+record.
+2 RequestPTRrecordfrom
+yourserver'sIPprovider
+HostingcompaniesordatacentrescontrolPTRrecords—openasupport
+ticketorsetitinthecontrolpanelofyourIPprovider
+3 PTRrecordformat ThePTRfor102.215.8.45shouldbe:45.8.215.102.in-addr.arpa→
+mail.yourdomain.com
+4 VerifyPTR dig-x102.215.8.45→shouldreturnmail.yourdomain.com
+5 Verifyforwardconfirmation digmail.yourdomain.comA→mustreturn102.215.8.45(thesameIP)
+3.4.5 MailServerAdministration—EximandPostfix
+EximMailQueueManagement(cPanelandDirectAdmin)
+# View mail queue (count):
+exim -bp | wc -l
+# View mail queue (details — first 20):
+exim -bp | head -60
+# View full details of a specific message:
+exim -Mvh MESSAGE_ID
+# Delete a specific message from the queue:
+exim -Mrm MESSAGE_ID
+# Delete ALL messages from one sender:
+exiqgrep -f 'sender@example.com' -i | xargs exim -Mrm
+# Delete ALL messages to one recipient:
+exiqgrep -r 'recipient@example.com' -i | xargs exim -Mrm
+# Flush queue (force immediate delivery attempt):
+exim -qff
+# Force delivery of specific message:
+exim -M MESSAGE_ID
+# Trace email delivery for a domain:
+exigrep 'yourdomain.com' /var/log/exim_mainlog | tail -50
+# Find accounts sending most email:
+exim -bp | awk '{print $4}' | sort | uniq -c | sort -rn | head -20
+PostfixMailQueueManagement(Plesk)
+# View mail queue:
+postqueue -p
+# Count queued messages:
+postqueue -p | tail -1
+# Flush queue (attempt immediate delivery):
+postqueue -f
+# Delete ALL queued messages (use with extreme caution):
+postsuper -d ALL
+# Delete deferred messages only:
+postsuper -d ALL deferred
+# View a specific message:
+postcat -q MESSAGE_ID
+# Search Postfix mail log:
+grep 'yourdomain.com' /var/log/maillog | tail -50
+# Find accounts generating most outbound mail:
+grep 'postfix/smtp' /var/log/maillog | grep 'from= <' | awk -F'from= <' '{print $2}' \
+| awk -F'>' '{print $1}' | sort | uniq -c | sort -rn | head -20
+3.4.6 DiagnosingandResolvingIPBlacklisting
+Ifyourserver'sIPappearsonanemailblacklist(RBL—RealtimeBlockList),emailfromallaccounts
+onthatservermayberejectedbymajorproviders.Thisisacriticalemergencyrequiringimmediate
+action.
+Step Action
+1—Detect CheckserverIPatmxtoolbox.com/blacklists.aspxandhetrixtools.com.Setupautomated
+monitoringwithHetrixorMXToolboxmonitoringalerts.
+2—Identifysource CheckExim/Postfixqueueforunusualvolume.Run:exim-bp|wc-l(cPanel/DA)orpostqueue-p
+|wc-l(Plesk). Highcount=spambeingsent.
+3—Identify
+account
+Findwhichaccountisgeneratingspam: oncPanel,WHM→Email→MailQueueManager
+shows'from'addresses.Useexiqgreporpostcattoidentifymessages.
+4—Suspend
+offendingaccount
+ImmediatelysuspendtheaccountviaWHM/DA Admin/Plesktostopspamflow—everyminuteof
+delayworsenstheblacklisting.
+5—Cleanthe
+account
+Scanformalware(clamscan-ri), findrecentlymodifiedPHPfiles(find-mtime-2),remove
+maliciouscode,changeallpasswords.
+6—Flushqueue Afterstoppingspam:exim-qff(cPanel/DA)orpostqueue-f(Plesk)—clearbacked-uplegitimate
+mail.
+7—Request
+delisting
+Gototheblacklistprovider'swebsite(spamhaus.org, barracudacentral.org)andsubmitadelisting
+requestwithevidenceofremediation.
+8—Monitor Watchlogsfor48hourspost-delisting.SetupHetrixToolsservermonitoringwithRBLalerting.
+3.5 AdvancedCachingArchitecture
+3.5.1 Redis—In-MemoryObjectCaching
+Redisisanin-memorydatastructurestoreusedasadatabasecacheforWordPress,WooCommerce,
+andotherPHPapplications.CachingdatabasequeryresultsinRediseliminatesrepetitivedatabase
+reads—dramaticallyreducingpageloadtimesandMySQLloadonbusysites.
+# Install Redis on AlmaLinux/CentOS (cPanel/DA servers):
+yum install redis -y
+systemctl enable redis
+systemctl start redis
+redis-cli ping # Should respond: PONG
+# Install Redis on Ubuntu/Debian (DA servers):
+apt install redis-server -y
+systemctl enable redis-server
+systemctl start redis-server
+# Install Redis PHP extension via EasyApache 4 (cPanel):
+# WHM → Software → EasyApache 4 → PHP Extensions → redis → install
+# Install Redis PHP extension (DirectAdmin):
+# Admin Panel → PHP Configuration → PHP Extensions → redis → enable
+# Install Redis via Plesk extension:
+# Plesk → Extensions → search 'Redis' → install Redis Cache Manager extension
+# Test Redis connection:
+redis-cli
+SET testkey 'Hello Redis'
+GET testkey # Should return: Hello Redis
+DEL testkey
+EXIT
+# Monitor Redis in real-time:
+redis-cli monitor
+# View Redis statistics:
+redis-cli info stats
+3.5.2 NginxFastCGICache—Full-PageCaching
+OnPleskserverswithNginxasthefront-endproxy,FastCGIcachestorescompleterenderedHTML
+pagesinmemory.SubsequentvisitorsreceivethecachedpagewithouttouchingPHPorMySQL—
+servingpagesinmilliseconds.
+# Enable Nginx FastCGI Cache in Plesk:
+# Plesk → Websites & Domains → domain.com → Apache & nginx Settings
+# Enable: 'Proxy mode (nginx serves static files, forwarding dynamic requests to
+Apache)'
+# Enable: 'nginx FastCGI cache'
+# Set cache timeout (e.g., 1 hour)
+# For WordPress — add cache bypass rules to nginx config:
+# Plesk → Websites & Domains → domain.com → Apache & nginx Settings
+# Additional nginx directives:
+fastcgi_cache_bypass $cookie_wordpress_logged_in $cookie_woocommerce_items_in_cart;
+fastcgi_no_cache $cookie_wordpress_logged_in $cookie_woocommerce_items_in_cart;
+# Clear Nginx cache for a site:
+# Plesk → domain.com → Clear Cache
+# CLI clear Nginx cache:
+plesk bin nginx -cc # Clear all Nginx cache
+ PRACTICAL EXERCISE:PerformanceTuning—BeforeandAfter
+76.InstallthefreeGTmetrixorusePageSpeedInsights tobaseline-testyour trainingWordPresssite.
+Record:loadtime,pagesize,and PageSpeedscore.
+77.EnablePHP-FPMifnot alreadyactive(viayour panel'sPHPsettings).EnableOPcachevia
+EasyApache4(cPanel),PHPConfiguration(DA),orPHP Settings(Plesk).Re-testandrecord
+improvement.
+78.InstalltheWPSuperCache plugininWordPress,enableit,andconfigureittoservestatic HTMLto
+anonymousvisitors.Re-test.
+79.InstallandconfigureRedisObjectCacheplugin inWordPress.Connectittoyourlocal Redis
+instance.Verifyitshows 'Connected' inthepluginsettings.Re-test.
+80.Enablegzipcompression:cPanelviaOptimizeWebsite→CompressContent;DAvia.htaccess;
+PleskviaApache&nginxSettings→gzipcompression.
+81.RunafinalGTmetrixtest.Compare allfourresults(baseline,PHP-FPM+OPcache,pagecache,full
+stack).Documentthepercentageimprovementateachstep.
+✔ Fullperformancestackdeployed; documentedpercentageimprovement ateach stage;
+understanding ofwhich optimisationprovidesthegreatestgain.
+3.6 AdvancedTroubleshooting—Systematic
+DiagnosticWorkflows
+3.6.1 WebsiteReturns500InternalServerError
+A500errormeanssomethingwentwrongontheserverside—notaproblemthevisitorcaused.The
+causeisalmostalwaysintheerrorlog.Workthroughthissystematicprocess:
+Step Action WhattoLookFor
+1—Checkerror
+log
+cPanel:ErrorLogsincPanel|DA:
+SiteManagement→ErrorLog|
+Plesk:Websites&Domains→
+Logs
+PHPFatalerrors,permissiondenied,syntaxerrors,outof
+memory
+2—
+Check.htaccess
+Temporarilyrename.htaccess
+to.htaccess.bakandreloadthe
+page
+If500goesaway, the.htaccesshasasyntaxerror
+3—CheckPHP
+version
+Ensurethesite'sPHPversionis
+compatiblewiththeinstalled
+plugins/themes
+WordPress6.xrequiresPHP7.4+(ideally8.0+)
+4—Checkfile
+permissions
+Run:find/home/user/public_html-
+perm/o+w-typef
+World-writablefilescantrigger500errorswithsomeserver
+configs
+5—Checkdisk
+space
+df-handdu-sh/home/username
+—ifdiskis100%full,PHPcannot
+writetempfiles
+Diskfullcauses500errorsonallwriteoperations
+6—Check
+memorylimit
+Reviewerrorlogfor'Allowed
+memorysizeexhausted'
+Increasememory_limitinPHPsettingsfortheaccount
+7—Disable
+plugins(WP)
+Add'define(WP_DEBUG,true)'to
+wp-config.php,renameplugins
+foldertoseeifissueresolves
+Identifyincompatibleplugincausingfatalerror
+3.6.2 EmailNotDelivering—FullDiagnostic
+Scenario DiagnosticPath
+Outboundemailnotarrivingat
+Gmail/Yahoo
+CheckSPFrecord(mxtoolbox.com/spf.aspx),DKIM(mxtoolbox.com/dkim.aspx),
+serverIPblackliststatus(mxtoolbox.com/blacklists.aspx),andExim/Postfixlogfor
+deliverystatus
+Inboundemailnotarriving CheckMXrecords(digyourdomain.comMX),verifymail serverisrunning
+(systemctlstatusexim/postfix),checkExim/Postfixlogforrejectionreason,check
+diskquota(fullmailbox=bounce)
+Emaildeliveredtospam ConfigureDMARC,ensureSPFandDKIMbothpass(sendtesttomail-
+tester.com), checkifIPisblacklisted,ensurePTRrecordisset
+Clientcannotconnectemailclient VerifyIMAP (port 993)andSMTP(port 587)portsareopeninfirewall,verify
+Dovecotisrunning,checkclientisusingcorrectcredentialsandSSLsettings
+Bouncemessagereceived Readthebouncemessagecarefully—itcontainstheerrorcodeandreason.550=
+rejected,421=temporary failure,554=policyrejection(blacklisted)
+Emailfromspecificdomainnot
+arriving
+Checkifsenderdomain'sIPisblockedinCSF/Fail2Ban.CheckEximrejectlog:
+grep'REJECT'/var/log/exim_mainlog
+3.6.3 WebsiteIsSlow—PerformanceDiagnostic
+# Step 1 — Identify slow requests:
+# Enable Apache mod_status:
+# WHM → Apache Configuration → Global Configuration → Server Status: Enable
+# Then: curl http://server/server-status
+# Step 2 — Identify slow MySQL queries:
+# Enable slow query log:
+# In /etc/my.cnf add:
+[mysqld]
+slow_query_log = 1
+slow_query_log_file = /var/log/mysql-slow.log
+long_query_time = 2
+# Then check the slow log:
+tail -100 /var/log/mysql-slow.log
+# Step 3 — Check CloudLinux LVE for throttled accounts:
+lvetop # Real-time LVE usage — identifies throttled accounts
+# Step 4 — Check for Apache processes at MaxClients:
+apachectl status | grep 'requests currently being processed'
+# Step 5 — Check OPcache hit rate:
+# Create a file: /home/user/public_html/opcache_status.php
+# <?php var_dump(opcache_get_status()); ?>
+# View in browser — hit_rate should be > 90%
+ Q3.1—Youareinvestigatingaserverwithhighload.Yourun'exim-bp|wc-l'andsee
+12,847messagesinthequeue.Yourun'exiqgrep-fcompromised@client.com-c'andfind
+12,000messagesfromthataddress.Whatisthecorrectsequenceofactions?
+A)Flushthequeueimmediately toclear thebacklog
+B)Suspendthecompromisedaccount,deletethespammessagesfromthequeue,scanformalware,
+changeall passwords,reporttoclient,thenflushthequeueforlegitimatemail
+C)Reinstall Exim
+D)Changetheserver IPaddress
+✔ Answer:B)Suspend,deletespam, scan,secure,thenflush forlegitimate mail
+Explanation:Flushingthequeuefirstwouldcauseall 12,000spammessages tobedelivered —worsening
+blacklistingand harmingrecipients.Thecorrectsequence:(1)Suspendtheaccountimmediately tostopnew
+spamgeneration.(2)Deleteonlythespammessagesfromthequeue:exiqgrep-fcompromised@client.com
+-i|xargsexim-Mrm.(3)Scantheaccount'sfiles forPHP malware.(4)Changeall passwords(cPanel,FTP,
+email,database).(5)Notifytheclientprofessionally. (6)Checkandrequestblacklistremovalifneeded.(7)
+Flushthequeueforlegitimatependingmail.
+ Q3.2—AclientmigratedfromcPaneltoDirectAdminandtheirWordPresssiteshows
+'Errorestablishingadatabaseconnection'.Filesarecopiedcorrectlyandthedatabasewas
+imported.Whatisthemostlikelycause?
+A)WordPress isnotcompatiblewithDirectAdmin
+B)Thewp-config.phpstillcontains theoldcPaneldatabase usernameprefix(olduser_dbname)whichdoes
+notmatchtheDirectAdmindatabasenameformat
+C)Apacheneedsrestarting
+D)Thethemewas notmigrated
+✔ Answer:B)wp-config.phpcredentialsdon'tmatchtheDirectAdmin database setup
+Explanation:cPanel prefixesdatabasenamesandusernameswith theaccountusername(e.g.,
+johnsmith_wpdb,johnsmith_wpuser).WhenmigratingtoDirectAdmin,theimported databasemayhavea
+differentname(DAalsoprefixesbuttheprefixis theDA usernamewhichmaydiffer).You must:(1)Check
+theactualdatabasenameinDAMySQLManagement.(2)Update DB_NAME,DB_USER,and
+DB_PASSWORDinwp-config.phptomatchexactly. (3)Verifytheuserisactually assignedtothedatabase
+inDAMySQLManagement.
+SECTION4—BUSINESSANDPROFESSIONAL
+SKILLS
+RunningaHostingCompany:Billing,Support,Pricing,Marketing,LegalCompliance&Client
+Management
+ LearningOutcomes
+Bytheendofthissection,you will beableto:
+• ConfigureWHMCSforautomatedbillingandaccountprovisioningwithall threepanels
+• DesigncompetitivehostingproducttiersappropriatefortheEastAfricanmarket
+• Buildandoperateaprofessionalcustomersupportsystemwith ticketingand SLAs
+• Developago-to-marketstrategyforawebhostingbusiness
+• Understandandapplydata protectionandlegalobligations relevanttohostingproviders
+• Identifyandcommunicatewith clientsduringsecurityincidentsandservice disruptions
+• Calculatehostingpricingwithappropriatemargins andupsell strategies
+4.1 WHMCS—BillingandAutomationPlatform
+WHMCS(WebHostManagerCompleteSolution)isthemostwidelyusedbilling,provisioning,and
+customermanagementplatforminthewebhostingindustry.Itautomatestheentirecustomerlifecycle:
+fromorderplacementandpaymentthroughaccountprovisioning,invoicing,suspension,and
+termination—withoutmanualadministratorintervention.
+4.1.1 WHMCSArchitecture
+Component Purpose
+ClientPortal Customer-facinginterface—login,manageservices,viewinvoices,opensupport
+tickets,upgradepackages
+AdminPanel Staffandadministratorinterface—manageclients,products,support,billing,and
+serverconnections
+Product&Services DefinehostingpackagesthatmaptoserverpackagesoncPanel/DA/Plesk
+Servers Connectionsettingsforeachhostingserver—credentialsforWHM/DA/PleskAPI
+Modules Serverprovisioningmodulesforeachpanel—cPanel,DirectAdmin,Pleskbuiltin
+PaymentGateways M-Pesa,PayPal,Stripe,banktransfer—acceptpayments automatically
+Automation Cron-drivenautomation:sendinvoices,suspendoverdueaccounts,terminatecancelled
+services
+SupportSystem Ticketingwithdepartmentrouting, SLAtracking,emailpiping
+DomainRegistrar Integrationwithdomainregistrars(e.g.,Namecheap,ResellerClub/Logicboxes,KENIC
+for.kedomains)
+4.1.2 ConnectingWHMCStoEachPanel
+ConnectingtocPanel/WHM
+# Step 1 — Generate WHM API Token:
+# WHM → Development → Manage API Tokens → Generate Token
+# Name: 'WHMCS-Provisioning' | Scope: All WHM Features
+# Save the token securely
+# Step 2 — Add Server in WHMCS:
+# WHMCS Admin → Setup → Products/Services → Servers → Add New Server
+# Name: 'Production cPanel Server 1'
+# Hostname/IP: your.server.ip.or.hostname
+# Username: root
+# Password/API Token: (paste API token)
+# Type: cPanel
+# Secure: checked (uses HTTPS port 2087)
+# Port: 2087
+# Test Connection → should return 'Connection Successful'
+ConnectingtoDirectAdmin
+# WHMCS Admin → Setup → Products/Services → Servers → Add New Server
+# Name: 'Production DA Server 1'
+# Hostname/IP: your.da.server.ip
+# Username: admin (DirectAdmin admin user)
+# Password: DirectAdmin admin password
+# Type: DirectAdmin
+# Secure: checked
+# Port: 2222
+# Test Connection → 'Connection Successful'
+ConnectingtoPlesk
+# WHMCS Admin → Setup → Products/Services → Servers → Add New Server
+# Name: 'Production Plesk Server 1'
+# Hostname/IP: your.plesk.server.ip
+# Username: admin (Plesk admin user)
+# Password: Plesk admin password
+# Type: Plesk
+# Secure: checked
+# Port: 8443
+# Test Connection → 'Connection Successful'
+4.1.3 CreatingProductsinWHMCS
+EachWHMCSproductmapstoahostingpackageonyourserver.Whenacustomerordersaproduct
+andpays,WHMCSautomaticallycreatestheaccountontheserverusingthemappedpackage.
+WHMCSProductField WhattoEnter Notes
+ProductName e.g.,'BusinessHostingPlan' Customer-visiblenameintheportal
+ProductGroup e.g.,'SharedHosting' Groupsrelatedproductstogetherintheorder
+form
+Module cPanel/DirectAdmin/Plesk DetermineswhichserverAPIWHMCS uses
+ServerGroup Selecttheservergroupcontaining
+yourservers
+WHMCSload-balancesacrossservers inthe
+group
+PackageName Mustexactlymatchthepackage
+nameinthepanel
+cPanel:'Business',DA:'business',Plesk:
+'BusinessPlan'
+Pricing Monthly/Annualprice—setin
+productPricingtab
+Includealltiers:monthly,quarterly,semi-
+annual,annual
+WelcomeEmail Selectorcreateawelcomeemail
+template
+Sentautomaticallyafterprovisioningcompletes
+AutoTerminate AfterXdayspost-cancellation AutomaticallycallspanelAPItoterminatethe
+account
+4.1.4 WHMCSAutomation—TheCronJob
+WHMCSautomationispoweredbyacronjobthatrunsevery5minutes.Thiscronhandles:sending
+overduereminders,suspendinglateaccounts,generatinginvoices,processingauto-renewals,and
+runningmodulecommands.
+# Add to server crontab (as the web server user):
+*/5 * * * * php -q /home/whmcs/public_html/crons/cron.php
+# WHMCS Admin → Setup → Automation Settings → configure automation rules:
+# - Days before due date to send first invoice reminder: 14
+# - Days before due date to send second invoice reminder: 7
+# - Days after due date to suspend: 3
+# - Days after due date to terminate: 30
+4.1.5 M-PesaPaymentIntegration(EastAfrica)
+ForEastAfricanhostingbusinesses,M-Pesaintegrationisessential.WHMCSsupportsM-Pesa
+throughofficialorcommunitymodules.Twoprimaryoptions:
+Option Provider IntegrationMethod Notes
+M-PesaSTKPush SafaricomDarajaAPI CustomWHMCS
+gatewaymodule
+(availableonWHMCS
+MarketplaceorGitHub)
+Customerentersphonenumber→
+receivesSTKpushontheirphone
+→approves →WHMCS receives
+confirmation
+M-PesaPaybill SafaricomDarajaAPI Same—customerpays
+tocompanyPaybill
+number
+LessseamlessUXbutfamiliarto
+customers
+Pesapal Pesapalpayment
+gateway
+OfficialWHMCS module
+availableatpesapal.com
+SupportsM-Pesa,AirtelMoney,
+Equity,cardpayments—
+aggregated
+Flutterwave Flutterwave OfficialWHMCS module SupportsM-PesaKE,Mobile
+MoneyacrossAfrica+cards
+4.2 HostingProductDesignandPricingStrategy
+4.2.1 MarketResearch—EastAfricanContext(2026)
+Beforesettingprices,understandthecompetitivelandscapeinyour targetmarket.Kenya,Uganda,and
+Tanzaniahavedistincthostingmarketswithprice-sensitive buyersandafast-growingSMEsegment
+thatneedsaffordablebutprofessionalsolutions.
+Market Segment TypicalCustomer WhatTheyNeed PriceSensitivity
+MicroBusiness/Freelancer Individualor1–3person
+operation—restaurant,salon,
+consultant
+Simplewebsite,oneemailaccount,
+minimaltraffic
+Veryhigh—KES200–500/mo
+isthecomfortzone
+SME(Small &Medium
+Enterprise)
+5–50employees,activeonline
+presence,somee-commerce
+Reliableemail,moderatetraffic,
+database-backedsite
+High—KES500–2,000/mo,
+annualpaymentpreferred
+E-CommerceBusiness WooCommerceorShopify-
+alternativeshops
+Fastloadtimes,SSL,reliable
+checkout,backups
+Medium—KES2,000–
+8,000/mo,willingtopayfor
+reliability
+WebAgency/Developer Buildswebsitesforclients Reselleraccount—multiplesub-
+accounts,WHMaccess
+Medium—valueoverprice,
+wantsgoodtoolsandsupport
+Corporate/Enterprise 50+employees,heavyemail
+use,internalsystems
+DedicatedorVPSresources,SLA,
+managedservice
+Low—KES10,000+/mo—
+pays forreliabilityandsupport
+4.2.2 PricingModel—TieredHostingPlans
+Plan Monthly
+(KES)
+Annual(KES) Disk BW EmailAccts Databases Panel
+Starter 350 3,200 3GB 50GB 10 3 Any
+Business 750 7,200 15GB Unlimited 50 15 Any
+Professional 1,500 14,400 40GB Unlimited Unlimited Unlimited cPanel/Plesk
+E-Commerce 2,500 24,000 60GB Unlimited Unlimited Unlimited cPanel/Plesk
+ResellerStarter 4,500 43,200 30
+accounts,
+80GBtotal
+Unlimited – – cPanel/DA
+Reseller
+Business
+8,500 81,600 100
+accounts,
+200GB
+total
+Unlimited – – cPanel
+4.2.3 Value-AddedServicesandUpselling
+Add-OnService MonthlyPrice
+(KES)
+WhatItProvides WhichPanel
+SSLCertificate(DV) FreeviaAutoSSL Let'sEncryptauto-renewed Allthree
+SSLCertificate(OV/Wildcard) 500–2,000 Paidcertificateforbusinesstrust
+orwildcardcoverage
+Any—installmanually
+DailyBackupwith30-Day
+Retention
+300 Extendedbackupretentionbeyond
+standardplan
+Allthree
+DedicatedIPAddress 500 OwnIP—requiredforsomeSSL
+types,improvesemailreputation
+Allthree
+SpamFilterPremium 200 PoweredbySpamExpertsor
+similar—per-domainfiltering
+Allthree
+ManagedWordPress 1,500 AutomaticWPupdates,security
+monitoring,staging,malware
+removal
+PleskWPToolkit+
+manual
+ProfessionalEmailMigration 2,500one-time Migrateexistingemailtonew
+serverwithoutlosingmessages
+Allthree
+WebsiteSpeedOptimisation 5,000one-time Redis,OPcache,CloudflareCDN,
+imagecompressionconfiguration
+Allthree
+MonthlyServerMonitoring
+Report
+500 PDFreport: uptime,loadaverages,
+topresourceusers
+AllthreeviaAPI
+4.3 ProfessionalCustomerSupportOperations
+4.3.1 SettingUpaTicketingSystem
+Professionalhostingsupportisdeliveredthroughastructuredticketingsystem—notWhatsApp,
+personalemail,orphonecallswithoutarecord.WHMCSincludesabuilt-insupportticketsystem,but
+manybusinessesalsousededicatedhelpdesksoftware.
+Option Cost KeyFeatures BestFor
+WHMCSSupportModule IncludedwithWHMCS Ticketdepartments, emailpiping,client
+portalintegration,billinglink
+Small-mediumhosting
+companiesalreadyusing
+WHMCS
+Freshdesk Freetieravailable Multi-channel(email,chat,social),
+automation,SLAtracking
+Growingsupportteams
+needingbetterworkflow
+Zendesk From$19/agent/mo Enterprise-grade, AI-assisted,extensive
+integrations
+Largehostingbusinesses
+withmultiplesupporttiers
+osTicket(free/opensource) Free(self-hosted) Basicticketing,emailintegration,
+departments
+Budget-consciousstartups
+willingtoself-host
+HelpScout From$20/agent/mo Email-first,cleaninterface,customer
+satisfactionratings
+Smallteams wantinga
+simpleprofessionaltool
+4.3.2 SupportDepartmentsandEscalation
+Department Handles First ResponseSLA ResolutionSLA
+Sales Pre-salesenquiries,upgrade
+requests,pricingquestions
+2hours 4hours
+TechnicalSupport—
+Level1
+Standardhostingissues:email
+setup,FTP, passwordresets,
+WordPressbasics
+1hour 4hours
+TechnicalSupport—
+Level2
+Complexissues:migration, server
+errors,performance, database
+2hours 8hours
+TechnicalSupport—
+Level3
+Server-levelissues,security
+incidents,advancedDNS
+4hours 24hours
+Billing Invoicedisputes, paymentissues,
+planchanges,cancellations
+2hours 24hours
+Abuse Spamcomplaints,DMCA
+takedowns,securityincidents
+30minutes 4hours
+4.3.3 DiagnosingClientIssuesbyPanel
+Feature/Area cPanel/WHM DirectAdmin Plesk
+WebsiteNotLoading WHM→ListAccounts
+(verifynotsuspended)→
+Apacheerror log→DNS
+AdminPanel→ShowAll
+Users→checkstatus→
+Apacheerror log
+Admin→Subscriptions→
+checkstatus→Plesk
+Logssection
+EmailNotWorking WHM→Email→Track
+Delivery→searchby
+address
+Admin→ManageExim→
+traceemail
+Plesk→Mail→Email
+Accounts→checkstatus,
+checkmaillog
+SlowWebsite WHM→ServerStatus→
+LVEstats→identify
+accountthrottled
+DAAdminStats→check
+serverload→lvetop
+Plesk→Statistics→
+checkresourceusageper
+subscription
+FTPCannot Connect cPanel→FTP Accounts
+→verifyaccount→check
+Pure-FTPdlog
+DA→FTP Management
+→verify→checkproftpd
+log
+Plesk→FTPAccess→
+verifyaccount→check
+FTPlog
+DatabaseError cPanel→MySQL
+Databases→checkDB
+exists,userassigned
+DA→MySQL
+Management→checkDB
+anduser
+Plesk→Databases→
+checkDBanduser
+assignment
+SSLNotWorking WHM→AutoSSL→
+checklog→cPanel→
+SSL/TLSstatus
+DA→SSL→check
+certificatevalidity
+Plesk→SSL/TLS
+Certificates→check
+certificateperdomain
+4.3.4 WritingProfessionalSupportResponses
+Thequalityofwrittensupportresponsesdirectlyaffectsclientretention.Everyresponseshouldfollow
+theseprinciples:
+• Acknowledge —start byconfirming you understandthe issueand thatitmatters
+• Explain—describe whatyou found ordidinplain, non-technicallanguageunlessthe client is
+technical
+• Action—describewhatwas done orwhatthe client shoulddo
+• Verify—askthe client toconfirm the issueis resolved
+• Offerfurtherhelp—close with agenuine invitationto followup
+Situation PoorResponse ProfessionalResponse
+Websitedown Fixedit Weidentifiedthatyourwebsitewasinaccessibleduetoa
+PHPmemorylimitthatwassettoolowforyour current
+plugins.WehaveincreasedyourPHPmemory limitfrom
+128MBto256MB.Pleaserefreshyourwebsiteandconfirm
+itisnowloadingcorrectly.Letusknowifyouexperience
+anyfurtherissues.
+Emailgoingtospam YourSPFiswrong Wereviewedyourdomain'semailconfigurationandfound
+thatyour SPFrecordwasnotauthorisingyourhosting
+server'sIPaddress.WehaveupdatedtheSPFrecordto
+includeyourserver. Pleasenotethatitmay takeuptoan
+hourtopropagate.Topreventfuturedeliverabilityissues,
+wealsoenabledDKIMsigningforyourdomain.We
+recommendtestingbysendingamessagetomail-
+tester.com.
+CannotlogintocPanel Wrongpassword WehaveresetyourcPanelpassword. Yournewtemporary
+passwordis:[password].Pleaseloginat
+https://server:2083andchangeyourpasswordimmediately
+incPanel→Preferences→ChangePassword.For
+security,donotsharethisemail.Letusknowonceyouare
+loggedinsuccessfully.
+4.4 LegalandComplianceFrameworkforHosting
+Providers
+4.4.1 AcceptableUsePolicy(AUP)
+AnAcceptableUsePolicydefineswhatcustomersmayandmaynotdoonyourhostingplatform.Every
+hostingcompanymusthaveapublishedAUP.Keyprohibitedactivitiestoinclude:
+• Sendingunsolicited commercial email(spam)—zero tolerance
+• Hostingphishingpages,malware distribution,ormalicious scripts
+• Copyright-infringingcontent—DMCAcompliancerequired
+• IllegalcontentunderKenyan law, including CSAM (childsexualabuse material)—mandatoryreport
+toauthorities
+• Crypto-mining onshared hosting resources
+• DDoSattacks,portscanning,or networkabuse
+• Excessiveresource consumptionthataffectsothercustomerson sharedhosting
+• Resellinginviolation ofyour licencetermswith cPanel/DA/Plesk
+4.4.2 Kenya DataProtectionAct(DPA)2019—HostingObligations
+TheKenyaDataProtectionAct2019imposesobligationsonorganisationsthatprocesspersonaldata,
+includingwebhostingproviderswhostorecustomerdataandwebsitevisitordata.Keyobligations:
+Obligation WhatItMeansforHosting Providers
+DataControllerRegistration HostingcompaniesmustregisterwiththeOfficeoftheDataProtectionCommissioner
+(ODPC)
+PrivacyPolicy Publishaclearprivacypolicyexplainingwhatdataiscollected,why,howlongitis
+retained,andwhoitissharedwith
+DataMinimisation Collectonlythedatanecessaryfortheservice—donotcollectphonenumbersif
+onlyemailisneeded
+Consent Obtainexplicitconsentbeforecollectingpersonaldata—confirmopt-insfor
+newsletters
+DataSubjectRights Customershavetherighttoaccess,correct,anddeletetheirpersonaldata—provide
+amechanismtorequest this
+SecurityMeasures Implementappropriatetechnicalandorganisationalsecuritymeasurestoprotect
+storeddata
+BreachNotification NotifytheODPCwithin72hoursofdiscoveringadatabreachaffectingpersonaldata
+DataRetention Defineandimplement dataretentionpolicies—donotretaincustomerdatabeyond
+whatisnecessary
+4.4.3 DMCAandCopyrightTakedowns
+CopyrightholderswhodiscoverinfringingcontentonyourhostingplatformwillsendDMCA(Digital
+MillenniumCopyrightAct)takedownnotices—orequivalentlocallawnotices.Asahostingprovider,
+youmusthaveaprocessforhandlingthese:
+82.Receiveandlog thetakedown notice—recorddate,sender,alleged infringingURL
+83.Identifythe accounthosting thereportedcontent
+84.Notifythe account holderofthe complaint—give them 24–48 hourstorespond orremovethe
+content
+85.Ifcontentis confirmedinfringing and holderdoes notremoveit, disableaccess tothe specificURL
+orfile
+86.Respondto thecopyright holderconfirmingaction taken
+87.Documenteverything —ifthe accountholderfiles acounter-notice,the copyrightholderhas10–14
+days tofilesuit oraccess isrestored
+4.5 CommunicatingDuringIncidentsandOutages
+Howahostingcompanycommunicatesduringoutagesdetermineswhetherclientsreneworleave.A
+technicallyresolvedoutagewithpoorcommunicationcausesmorechurnthanaslightlylongeroutage
+withexcellent,honest,frequentcommunication.
+4.5.1 IncidentCommunicationFramework
+Phase Timing WhattoCommunicate Channel
+InitialNotification Within15minutesof
+detectinganoutage
+Acknowledgetheissue,statewhatis
+affected,sayyouareinvestigating—evenif
+youknownothingelseyet
+Statuspage,email
+blast,socialmedia
+Update Every30minutes Whatyouhavefound,what youaredoing, Statuspage,replyto
+duringactive
+incident
+estimatedresolutiontimeifknown—honest
+isbetterthanoptimistic
+supporttickets
+Resolution Immediatelyupon
+resolution
+Confirmtheissueisresolved,brieflyexplain
+cause,statetimewasaffectedfrom/to,note
+anyfurtherimpactondata
+Statuspage,email,
+tickets
+Post-Mortem Within48hours Fullincidentreport: timeline,rootcause,
+impact,stepstaken,preventivemeasures—
+buildstrustenormously
+Blogpost,emailto
+affectedclients
+StatusPageTools
+Statuspage.io,Instatus,andCachet(open source)provide dedicatedhostedstatuspages.Astatus page that
+clientscanbookmarkisfarmoreprofessional thanad-hocemails,reduces inboundsupportvolumeduring
+outages,and demonstratesoperationalmaturity. Many hostingcompaniesinEastAfricadonothaveone—
+itisaneasydifferentiator.
+4.5.2 Template—InitialOutageNotification
+Element Content
+Subject [ActionRequired] HostingServiceDisruption—WeAreInvestigating
+Opening Wearewritingtonotifyyouthatwearecurrentlyexperiencingaservicedisruptionaffecting
+[specificservice,e.g.,sharedhostingserverSH01].Weidentifiedthisissueat[time]EATand
+ourtechnicalteambeganinvestigatingimmediately.
+Impact Affectedservices:[list].Customersaffected:[allcustomersonSH01/customerswithdomains
+X,Y, Z].
+Status Weareactivelyworkingtorestorefullservice.Ourengineershaveidentified[briefnon-
+technicaldescriptionofwhatwasfound—e.g.,'ahardwarestoragefailure']andare
+implementingaresolution.
+ETA Estimatedresolution:[time]EAT.Wewillsendanupdateat[time+30minutes]regardlessof
+status.
+Closing Wesincerelyapologiseforthedisruptionthiscauses.Ourteamisprioritisingthisissueabove
+allotherwork.Youcanmonitorreal-timestatusat[statuspageURL].If youhaveurgent
+questions,pleasecontact[email/ticket].
+ PRACTICAL EXERCISE:BuildaCompleteHostingBusinessPlan
+88.Designthreehostingpackages(Starter,Business,Professional)with fullresourcespecificationsfor
+cPaneldeployment.PriceeachpackageappropriatelyfortheKenyan marketandcalculatethegross
+marginassumingKES8,000/moper servercostfora100-accountserver.
+89.Writeaone-pageAcceptableUsePolicy foryourhostingcompanycovering: spam,malware,
+copyright,resourceabuse,andillegalcontent.
+90.SetupWHMCSonyourtraining environment.Connectittoyour cPanel trainingserver.Createthe
+threepackages asWHMCSproducts.Createatestcustomeraccountandsimulate anorder—
+verifyWHMCSautomatically createsthecPanelaccount.
+91.Writeaprofessionalsupportresponsetothisticket:'Mywebsiteisshowingawhitepage.Ididnot
+changeanything.Pleasefixurgently.' —demonstratetheAcknowledge/Explain/Action/Verify/Offer
+framework.
+92.Draftanincidentnotificationemail forascenario whereyourserver'sdiskfilledupat2AMand
+websiteswereunavailablefor2hours.
+✔ Completebusiness foundationsdocumentedandtested: pricing modelwithmargins,AUP,
+WHMCSintegration verified,professionalcommunicationdemonstrated.
+ Q4.1—AclientordersaBusinessHostingplanonyour WHMCS-poweredwebsiteona
+SaturdaynightandpaysviaM-Pesa.WhathappensnextifWHMCSautomationiscorrectly
+configured?
+A)TheaccountwillbecreatedonMondaywhen astaffmemberlogs in
+B)WHMCSreceives paymentconfirmationfromthegateway, markstheinvoicepaid,automatically callsthe
+cPanel/DA/PleskserverAPItocreatetheaccountwiththemapped package,andsends thewelcomeemail
+—all withinminutes,withouthumanintervention
+C)Theclientmustcontactsupporttoactivatetheiraccount
+D)WHMCSqueues theorderuntil9AMonthenextbusinessday
+✔ Answer:B)WHMCSautomaticallyprovisions theaccountwithinminutes,24/7
+Explanation:ThisisWHMCS'scorevalue proposition:zero-touchautomation.Thepaymentgatewaymodule
+confirmspayment,WHMCSmarkstheinvoicepaid,theautomation cron(runningevery5minutes)detects
+thenewpaidorder,callstheserver module'sCreateAccountfunctionviatheWHM/DA/PleskAPI,andsends
+thewelcomeemailwith logincredentials.ForEastAfricanbusinesses,this meansM-Pesapaymentsat11
+PMonapublicholidayresultininstantaccountcreation—competitivewithglobalhosting providers.
+ Q4.2—UndertheKenyaDataProtectionAct2019,ifyourhostingcompanydiscovers
+thatadatabasecontainingcustomerpersonaldatawasexposedduetoaserver
+misconfiguration,whatareyourobligations?
+A)Fixthe issuequietlywithouttellinganyone
+B)NotifytheODPCwithin 72hoursofdiscovery, notifyaffectedcustomers,documentthebreach,and
+implementremediationmeasures
+C)Onlynotifycustomersifthey ask
+D)Waittoseeifanycustomersreportissuesbeforetakingaction
+✔ Answer:B)NotifyODPCwithin72 hours,notifyaffectedcustomers,anddocumentthe
+breach
+Explanation:TheKenya DPA2019,modelledonGDPR,requiresdata controllerstonotifytheOfficeofthe
+DataProtectionCommissioner (ODPC)within 72hoursofdiscoveringapersonaldatabreach.Affecteddata
+subjectsmustalsobenotifiedwithoutunduedelay. Failuretonotifyisaregulatoryoffencewithpotential
+fines.EveryhostingcompanyshouldhaveadocumentedIncidentResponsePlanthatincludes thebreach
+notificationprocess.
+SECTION5—SPECIALISEDTOPICSAND
+CERTIFICATIONPREPARATION
+WordPressMastery,AdvancedEmail,ComplexTroubleshooting&CPP/DA/PleskExam
+Readiness
+ LearningOutcomes
+Bytheendofthissection,you will beableto:
+• Configureand manageahigh-performance,secureWordPresshostingenvironmentacrossall three
+panels
+• ImplementacompleteWordPressMultisitenetworkandmanageitatscale
+• DiagnoseandresolvethemostcomplexWordPresshostingissues systematically
+• Configureand troubleshootadvancedemailscenarios includingrelay configurationandblacklist
+recovery
+• ApplyforandpreparecomprehensivelyforthecPanelProfessional(CPP)certificationexamination
+• PreparefortheDirectAdminandPleskprofessionalcertificationassessments
+• Applyknowledgeacrossallfivesections topass acomprehensive finalexamination
+5.1 WordPressHostingMastery
+5.1.1 WordPressArchitecture—WhatAdministratorsMustKnow
+WordPressisinstalledonmorethan43%ofallwebsitesglobally.Asahostingadministrator,youwill
+spendasignificantproportionofyourworkingdaymanaging,troubleshooting,oroptimisingWordPress
+installations.Understandingitsarchitecturemakeseveryinteractionmoreefficient.
+Component Location Purpose CommonAdminTouchpoints
+wp-config.php WordPressroot (same
+levelaswp-content/)
+Masterconfiguration:DB
+credentials,debugsettings,
+salts,tableprefix
+EditforDBconnectionerrors,enable
+WP_DEBUG,changetableprefix,
+increasememory
+wp-content/ WordPressroot
+subdirectory
+Themes,plugins,uploads—
+theonlydirectorythatvaries
+persite
+Filepermissionsissuesherecausemost
+WordPresserrors
+wp-content/uploads/ Insidewp-content/ Allmediafilesuploadedby
+users
+Permissions:755fordirs,644forfiles.
+Largestsourceofdiskusageonbusysites
+.htaccess WordPressroot Apacherewriterules—
+WordPressPermalinksettings
+writetothis
+Corrupted.htaccess→404errorsonall
+innerpages
+Database MySQL Allcontent,settings,users,
+optionsstoredhere
+wp_optionscontainssiteURLandcritical
+settings;wp_userscontainsadmin
+accounts
+5.1.2 WordPresswp-config.php—KeySettings
+<?php
+// Database connection (most critical settings):
+define('DB_NAME', 'username_wordpressdb'); // Must match exactly in panel
+define('DB_USER', 'username_wpuser'); // Must match exactly in panel
+define('DB_PASSWORD', 'StrongPassword!'); // Must match DB user password
+define('DB_HOST', 'localhost'); // Always localhost on same-server
+hosting
+define('DB_CHARSET', 'utf8mb4');
+// Security keys (generate unique keys at: api.wordpress.org/secret-key/1.1/salt/):
+define('AUTH_KEY', 'unique key here');
+define('SECURE_AUTH_KEY', 'unique key here');
+// ... (8 keys total) ...
+// Performance:
+define('WP_MEMORY_LIMIT', '256M'); // RAM available to WP PHP process
+define('WP_MAX_MEMORY_LIMIT', '512M'); // Admin area memory limit
+// Security hardening:
+define('DISALLOW_FILE_EDIT', true); // Disables WP admin theme/plugin
+editor
+define('DISALLOW_FILE_MODS', true); // Prevents plugin/theme installation
+from admin
+define('FORCE_SSL_ADMIN', true); // Forces HTTPS in admin area
+// Debugging (enable temporarily to diagnose errors):
+define('WP_DEBUG', true); // Enable error display
+define('WP_DEBUG_LOG', true); // Log to wp-content/debug.log
+define('WP_DEBUG_DISPLAY', false); // Log only — do not display to
+visitors
+// Automatic updates:
+define('WP_AUTO_UPDATE_CORE', true); // Allow automatic minor core updates
+// Revision and trash control:
+define('WP_POST_REVISIONS', 5); // Keep only 5 revisions (saves DB
+space)
+define('EMPTY_TRASH_DAYS', 7); // Empty trash after 7 days
+// Cron (disable default cron if using real server cron):
+define('DISABLE_WP_CRON', true); // Disable built-in pseudo-cron
+// Then add real server cron (every 5 minutes):
+// */5 * * * * php /home/user/public_html/wp-cron.php > /dev/null 2>&1
+5.1.3 WordPressPerformanceStack—FullConfiguration
+Feature/Area cPanel/WHM DirectAdmin Plesk
+PHPHandler PHP-FPMviaMultiPHP
+Manager
+PHP-FPMviaAdminPHP
+Configuration
+PHP-FPMviaSubscription
+PHPSettings
+PHPVersion 8.1or8.2(never<7.4) 8.1or8.2 8.1or8.2
+OPcache EasyApache4→opcache
+extension→enabled
+AdminPHPExtensions→
+opcacheenabled
+Tools&Settings→PHP
+→opcache
+RedisObjectCache InstallRedisserver→
+EasyApachePHPredis
+extension→WPRedis
+ObjectCacheplugin
+InstallRedis→PHPredis
+extension→WPplugin
+PleskRedisextension+
+WPRedisplugin
+PageCache WPSuperCacheor
+LiteSpeedCache(if
+LiteSpeedserver)
+WPSuperCache NginxFastCGIcache
+(Plesknative)+LiteSpeed
+Cache
+CDN Cloudflare(WHMpluginor
+manualNSchange)
+Cloudflare(manual orDA
+Cloudflareintegration)
+PleskCloudflareextension
+ImageOptimisation ShortPixelorImagify
+plugin
+ShortPixelorImagify
+plugin
+ShortPixelorImagifyor
+PleskImageOptimizer
+DatabaseOptimisation WP-SweeporWP-
+Optimizeplugin,
+scheduled
+WP-SweeporWP-
+Optimize,scheduled
+WordPressToolkit→
+Database→Optimize
+5.1.4 WordPressSecurityHardening—AllPanels
+ThefollowinghardeningstepsapplyregardlessofwhichpanelhoststheWordPressinstallation:
+# 1. Protect wp-config.php via .htaccess:
+<Files wp-config.php>
+deny from all
+</Files>
+# 2. Disable XML-RPC if not needed:
+<Files xmlrpc.php>
+deny from all
+</Files>
+# 3. Disable directory listing:
+Options -Indexes
+# 4. Prevent PHP execution in uploads folder:
+# Add to wp-content/uploads/.htaccess:
+<Files *.php>
+deny from all
+</Files>
+# 5. Protect .htaccess itself:
+<Files .htaccess>
+deny from all
+</Files>
+# 6. Hide WordPress version from HTML source:
+# In functions.php of child theme:
+remove_action('wp_head', 'wp_generator');
+# 7. Limit login attempts:
+# Install: Limit Login Attempts Reloaded or Wordfence plugin
+# 8. Force strong admin passwords:
+# In wp-config.php: Use Wordfence Password Audit or change via WP-CLI:
+wp user update admin --user_pass= 'VeryStr0ngP@ssw0rd!' --path= /home/user/public_html
+5.1.5 WordPressMultisiteAdministration
+WordPressMultisiteallowsoneWordPressinstallationtohostmultiplewebsitesfromasingledatabase
+andcodebase.Itispopularforuniversitynetworks,newsorganisations,andhostingcompaniesoffering
+managedWordPress.Itrequiresspecialserverconfiguration.
+MultisiteMode HowSubdomainsWork ServerRequirement Best For
+SubdomainMode Eachsiteisasubdomain:
+site1.network.com,
+site2.network.com
+WildcardDNS
+(*.network.com→server
+IP)+WildcardSSLcert
+Networksofdistinctsitesthatshould
+appearindependent
+SubdirectoryMode Eachsiteisapath:
+network.com/site1,
+network.com/site2
+Standard—nowildcard
+DNSneeded
+Blogs,departmentsiteswhereURL
+structuredoesn'tmatter
+# Enable WordPress Multisite:
+# Step 1 — In wp-config.php (before 'stop editing' line):
+define('WP_ALLOW_MULTISITE', true);
+# Step 2 — Log into WordPress admin → Tools → Network Setup
+# Choose subdomain or subdirectory mode, enter Network Title and admin email
+# Click Install
+# Step 3 — Add to wp-config.php (WordPress provides exact code to copy):
+define('MULTISITE', true);
+define('SUBDOMAIN_INSTALL', true); // false for subdirectory
+define('DOMAIN_CURRENT_SITE', 'network.com');
+define('PATH_CURRENT_SITE', '/');
+define('SITE_ID_CURRENT_SITE', 1);
+define('BLOG_ID_CURRENT_SITE', 1);
+# Step 4 — Update .htaccess with provided multisite rules
+# (WordPress provides the exact .htaccess code during setup)
+# Wildcard DNS for subdomain mode:
+# Add DNS A record: * → your server IP
+# OR in cPanel Zone Editor: *.network.com → IP
+# Wildcard SSL for subdomain mode (all three panels):
+# Use Let's Encrypt Wildcard via DNS challenge
+# certbot certonly --manual --preferred-challenges dns -d '*.network.com' -d
+'network.com'
+# Plesk — enable wildcard SSL via Let's Encrypt extension:
+# Plesk → Let's Encrypt → select domain → enable wildcard
+5.1.6 WP-CLI—CommandLineWordPressManagement
+WP-CLIistheofficialcommand-lineinterfaceforWordPress.EveryprofessionalWordPresshosting
+administratorshouldknowit—itenablesbulkoperations,automation,andfixesthatareimpossible
+throughtheadminpanelwhenthesiteisbroken.
+# Install WP-CLI on server:
+curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+chmod +x wp-cli.phar
+mv wp-cli.phar /usr/local/bin/wp
+wp --info # Verify installation
+# Common WP-CLI commands (run from WordPress root directory):
+wp core version # Check WP version
+wp core update # Update WordPress core
+wp plugin list # List all plugins
+wp plugin update --all # Update all plugins
+wp plugin deactivate bad-plugin # Deactivate a plugin (even if admin
+broken)
+wp theme list # List all themes
+wp user list # List all users
+wp user create newadmin newadmin@site.com --role= administrator --
+user_pass= StrongP@ss
+wp search-replace 'http://oldsite.com' 'https://newsite.com' --all-tables #
+Migration
+wp cache flush # Flush WordPress object cache
+wp option get siteurl # Get site URL from database
+wp option update siteurl 'https://newsite.com' # Fix site URL after migration
+wp db export backup.sql # Export database
+wp db import backup.sql # Import database
+wp db optimize # Optimize all database tables
+wp cron event list # List scheduled cron events
+wp config set WP_DEBUG true --raw # Enable debug mode via CLI
+# Bulk operations across multiple sites (useful for server admins):
+for dir in /home/*/public_html; do
+if [ -f "$dir/wp-config.php" ]; then
+echo "Updating: $dir"
+wp --path= "$dir" plugin update --all --allow-root 2>/dev/null
+fi
+done
+5.1.7 WordPressTroubleshooting—AdvancedScenarios
+Problem DiagnosticSteps Resolution
+WhiteScreenofDeath
+(WSOD)
+EnableWP_DEBUG_LOG in
+wp-config.php→checkwp-
+content/debug.log→check
+Apacheerror log
+Mostcommon:pluginconflict(renameplugins/folderto
+test),PHPversionincompatibility,memoryexhaustion
+Allpagesreturn404
+excepthomepage
+Check.htaccess—likely
+corruptedormissing
+WordPressrewriterules
+WPAdmin→Settings→Permalinks→clickSave
+(regenerates.htaccess).Ifadmininaccessible,manually
+recreate.htaccesswithWPdefaultrules.
+Adminloginloop
+(redirectloop)
+wp-config.php
+FORCE_SSL_ADMIN=true
+butSSLnotproperly
+configured
+TemporarilysetFORCE_SSL_ADMINtofalse.FixSSL.
+Alsocheckthatsiteurlandhomeoptionsbothusehttps://
+—updateviaWP-CLI.
+WordPressdatabase
+connectionerror
+Checkwp-config.php
+credentialsvs.actualDB
+name/userinpanel
+VerifyexactDB_NAME (includingprefix), DB_USER,
+DB_PASSWORD.Checkuserisassignedtodatabasein
+panelwithAllPrivileges.
+Imageuploadfails
+(HTTPerror)
+Checkuploads/permissions
+(shouldbe755/644),check
+PHPupload_max_filesizeand
+post_max_size,check
+availablediskspace
+Fixpermissions:chown-Rusername:usernamewp-
+content/uploads/.IncreaseuploadlimitsinPHPsettings.
+Cleardiskspaceiffull.
+WordPressextremely
+slow
+EnableWP_DEBUG→look
+forslowqueries.CheckLVE
+stats(ifCloudLinux).Check
+numberofactiveplugins.
+InstallQuery MonitorplugintoidentifyslowDBqueries.
+Disableunusedplugins.EnableRedisObjectCache.
+EnableOPcache.
+HackedWordPress—
+Malwarefound
+Findrecentlymodifiedfiles:
+find.-mtime-2-name'*.php'
+Removemaliciousfiles,changeallpasswords(WPadmin,
+FTP,DB,cPanel),updateallplugins/themes,install
+Wordfence,re-scan.
+ PRACTICAL EXERCISE:WordPressMasteryCapstone
+93.OnyourcPaneltraining account:InstallWordPressandimmediately hardenitusing all.htaccess
+rules insection5.1.4.Add define('DISALLOW_FILE_EDIT',true)towp-config.php.InstallWordfence
+andrunafullscan.
+94.Configurethefullperformancestack:EnablePHP-FPM, enableOPcache,installand connectRedis
+ObjectCacheplugin,enableWPSuper Cache,configureCloudflare(freeplan) withyour training
+domain.RunGTmetrixbeforeand after—documentimprovement.
+95.Simulatea'hackedsite'scenario: CreateatestPHPfilecontainingthestring'eval(base64_decode'
+inpublic_html.Run theserver-sidefindcommandtodetectit.Remove it.Practicethemalware
+responseprocedure.
+96.UseWP-CLIto:exportthedatabase, createanewadminuserviaCLI,search-replacethe old
+domainwithanewtestdomaininthedatabase,then verifythesitestill loads.
+97.InPlesk:UseWordPressToolkittoinstall WordPress,runSecurityCheckandapply all
+recommendations,createastagingenvironment,makeavisiblechangeinstaging(e.g.,change
+pagetitle),thenpushstagingtolive.
+✔ FullWordPressprofessionalskillset demonstrated:securityhardening,performance
+optimisation,malwaredetection,WP-CLIproficiency,andPleskWordPressToolkit mastery.
+5.2 ProfessionalCertificationPreparation
+5.2.1 cPanelProfessional(CPP)Certification—DeepDive
+ThecPanelProfessionalcertificationisthemostrecognisedqualificationinthewebhostingindustry.
+IssuedbycPanel,LLC,itvalidatesthattheholdercanindependentlymanageaproduction
+cPanel/WHMserver.Itishighlyrespectedbyhostingcompaniesgloballyandisoftenlistedasa
+requirementorpreferenceinhostingadministratorjobpostings.
+ExamDetails
+Item Detail
+Format Online,proctoredexamination—webcamandscreensharingrequired
+Questions Approximately60questions—multiplechoice,multipleanswer,andscenario-based
+Duration 90minutes
+PassingScore 75%(approximately45outof 60)
+ExamFee ~USD$100perattempt (approximatelyKES13,000)
+Validity 2years—recertificationrequiredwhenmajorversionchangesoccur
+Registration university.cpanel.net—createaccount,purchaseexamvoucher, schedulewith
+proctoringpartner
+AllowedResources None—closed-book,proctored
+StudyResources docs.cpanel.net,university.cpanel.net,WHMdocumentation,thistextbook
+CPPExam DomainBreakdown
+Domain Weight KeyTopicstoMaster
+ServerConfiguration ~20% WHMinitialsetup,TweakSettings,hostname/nameservers,
+EasyApache4,servicemanagement
+AccountManagement ~20% Create/modify/suspend/terminateaccounts,packages,resellers,
+ACLlists,passwordmanagement
+EmailAdministration ~15% Eximconfiguration,mailqueuemanagement, emailrouting,
+forwarders,SpamAssassin
+DNS ~10% Zoneeditor,DNS cluster,recordtypes,TTL, propagation
+Security ~15% cPHulk,CSFconcepts,ModSecurity,SSL/AutoSSL,SecurityAdvisor
+MySQL/Databases ~10% Createdatabases/users,phpMyAdmin, remoteMySQL, database
+repair
+Backup&Restore ~10% WHMbackupconfiguration,restoreaccounts,remotedestinations
+Troubleshooting ~10% Errorloginterpretation,commonerror codes,diagnosticcommands
+CPPHigh-Priority KnowledgePoints
+• TheWHMAPIToken path:WHM→ Development→Manage APITokens
+• AutoSSL configuration path and how totriggeramanualrun:WHM →SSL/TLS →Manage
+AutoSSL
+• cPHulkconfiguration and howtowhitelistanIPtoprevent lockout
+• Theexactsequenceforcreating an account:usernamerestrictions (16chars max,
+lowercase+numbers),packageselection,DNSzonecreation
+• Exim mailqueue commands:exim -bp(view),exim -Mrm (delete),exim -qff(flush)
+• Apacheaccessand errorlog locations:/usr/local/apache/logs/
+• Thedifferencebetween suPHP,CGI,andPHP-FPM handlers andwhen eachisappropriate
+• HowLVE(CloudLinux)limits work:CPU%,PMEM, IO, EP,NPROC
+• EasyApache4—installing PHPextensions and switchingPHPversions peraccount
+• cPanelbackupfileformat: cpmove-username.tar.gz andrestoration via/scripts/restorepkg
+• DNSrecordtypes and whichtouseforemail(MX), website (A),aliases (CNAME)
+• Howthe TransferTool works:pullmigration from sourceservertodestination WHM
+CPPPracticeQuestions
+ CPP-1:Acustomercomplainstheirwebsiteshows'Account Suspended'.Youcheck
+WHMandtheaccountisnotsuspended.Whatshouldyouchecknext?
+A)TheDNSrecords
+B)WhetherAutoSSL failedforthedomain,causingApachetosuspendthevirtualhost
+C)Whethertheaccount'sdocumentrootis missingthe indexfile,orwhether theaccountexceededits disk
+quotaandcPanelsuspendeditforbeingoverquota
+D)TheMySQL servicestatus
+✔ Answer:C)Over-quotasuspension —check diskusage inWHM
+Explanation:cPanel automaticallysuspendsaccountsthat exceedtheir diskquota,showingthe'Account
+Suspended'page.Check WHM→ListAccounts→diskusagecolumn.Iftheaccountisatornear 100%,it
+isover-quotasuspended.Thefix:WHM→ModifyAccount→increasedisk quotatemporarily, thenhelpthe
+clientreduceusage.Alternatively, checkforrecentlyuploadedlarge filesorfullmailboxes.
+ CPP-2:InWHM,whatisthecorrectcommandpathtoconfigurewhichmailserver
+handlesemailforadomain—theserver'sownExim,aremotemailserver,orbackupMX?
+A)cPanel→Email→EmailRouting
+B)WHM→Email →MailRoutingConfiguration
+C)cPanel→ZoneEditor →MXRecord
+D)WHM→EximConfigurationManager
+✔ Answer:A) cPanel→Email→EmailRouting
+Explanation:EmailRoutingin cPanel (notWHM)controlswhether thecPanelaccount's domainusesthe
+localEximserver (LocalMailExchanger),aremotemailserverlikeGoogleWorkspace(RemoteMail
+Exchanger),or keepstheserver asabackupMX.This isdistinctfromtheMXrecordintheDNSZone Editor
+—Email Routingtells Eximwheretodeliverinboundemailforthedomain,whiletheMXrecordtellsthe
+worldwheretosendit.
+ CPP-3:Yourun'df-h'andsee/backupisat99%diskusage.Whichimmediateaction
+clearsspacewithoutdeletingcustomerdata?
+A)Deleteold logfilesin/var/log/
+B)Deletetheoldestincrementalbackupsfrom/backup/per theWHMbackupretention policy—keepingat
+leastthemostrecentfullbackup
+C)Terminatesuspendedaccounts
+D)Disablethebackupsystem
+✔ Answer:B)Delete old incrementalbackupswhileretainingatleastthemost recentfull
+backup
+Explanation:The/backupdirectoryfills withdailyincrementaland weeklyfullbackups.Deletingold
+incrementalbackups(beyond theretention policy) freesspaceimmediately withoutlosingcurrentdata.In
+WHM→BackupConfiguration,reviewandreducethenumber ofretained dailybackups(e.g.,from10to5).
+Thenmanually deleteoldbackupfilesfrom/backup/thatarebeyondthe newretention window.Never delete
+themostrecentfullbackupbeforeverifying amorerecentfullbackupexists.
+5.2.2 DirectAdminCertificationPreparation
+CertificationOverview
+Item Detail
+Format Onlineassessment—multiplechoicequestions
+Topics Serversetup,resellermanagement,DNS configuration,emailadministration,
+security,PHPconfiguration,backupandrestoration
+StudyResources directadmin.com/documentation,DirectAdmincommunityforums,thistextbook
+Section2and3DirectAdmincontent
+PracticalEmphasis DirectAdminvaluespracticalknowledge—expectfilepathquestions,panel
+navigation,andconfigurationsyntax
+WheretoRegister directadmin.com/certification(checkcurrentavailabilityandpricing)
+DirectAdminHigh-PriorityKnowledgePoints
+• Three-tierhierarchy: Admin→Reseller→Userandwhat eachtier cando
+• Webrootlocation:~/domains/yourdomain.com/public_html/—the single mosttestedstructural
+difference
+• AdminPanel→PHPConfiguration →selectinghandler, PHPversions,configuringphp.ini
+• DirectAdminAPI format:POST toCMD_API_ACCOUNT_USER with action=create forprovisioning
+• BruteForceMonitor: AdminPanel→BruteForceMonitor—configurationand whitelisting
+• Emailloglocation:/var/log/exim/mainlog(differs fromcPanel's /var/log/exim_mainlog)
+• DAbackupformat and how torestore: AdminBackup/Transfersection
+• CSFinstallation and integration with DirectAdmin
+• Let'sEncrypt auto-SSL:Admin Panel→SSLCertificates →enableACME client
+• DKIM configuration:E-Mail Management→DKIM Keys
+ DA-1:ADirectAdminuseraskswhytheycannotaccesstheirwebsitefilesat
+~/public_html/.Whatdoyoutellthem?
+A)Theserveruses adifferentusername
+B)DirectAdminstoreswebsitefilesat~/domains/yourdomain.com/public_html/—there isno~/public_html/
+shortcutasin cPanel
+C)Theyneedtoenable FTPfirst
+D)Thepublic_htmldirectorymustbecreatedmanually
+✔ Answer:B)DirectAdmin uses~/domains/yourdomain.com/public_html/
+Explanation:Thisisthe singlemostcommonlyconfusedDirectAdminstructuralpoint.UnlikecPanelwhere
+theprimarydomain's webrootis~/public_html/(directly inthehomedirectory),DirectAdminusesadomain-
+centricstructurewheretheprimarydomain'swebrootis ~/domains/yourdomain.com/public_html/.This
+meansthefullpathis/home/username/domains/yourdomain.com/public_html/. Eachadditionalhosted
+domainfollows thesamepatternunder ~/domains/.
+5.2.3 PleskProfessionalCertificationPreparation
+CertificationOverview
+Item Detail
+AvailableCerts PleskAdministrator(Onyx/Obsidianversions)
+Format Onlinescenario-basedexamviaPleskUniversity
+Topics Serversetup,subscriptionmanagement,serviceplans,mailserver, WordPress
+Toolkit,security(Fail2Ban,ModSecurity), API,extensions
+StudyResources university.plesk.com, docs.plesk.com,thistextbookSection2and3Pleskcontent
+Registration university.plesk.com—freecoursesavailable;certificationexamhasafee
+PracticalLabs PleskUniversityincludeshands-onlabsinalivePleskenvironment —highly
+recommended
+PleskHigh-PriorityKnowledgePoints
+• Four-tierhierarchy: Admin→Reseller→ Customer→DomainUser
+• Webrootlocation:~/httpdocs/(Linux)—distinguishfrom cPanel and DA
+• WordPressToolkit:whatitdoes natively(install, update,stage, clone,securitycheck,mass
+management)
+• ServicePlans vs Subscriptions:plan defines resources,subscription isthe actualinstance
+• PleskCLIcommands:plesk bin subscription,plesk bin mail,pleskbin database,plesk bin extension
+• Fail2Ban configuration:Tools&Settings→Security →Fail2Ban—jailconfigurations
+• ModSecurityin Plesk:Tools &Settings →Security→WebApplicationFirewall
+• Let'sEncrypt renewal:plesk bin extension --execletsencryptcli.php -ddomain.com
+• PleskFirewall:Tools&Settings →Security →Firewall —opening/closingports
+• BackupManager:Tools&Settings→BackupManager—configuration,schedule,remote storage
+• Nginx +Apachestack:Tools&Settings →Apache&nginxSettings —staticfile serving,FastCGI
+cache
+ Plesk-1:APlesksubscription'swebsiteisnotloadingandyouconfirmthesubscription
+isnotsuspended.Thedomain'sDNSiscorrect.Whatisthemostlikelynextdiagnostic
+step?
+A)ReinstallPlesk
+B)Check theApache/Nginx errorloginPlesk→Websites&Domains→domain→Logs,andverifythe
+subscription'shostingsettingsshowthecorrectdocumentroot(/httpdocs/)
+C)Deleteandrecreatethesubscription
+D)Restartthe entireserver
+✔ Answer:B)Check the PleskLogs section forthe subscriptionandverify hostingsettings
+Explanation:InPlesk,eachsubscriptionhasits ownApache/Nginxvirtualhostconfiguration.Common
+causesofanon-loadingsite:(1)Thedocumentrootis incorrectlyconfigured —Plesk→Subscription→
+HostingSettings →DocumentRootshouldshow/httpdocs/.(2)Apache/Nginx errorlog showsaPHPfatal
+errororpermissiondenied.(3)Thesubscription's PHPhandler hasamisconfiguration.CheckPlesk→
+Websites&Domains→Logs first—itshows theApacheandNginxerrorlogsforthatspecific subscription.
+5.3 30-DayCertificationStudyPlan
+DayRange FocusArea DailyGoal StudyResources
+Days1–3 Refresh:Control Panel
+Architecture
+Re-readSection1.4—drawthe
+architecturediagramforallthree
+panelsfrommemory
+Section1ofthistextbook
+Days4–6 DNSandEmail
+Fundamentals
+MemoriseallDNSrecordtypes
+andtheirpurpose;configure
+SPF+DKIM+DMARCfromscratch
+onatestdomain
+Sections1.3, 3.4
+Days7–9 ServerSetupand
+Configuration
+CompletethefullWHM/DA/Plesk
+initialsetupchecklistwithout
+referringtonotes
+Section2.1
+Days10–12 AccountLifecycleand
+Packages
+Create20testaccountsviaAPI
+usingbashscripts;deleteviaAPI
+Sections2.2, 2.3,3.3
+Days13–15 SecurityDeepDive InstallandconfigureCSFontest
+server;configureFail2Banjails;
+enableModSecurity;runSecurity
+Advisor
+Sections2.4, 3.4
+Days16–18 PHPandPerformance ConfigurePHP-FPM, OPcache,
+Redisontestserver; benchmark
+before/after
+Sections2.5, 3.5
+Days19–21 Backup,Restore,
+Migration
+Performafullmigration: cPanel→
+PleskusingMigrationManager;
+verifyeveryelement
+Sections3.1, 3.2
+Days22–24 WordPressMastery CompleteCapstoneExercisein
+Section5.1;useWP-CLIforall
+configuration
+Section5.1
+Days25–27 FullPracticeQuiz
+Session
+Completeallquizzes inthis
+textbooktwicewithoutnotes;score
+yourselfhonestly
+Allquizsections
+Days28–29 WeakAreaReview Focusonthelowest-scoringquiz
+domains;re-readthosesections
+Targetedreview
+Day30 RestandConfidence Lightreviewonly.Review
+diagramsandcommandquick-
+Appendices
+reference.Sleepwellbeforeexam.
+5.4 Comprehensive FinalExamination—Section5
+Capstone
+Completethisexaminationindependentlybeforereviewingtheanswers.Allowyourself90minutes—
+thesameastheCPPexam.Scoreyourselfhonestly.
+ Final-1:Aserver'sloadaverageis45onan8-coreserver.'top'showsMySQL
+consuming600%CPU.'mysqladminprocesslist'shows200queriesinstate'Waitingfor
+tablelock'.Whatishappeningandwhatdoyoudo?
+A)RestartMySQLimmediately
+B)Atablelockdeadlockisoccurring—likely causedbyaheavily-traffickedWordPresssitewithmissing
+databaseindexesorapluginrunning anunoptimisedquery. Identifythedatabaseviaprocesslist,check
+whichWordPressaccountowns it,optimizethe tables,andinvestigatetheplugincausing lockcontention.
+C)MySQLneedsmoreRAM
+D)Deleteandrecreatethedatabases
+✔ Answer:B)Table lockdeadlock from unoptimisedqueries —investigate andoptimise
+Explanation:TablelocksinMySQLoccurwhen along-runningqueryholds alockthatotherqueries are
+waitingfor.Thefixsequence:(1)RunKILL[process_id]inMySQLtoendtheoffendingqueryand
+immediatelyreleasethelock.(2)Identifywhichapplication(WordPressplugin)generates theproblematic
+query. (3)RunOPTIMIZETABLE ontheaffectedtables.(4)Check formissingindexes:EXPLAIN
+SELECT...onthe slowquery.(5)Consider enablingtheMySQLslowquerylog tocatchfutureoccurrences.
+ Final-2:Aclientcontactsyousayingtheirdomainemailsuddenlystoppedworking.
+Theychangednothing.YouchecktheDNSzoneandtheMXrecordstillpointstoyour
+server.Eximisrunning.Whatfive-stepdiagnosticdoyoufollow?
+A)Reinstalltheemailserver
+B)(1)Check Dovecotisrunningandacceptingconnectionsonport993/995.(2)Checkdisk quota —afull
+mailboxacceptsnonewmailandbounces inbound.(3)CheckEximmainlogforthelastreceivedemailfor
+thedomain.(4)Check ifthe domain's emailroutingincPanelwasaccidentally changedto'Remote'.(5)
+CheckifSPF/DKIMchangedandifatestemail showsrejectionwith anauthfailure.
+C)Deleteandrecreatetheemailaccount
+D)ChangetheMXrecord
+✔ Answer:B)Five-stepdiagnostic: Dovecot,quota,Eximlog,emailrouting,SPF/DKIM
+Explanation:Eachsteptargetsadistinctfailuremode.Dovecotdown=IMAP/POP3refusesclient
+connectionseven thoughEximisrunning.Full disk/quota=inboundmailbounces eventhough theserver
+andDNSarecorrect.Eximlog=shows thelastdelivery attemptandanyrejectionreason. Emailroutingset
+toRemote=Eximforwards inboundmailtoaremoteserver thatdoesn'texist.SPF/DKIMchanges=some
+recipients'servers nowrejectmailasunauthenticated.
+ Final-3:YoureceiveaDMCAtakedownnoticeidentifyingaspecificURLonaclient's
+sharedhostingaccount.Theclientiscurrentlypayingandhasnootherviolations.Whatis
+thelegallyandprofessionallycorrectresponse?
+A)Immediately terminatetheclient'saccountwithout notice
+B)Immediately takedown thespecificinfringingURL(rename/removethefile),notifytheclientoftheDMCA
+complaintandtheactiontaken,documenteverything,informthecopyrightholder oftheremediation,and
+warntheclientthatrepeatviolationsmayresultinaccounttermination
+C)Ignorethenotice—theclient'scontractsays their contentis their responsibility
+D)Forwardthenoticetotheclientand takenoactionyourself
+✔ Answer:B)Remove infringing content,notify client,document,inform copyrightholder
+Explanation:Asahostingprovider,youmustactonvalidDMCAnoticespromptly orrisklosingsafeharbour
+protectionundercopyright law.Thecorrectsequence:(1)Disableaccesstothespecificinfringingcontent
+(nottheentireaccount).(2)Notifytheclientexplainingthecomplaintandactiontaken.(3)Documentthe
+notice,your response,andtimestamps.(4)Respondtothecopyrightholder confirmingcontentremoval.(5)
+Warntheclientthatrepeatviolations per your AUPwillresultintermination.Theclienthas theright tofilea
+counter-noticeifthey believethetakedownis wrongful.
+ Final-4:YouareaskedtomigrateaclientfromaDirectAdminservertoaPleskserver.
+ThesiteisaWooCommercestoredoingabout200ordersperday.Walkthroughyour
+completemigrationplan.
+A)Copy thefilesand restartApache
+B)(1)LowerDNSTTLto300seconds48hrsbefore.(2)FullbackupofDAaccount.(3)Create subscription
+onPlesk.(4)Syncfilesviarsync.(5)Export MySQL,importtoPlesk.(6)Updatewp-config.phpwithnewDB
+credentials.(7)UpdateWordPresssiteurl/homeviaWP-CLIifneeded.(8)Testviahostsfileedit.(9)Enable
+maintenancemodeinWooCommerce.(10)CutoverDNS.(11) Monitor.(12)Verifyall 200+ dailyorders
+processcorrectlyonnewserver.
+C)ExporttheDirectAdminbackupandimportitintoPlesk
+D)PointthedomaintoPleskwithoutmovingfiles
+✔ Answer:B)Complete 12-step migrationplanwithWooCommerce-specificsteps
+Explanation:AWooCommercestorerequiresspecialcare:(1)The300-secondTTLmustbeset48hours
+aheadsotheTTLexpires globally beforemigrationday. (2)WooCommercestoresorder datainMySQL—
+databasemigrationmustbeflawless.(3)wp-config.phponPleskwillneedupdatedDB credentialsmatching
+Plesk'sdatabasesetup.(4)TestusinghostsfiletoverifycheckoutflowbeforeDNS cutover.(5)Enable
+WooCommercemaintenancemodeduringthebrief DNScutoverwindowtopreventordersbeing split
+betweenoldand newservers.(6)Aftercutover,verifypaymentgatewaywebhook URLsstill pointcorrectly
+(manypaymentgateways usethedomaininthewebhook URL).
+ Final-5:Afterasecurityaudit,youareaskedtoimplementtheprincipleofleast
+privilegeforallcPanelresellers.WhatdoesthismeaninpracticalcPanel/WHMterms?
+A)GiveallresellersfullWHMaccess
+B)ConfigureACLlistsin WHMthatgranteachreselleronly thespecific WHMfeaturesthey legitimatelyneed
+fortheirrole—e.g.,abilitytocreate/managetheirown accountsbutnotaccessotherresellers'accounts,
+changeserver configurations,installsoftware, orviewserver-widelogs
+C)Removeall reselleraccounts andrebuild asregular useraccounts
+D)Requireresellerstocontactadminforeveryaction
+✔ Answer:B)Configure ACL listsgrantingonly necessaryWHMfeatures perreseller
+Explanation:Leastprivilegemeanseachentity hasonlytheminimumaccessrequiredfortheirlegitimate
+function.InWHM,thisisimplemented throughACL(AccessControlList) definitions:WHM→Resellers →
+SetupReseller Accounts→assignanACL.TheACLcontrolsexactly whichWHMfeatures thereseller can
+seeand use.Awell-configuredreseller ACLallows:creating/suspending/terminating theirownaccounts,
+viewingtheirownserver resourceusage,managing DNSfortheir accounts,andmanagingSSLfortheir
+accounts.Itrestricts:accesstootherresellers'accounts,server-levelconfiguration,EasyApachechanges,
+firewallmanagement,kernelupdates,andWHM-level emailqueueaccess.
+APPENDICES—QUICKREFERENCEGUIDE
+Ports,FilePaths,Commands,Checklists,Glossary&TroubleshootingDecisionTrees
+A1 CompletePortReference—AllThreePanels
+Port Protocol Service cPanel/WHM DirectAdmin Plesk Notes
+21 TCP FTPControl Pure-FTPd ProFTPd/vsftpd ProFTPd/Pure-
+FTPd
+Dataconnectionuses
+passiverange
+22 TCP SSH OpenSSH OpenSSH OpenSSH Changefrom22forsecurity
+25 TCP SMTP(MTA-to-
+MTA)
+Exim Exim Postfix Blockoutboundfromuser
+scriptsviaCSF
+SMTP_BLOCK
+53 TCP/UDP DNS BIND(named) BIND(named) BIND(named) BothTCPandUDP
+required
+80 TCP HTTP Apache2.4 Apache2.4 Nginx+Apache
+orNginx
+Redirectallto443HTTPS
+110 TCP POP3 Dovecot Dovecot Dovecot Use995(POP3S)instead
+143 TCP IMAP Dovecot Dovecot Dovecot Use993(IMAPS)instead
+443 TCP HTTPS Apache2.4 Apache2.4 Nginx+Apache Primarywebport—always
+open
+465 TCP SMTPS(SSL) Exim Exim Postfix OutboundmailwithSSL
+wrapper
+587 TCP SMTP
+Submission
+Exim Exim Postfix Preferredoutboundport for
+emailclients
+993 TCP IMAPS Dovecot Dovecot Dovecot IMAP overSSL—always
+useover143
+995 TCP POP3S Dovecot Dovecot Dovecot POP3overSSL—always
+useover110
+2082 TCP cPanelHTTP cPanel DirectAdmin(alt) N/A Redirectto2083
+2083 TCP cPanelHTTPS cPanel N/A N/A PrimarycPaneluserport
+2086 TCP WHMHTTP WHM N/A N/A Redirectto2087
+2087 TCP WHMHTTPS WHM N/A N/A PrimaryWHMadminport
+2095 TCP WebmailHTTP Roundcube/Horde Roundcube N/A Redirectto2096
+2096 TCP Webmail
+HTTPS
+Roundcube/Horde Roundcube N/A Primarywebmailport
+2222 TCP DirectAdmin N/A AllDAlogins
+(Admin/Reseller/User)
+N/A Singleport forallDAaccess
+levels
+3306 TCP MySQL MySQL/MariaDB MySQL/MariaDB MySQL/MariaDB Bindtolocalhostonly—
+neverexposeexternally
+unlessneeded
+8080 TCP PleskHTTP N/A N/A PleskPanel Redirectto8443
+8443 TCP PleskHTTPS N/A N/A PleskPanel
+(Admin+User)
+PrimaryPleskport
+8880 TCP PleskHTTP (alt) N/A N/A PleskPanel
+HTTP
+Redirectto8443
+49152–65535 TCP FTPPassive
+Range
+Pure-FTPd ProFTPd ProFTPd Mustbeopeninfirewallfor
+passiveFTP
+A2 CriticalFileandDirectoryPaths—AllThreePanels
+Feature/
+Area
+cPanel/WHM DirectAdmin Plesk
+Primary
+WebRoot
+~/public_html/ ~/domains/domain.com/public_ht
+ml/
+~/httpdocs/
+Secondar
+yDomain
+Root
+~/public_html/addondomain/
+(addondomainsubdir)
+~/domains/addondomain.com/pu
+blic_html/
+~/httpdocs/(eachdomainhasown
+subscriptionbydefault)
+Subdomai
+nRoot
+~/public_html/subdomain/ ~/domains/domain.com/public_ht
+ml/sub/
+~/subdomains/sub/httpdocs/
+Home
+Directory
+/home/username/ /home/username/ /var/www/vhosts/domain.com/
+Apache
+Config
+/usr/local/apache/conf/httpd.co
+nf
+/etc/httpd/conf/httpd.conf /etc/httpd/conf/httpd.conf
+Apache
+vHost
+Configs
+/usr/local/apache/conf/userdat
+a/(per-useroverrides)
+/etc/httpd/conf.d/virtual.conf /etc/httpd/conf.d/(perdomain)
+Apache
+ErrorLog
+/usr/local/apache/logs/error_lo
+g
+/var/log/httpd/error_log /var/www/vhosts/domain.com/logs/e
+rror_log
+Apache
+Access
+Log
+/usr/local/apache/domlogs/do
+main.com
+/var/log/httpd/domain.com-
+access.log
+/var/www/vhosts/domain.com/logs/a
+ccess_log
+Nginx
+Config
+(Plesk)
+N/A N/A /etc/nginx/nginx.conf
+Exim
+Config
+/etc/exim.conf /etc/exim.conf N/A(Postfix)
+Exim
+MainLog
+/var/log/exim_mainlog /var/log/exim/mainlog N/A
+Postfix
+Config
+N/A N/A /etc/postfix/main.cf
+Postfix
+Log
+N/A N/A /var/log/maillog
+Dovecot /etc/dovecot/dovecot.conf /etc/dovecot/dovecot.conf /etc/dovecot/dovecot.conf
+Config
+Dovecot
+Log
+/var/log/dovecot.log /var/log/dovecot.log /var/log/dovecot.log
+MySQL
+DataDir
+/var/lib/mysql/ /var/lib/mysql/ /var/lib/mysql/
+MySQL
+ErrorLog
+/var/lib/mysql/hostname.err /var/log/mysqld.log /var/log/mysqld.log
+PHP-FPM
+Config
+/opt/cpanel/ea-
+php81/root/etc/php-fpm.d/
+/usr/local/php81/etc/php-fpm.d/ ManagedbyPleskpersubscription
+PHP.ini
+(system-
+wide)
+/opt/cpanel/ea-
+php81/root/etc/php.ini
+/usr/local/php81/etc/php.ini /etc/php81/fpm/php.ini
+CSF
+Config
+/etc/csf/csf.conf /etc/csf/csf.conf N/A
+CSF
+Whitelist
+/etc/csf/csf.allow /etc/csf/csf.allow N/A
+CSF
+BlockList
+/etc/csf/csf.deny /etc/csf/csf.deny N/A
+Fail2Ban
+Config
+N/A N/A /etc/fail2ban/jail.conf
+Fail2Ban
+Jails
+N/A N/A /etc/fail2ban/jail.d/
+SSH
+Config
+/etc/ssh/sshd_config /etc/ssh/sshd_config /etc/ssh/sshd_config
+BIND
+DNS
+Zones
+/var/named/ /var/named/ /var/named/
+Let's
+Encrypt
+Certs
+/etc/letsencrypt/live/domain.co
+m/
+/etc/letsencrypt/live/domain.com/ /etc/letsencrypt/live/domain.com/
+Default
+Backup
+Dir
+/backup/(configurablein
+WHM)
+~/backups/(peruser) /var/lib/psa/dumps/
+cPanel/W
+HMLogs
+/usr/local/cpanel/logs/ N/A N/A
+ModSecur
+ityAudit
+Log
+/var/log/modsec_audit.log /var/log/modsec_audit.log /var/log/modsec_audit.log
+A3 EssentialSSHCommandReference
+A3.1 FileSystemandPermissions
+# Navigation
+pwd # Show current directory
+ls -lah # List with sizes, permissions, hidden files
+cd /home/username/public_html # Change directory
+find /home -name '*.php' -mtime -1 # PHP files modified in last 24 hours
+find /home -perm -o+w -type f # World-writable files (security risk)
+find /home -name 'wp-config.php' # Locate all WordPress configs
+# Permissions
+chmod 755 /home/user/public_html/ # Set directory permission
+chmod 644 /home/user/public_html/index.php
+find /home/user/public_html -type d -exec chmod 755 {} \; # All dirs to 755
+find /home/user/public_html -type f -exec chmod 644 {} \; # All files to 644
+chown -R username:username /home/username/ # Fix ownership (after root file ops)
+# Disk Usage
+df -h # Disk space on all mounts
+du -sh /home/* | sort -h # Home directory sizes, sorted
+du -sh /var/log/* | sort -h # Log file sizes
+du -sh * | sort -h | tail -20 # Largest items in current dir
+A3.2 ServiceManagement
+# Apache
+systemctl status httpd # Check status
+systemctl restart httpd # Full restart
+systemctl reload httpd # Graceful reload (no downtime)
+apachectl configtest # Test Apache config before restart
+apachectl fullstatus # Detailed status with connection counts
+# MySQL/MariaDB
+systemctl status mysql # Check status
+systemctl restart mysql # Restart MySQL
+mysql -u root -p # Connect as root
+mysqladmin -u root -p status # Quick status
+mysqladmin -u root -p processlist # Active queries
+mysqldump -u root -p dbname > db.sql # Export database
+mysql -u root -p dbname < db.sql # Import database
+# Exim (cPanel/DA)
+systemctl status exim # Check status
+exim -bp # View mail queue
+exim -bp | wc -l # Count queued messages
+exim -qff # Force queue flush
+exim -Mrm MESSAGE_ID # Delete one message
+exiqgrep -f sender@domain.com -i | xargs exim -Mrm # Delete by sender
+exigrep 'domain.com' /var/log/exim_mainlog | tail -50 # Search log
+# Postfix (Plesk)
+systemctl status postfix # Check status
+postqueue -p # View mail queue
+postqueue -f # Flush queue
+postsuper -d ALL deferred # Delete all deferred messages
+grep 'domain.com' /var/log/maillog | tail -50 # Search log
+# Dovecot
+systemctl status dovecot # Check status
+doveadm who # Show logged-in IMAP/POP3 users
+# DNS (BIND)
+systemctl status named # Check status
+rndc reload # Reload zone files without restart
+rndc flush # Flush DNS cache
+# FTP
+systemctl status pure-ftpd # cPanel FTP status
+systemctl status proftpd # DA/Plesk FTP status
+A3.3 SecurityCommands
+# CSF Firewall (cPanel/DA)
+csf -l # List all blocked IPs
+csf -d 1.2.3.4 'Brute force' # Block an IP permanently
+csf -dr 1.2.3.4 # Unblock an IP
+csf -a 1.2.3.4 'Office IP' # Whitelist an IP
+csf -g 1.2.3.4 # Check if IP is blocked
+csf -r # Restart CSF
+csf -x # Disable CSF (use for emergency access)
+csf -e # Re-enable CSF
+# Fail2Ban (Plesk)
+fail2ban-client status # Overall status
+fail2ban-client status sshd # SSH jail status
+fail2ban-client set sshd unbanip 1.2.3.4 # Unban IP from SSH jail
+fail2ban-client banned # All currently banned IPs
+# Malware Scanning
+clamscan -ri /home/user/public_html/ # Recursive infected-only scan
+grep -r 'eval(base64_decode' /home --include= '*.php' # Find obfuscated PHP
+grep -r 'FilesMan' /home --include= '*.php' # Find PHP web shells
+grep -r 'c99shell' /home --include= '*.php' # Another common shell
+# SSL Certificate Check
+echo | openssl s_client -connect domain.com:443 2>/dev/null | openssl x509 -noout -
+dates # Cert expiry
+openssl verify -CAfile /etc/ssl/certs/ca-certificates.crt /path/to/cert.crt #
+Verify cert chain
+A3.4 PerformanceandMonitoring
+# Real-time Monitoring
+top # Process monitor
+htop # Enhanced process monitor
+iotop # Disk I/O by process
+iftop # Network bandwidth by connection
+uptime # Load averages (1/5/15 min)
+free -m # Memory usage in MB
+vmstat 1 10 # VM stats, 10 readings 1s apart
+# Network
+ss -tulnp # All listening ports and processes
+netstat -an | grep ESTABLISHED | wc -l # Count established connections
+ss -an | grep ':80' | wc -l # Count HTTP connections
+# MySQL Performance
+mysql -u root -p -e 'SHOW STATUS LIKE "Threads_connected";' # Active connections
+mysql -u root -p -e 'SHOW PROCESSLIST;' # Running queries
+mysql -u root -p -e 'SHOW GLOBAL STATUS LIKE "Slow_queries";' # Slow query count
+# Apache Performance
+ps aux | grep httpd | wc -l # Count Apache processes
+apachectl status | grep 'requests currently' # Current request count
+# CloudLinux LVE
+lvetop # Real-time per-account LVE usage
+lvectl list # List all LVE configs
+lveinfo --user username --period= 1d # Usage history for one user
+lvectl set username --speed= 200 --pmem= 512M # Set LVE limits for user
+A4 Panel-SpecificAPIQuickReference
+A4.1 cPanelWHMAPI—CommonCalls
+Operation APICall
+Listallaccounts GET/json-api/listaccts
+Createaccount GET/json-
+api/createacct?username=u&domain=d.com&password=p&plan=pkg
+Suspendaccount GET/json-api/suspendacct?user=username&reason=Reason
+Unsuspendaccount GET/json-api/unsuspendacct?user=username
+Terminateaccount GET/json-api/removeacct?user=username
+Changepassword GET/json-api/passwd?user=username&password=newpass
+Changepackage GET/json-api/changepackage?user=username&pkg=newpkg
+Listpackages GET/json-api/listpkgs
+Get bandwidthusage GET/json-api/showbw?search=username
+CreateDNSzone GET/json-api/adddns?domain=d.com&ip=1.2.3.4
+ListDNSzones GET/json-api/listzones
+Get accountinfo GET/json-api/accountsummary?user=username
+RunAutoSSL GET/json-api/start_autossl_check?username=username
+A4.2 DirectAdminAPI—CommonCalls
+Operation Endpoint&Parameters
+Listusers GET/CMD_API_SHOW_USERS
+Createuser POST/CMD_API_ACCOUNT_USER→
+action=create&username=u&domain=d.com&passwd=p&package=pkg
+Suspenduser POST/CMD_API_SELECT_USERS→action=suspend&select0=username
+Unsuspenduser POST/CMD_API_SELECT_USERS→action=unsuspend&select0=username
+Deleteuser POST/CMD_API_SELECT_USERS→action=delete&select0=username
+Changepackage POST/CMD_API_CHANGE_USERS_PACKAGE →
+select0=username&package=newpkg
+Listpackages GET/CMD_API_MANAGE_USER_PACKAGES?action=list
+Createpackage POST/CMD_API_MANAGE_USER_PACKAGES→
+action=create&packagename=pkg&quota=10000&bandwidth=50000
+Serverstats GET/CMD_API_ADMIN_STATS
+Listresellers GET/CMD_API_SHOW_RESELLERS
+A4.3 PleskCLI—CommonCommands
+Operation Command
+Listsubscriptions pleskbinsubscription--list
+Createsubscription pleskbinsubscription--create-domaind.com-owneradmin-service-plan
+'Plan'
+Suspendsubscription pleskbinsubscription--suspend-subscription-named.com
+Unsuspendsubscription pleskbinsubscription--unsuspend-subscription-named.com
+Removesubscription pleskbinsubscription--remove-subscription-named.com
+Createemailaccount pleskbinmail--createuser@d.com-passwd'Pass!'
+Createdatabase pleskbindatabase--createdbname-subscription-named.com
+RenewSSL(onedomain) pleskbinextension--execletsencrypt cli.php-dd.com
+RenewSSL(alldomains) pleskbinextension--execletsencrypt cli.php--all
+UpdateallWordPress pleskbinwordpress-toolkit--update-all
+ListWordPressinstalls pleskbinwordpress-toolkit--list
+ClearNginxcache pleskbinnginx-cc
+Restartallservices pleskbinservices--restart-all
+Listserviceplans pleskbinservice-plan--list
+A5 SecurityHardeningMasterChecklist
+Applythischecklisttoeverynewserverbeforeplacingcustomeraccountsonit.Revisitquarterly.
+# Check cPanel/WHM DirectAdmin Plesk Priority
+1 ChangedefaultSSH
+port from22
+Edit
+/etc/ssh/sshd_config→
+Port2200
+Same Same Critical
+2 DisablerootSSH
+login
+PermitRootLoginnoin
+sshd_config
+Same Same Critical
+3 EnableSSHkeyauth
+only
+PasswordAuthentication
+noinsshd_config
+Same Same Critical
+4 Installandconfigure
+firewall
+InstallCSF→set
+TESTING=0
+InstallCSF EnablePleskFirewall
++Fail2Banextension
+Critical
+5 Enablebruteforce
+protection
+WHM→cPHulk→
+Enable
+Admin→BruteForce
+Monitor→Enable
+Tools&Settings→
+Fail2Ban→Enable
+Critical
+6 EnableAutoSSL/
+Let'sEncrypt
+WHM→Manage
+AutoSSL→Enable
+Admin→SSL→
+EnableLet'sEncrypt
+InstallLet'sEncrypt
+extension→Enable
+Critical
+7 EnableModSecurity
+WAF
+WHM→ModSecurity
+→EnableOWASP
+CRS
+Admin→ModSecurity
+→Enable
+Tools&Settings→
+WAF→Enable
+ModSecurity
+High
+8 Disabledangerous
+PHPfunctions
+WHM→MultiPHPINI
+Editor→
+disable_functions
+Admin→PHPConfig
+→disable_functions
+Tools&Settings→
+PHP→
+disable_functions
+High
+9 EnableCloudLinux
+CageFS
+WHM→CageFS→
+Enable
+Admin→CloudLinux
+→EnableCageFS
+Tools&Settings→
+CloudLinux→Enable
+High
+10 SetSMTP block WHM→Tweak
+Settings→SMTP
+RestrictionsON
+CSF→
+SMTP_BLOCK=1
+CSForFail2Ban
+postfixjail
+High
+11 Configureautomated
+backups
+WHM→Backup→
+Enable+remotedest
+Admin→Backup→
+Enable+FTP/S3
+BackupManager→
+Enable+remotedest
+High
+12 EnableSPF/DKIM
+defaults
+WHM→EximConfig→
+enableSPF/DKIMby
+default
+Admin→Email
+Settings→enable
+SPF/DKIM
+MailSettings→
+EnableDKIMglobally
+High
+13 Setstrongpassword
+policy
+WHM→Tweak
+Settings→password
+strength65+
+Admin→
+AdministratorSettings
+→passwordpolicy
+Tools&Settings→
+PasswordStrength→
+High
+Medium
+14 Enable2FAforadmin
+logins
+WHM→Security→
+Two-FactorAuth
+Admin→Two-Factor
+Auth→Enable
+Tools&Settings→
+Security→2FA→
+Enable
+Medium
+15 Schedulemalware
+scanning
+InstallImunify360or
+configureClamAVcron
+InstallImunify360or
+ClamAVcron
+PleskAntivirus
+extensionorClamAV
+cron
+Medium
+16 MonitorIPblacklists ConfigureHetrixTools
+orMXToolbox
+monitoring
+Same Same Medium
+17 Disabledirectory
+browsing
+WHM→ApacheConfig
+→Options-Indexes
+Add'Options-Indexes'
+toApacheconfig
+Plesk→Apache
+settings→disable
+directorylisting
+Medium
+18 Configurelogrotation WHM→ServerConfig
+→logrotation
+logrotateconfigin
+/etc/logrotate.d/
+Pleskmanageslog
+rotationautomatically
+Low
+A6 TroubleshootingDecisionTrees
+A6.1 WebsiteNotLoading—DecisionTree
+Step Question IfYES IfNO
+1 Isthedomain'sDNS
+resolving?(digdomain.com
+A)
+ProceedtoStep2 FixDNS:checkArecordinpanel,waitfor
+propagation
+2 Istheserverreachable?(ping
+server-ip)
+ProceedtoStep3 Checkfirewall—CSF/Fail2Banmay have
+blockedyourIP.Checkifserverisdown.
+3 IsApache/Nginxrunning?
+(systemctlstatushttpd)
+ProceedtoStep4 StartApache:systemctlstarthttpd.Check
+errorlogforwhyitstopped.
+4 Istheaccountactive(not
+suspended)?
+ProceedtoStep5 UnsuspendaccountinWHM/DA/Pleskor
+checkifover-quota
+5 Doestheerrorlogshowa
+PHPerror?
+FixPHPerror:checkplugin
+conflicts,PHPversion,memory
+limit
+ProceedtoStep6
+6 Isdiskspaceavailable?(df-
+h)
+ProceedtoStep7 Freediskspace:deleteoldlogs,backups,or
+upgradediskquota
+7 Does.htaccesshavea
+syntaxerror?
+Fix.htaccesssyntaxerroror
+renametotest
+ProceedtoStep8
+8 Isthewebroot correctand
+filespresent?
+ProceedtoStep9—escalate Filesmissingfromwebroot—restorefrom
+backup
+A6.2 EmailNotDelivering—DecisionTree
+Step Question IfYES IfNO
+1 AreMX recordscorrect?(dig
+domain.comMX)
+ProceedtoStep2 FixMXrecords inDNSzone—pointtomail
+serverhostname
+2 Isthemailserverrunning?
+(systemctlstatus
+exim/postfix)
+ProceedtoStep3 Startmailserver. Checklogsforcrashcause.
+3 IstheserverIPblacklisted?
+(mxtoolbox.com)
+URGENT:identifyspam
+source,suspend,request
+delisting
+ProceedtoStep4
+4 DoesSPFrecordauthorise
+theserver IP?
+ProceedtoStep5 AddserverIPtoSPFrecord:ip4:server.ip~all
+5 IsDKIMsigningenabledand
+verified?
+ProceedtoStep6 EnableDKIMinpanel.Verifywithdig
+default._domainkey.domain.comTXT
+6 Istherecipient'smailboxfull? Recipientmustfreespaceor
+increasequota
+ProceedtoStep7
+7 DoesExim/Postfixlogshowa
+deliveryattempt?
+Checktheerrorcodeinthe
+logline
+Nologentry—Exim/Postfixisnotaccepting
+fromthesender.Checkfirewallports.
+A6.3 HighServerLoad—DecisionTree
+Step Question/Action Next Step
+1 Run'top'or'htop'—whatis
+thetopprocessconsuming
+CPU?
+IfApache:gotoStep2.IfMySQL: gotoStep3.IfPHP-FPM: gotoStep4.If
+Exim/Postfix:gotoStep5.
+2 ApachehighCPU—run
+'apachectlfullstatus'.How
+manyrequestsareactive?
+IfnearMaxClients:checkCloudLinuxLVEwithlvetop. Identifyaccount.
+Considersuspendingtemporarily.
+3 MySQLhighCPU—run
+'mysqladminprocesslist'.Any
+slowqueries?
+Killlong-runningqueries(KILLquery_id). Enableslowquerylog.Checkfor
+missingindexes.
+4 PHP-FPMhighCPU—run
+'lvetop'.Whichaccount?
+Identifytheaccount.Checktheirerrorlog.Lookforinfiniteloops,compromised
+PHPfiles.
+5 Exim/PostfixhighCPU—run
+'exim-bp|wc-l'or
+'postqueue-p|wc-l'
+Ifqueue>500:spamdetected.Identifysender,suspendaccount,deletespam
+queuemessages,checkblacklists.
+6 Suspendtheoffending
+accountifitisimpactingother
+customers
+Investigaterootcause.Notifyaccountowner. Donotunsuspenduntilissue
+resolved.
+A7 Comprehensive Glossary
+Term Definition
+ACL(AccessControl
+List)
+InWHM, alistofpermittedfeaturesassignedtoareselleraccount—controlswhichpartsof
+WHMtheycanaccess
+ACMEProtocol AutomatedCertificateManagementEnvironment—theprotocolusedbyLet'sEncrypt for
+automatedSSLcertificateissuanceandrenewal
+AddonDomain cPanelfeatureallowingadditionaldomainstobehostedonthesameaccount,eachwithits
+ownwebrootsubdirectory
+AutoSSL cPanel'sautomatedSSLcertificatemanagementsystem—usesACME/Let's Encryptto
+issueandauto-renewDVcertificates
+BIND BerkeleyInternetNameDomain—theDNSserversoftwareinstalledbydefaultonallthree
+Linuxpanels
+cPanel Theend-userhostingcontrolpanel(runsonport2083)—thecustomer-facinglayerofthe
+cPanel/WHMproduct
+CageFS ACloudLinuxfeaturethatcreatesavirtualisedfilesystemperaccount,preventingaccounts
+fromseeingeachother'sfiles
+CGI CommonGatewayInterface—anolderPHPexecutionmethodthatspawnsanewprocess
+perrequest(slowandresource-heavy —avoidinproduction)
+CloudLinux ALinuxdistributionlayeredontopofCentOS/AlmaLinuxthat addsLVEper-account
+resourcelimits,CageFS,andPHPSelector
+CNAME CanonicalNameDNSrecord—createsadomainaliaspointingtoanotherdomainname
+(neverdirectlytoanIPaddress)
+CSF ConfigServerSecurity&Firewall—aniptables-basedfirewallwidelyusedwithcPaneland
+DirectAdminservers
+cpmoveFile ThecPanelbackupfileformat—a.tar.gzarchivenamedcpmove-username.tar.gz
+containingallaccountdata
+DKIM DomainKeysIdentifiedMail—acryptographicemailauthenticationstandardthataddsa
+verifiabledigitalsignaturetooutboundemail
+DMARC Domain-basedMessageAuthenticationReportingandConformance—apolicylayerontop
+ofSPFandDKIMthattellsreceiverswhattodowithfailedemails
+Dovecot TheIMAP andPOP3serverusedbyallthreepanelstohandleemailretrieval byclient
+applications
+EasyApache4 cPanel'sApacheandPHPbuildsystem—usedinWHMtoinstallPHPversions,extensions,
+andApachemodules
+Exim TheMailTransferAgent(MTA)usedbydefaultoncPanelandDirectAdminservers for
+sendingandreceivingemail
+Fail2Ban AnintrusionpreventionsystemthatmonitorslogfilesandbansIPsshowingmalicious
+patterns—primaryfirewalltoolforPlesk
+FPM FastCGI ProcessManager—therecommendedPHPhandlerforallthreepanels,providing
+per-accountprocessisolationandpersistentworkers
+FQDN FullyQualifiedDomainName—acompletedomainnameincludingalllabels:
+server1.hostafrica.com(not just'server1')
+FTPS FTPoverSSL/TLS—anencryptedvariant ofFTP;preferSFTPwhichusesSSHencryption
+instead
+HTAccess Apacheper-directory configurationfile(.htaccess)—usedforURLrewriting,accesscontrol,
+andcustomerrorpages
+IMAP InternetMessageAccessProtocol—emailretrieval protocolthatkeepsmessagesonthe
+server(recommendedoverPOP3)
+Imunify360 AcommercialserversecurityplatformbyCloudLinuxthatprovidesreal-timemalware
+scanning,WAF,andproactivedefence
+LVE LightweightVirtualEnvironment—CloudLinux'sper-accountresourceisolationmechanism
+controllingCPU, RAM,I/O,andprocesses
+ModSecurity AnApacheWebApplicationFirewallmodulethatinspectsHTTP requestsagainstsecurity
+rulesets
+MTA MailTransferAgent—theserversoftwareresponsibleforsendingandreceivingemail.Exim
+(cPanel/DA)andPostfix(Plesk)
+MXRecord MailExchangerDNS record—specifieswhichmail serverhandlesemailforadomain,with
+prioritynumbers
+Nginx Ahigh-performancewebserverandreverseproxyusedbyPleskasthefront-endlayer,
+servingstaticcontentdirectly
+NSRecord NameServerDNSrecord—specifieswhichDNSservers areauthoritativeforadomain
+OPcache PHPbytecodecache—storescompiledPHPinmemorysoeachrequestskipscompilation,
+dramaticallyimprovingperformance
+OVCertificate OrganisationValidatedSSLcertificate—includesverifiedcompanyinformationinadditionto
+domainownershipproof
+PHP-FPM FastCGI ProcessManager—therecommendedPHPexecutionhandleronallthreepanels
+Plesk Enterprise-gradehostingcontrolpanelbyWebPros—supportsLinuxandWindows,
+includesWordPressToolkit
+POP3 PostOfficeProtocolv3—emailretrieval protocolthatdownloadsanddeletesmessages
+fromserver(useIMAP instead)
+Postfix TheMailTransferAgentusedbydefaultonPleskLinuxservers
+PTRRecord Pointerrecord—reverseDNSrecordthatmapsanIPaddresstoahostname;criticalfor
+emaildeliverability
+RBL RealtimeBlockList—aDNS-basedblacklistofIPaddressesknowntosendspam;mail
+serversqueryRBLstofilterinboundemail
+Redis Anin-memorydatastructurestoreusedasanobjectcacheforWordPressandotherPHP
+applications
+Reseller Ahostingtierwhereanaccountholdercancreateandmanagesub-accounts,typicallyusing
+WHM(cPanel)ortheresellerpanel(DA/Plesk)
+RPO RecoveryPointObjective—themaximumacceptableamount ofdatalossmeasuredintime
+(e.g.,24hourswithdailybackups)
+RTO RecoveryTimeObjective—themaximumacceptabledowntimebeforeservicemustbe
+restored
+SFTP SSHFileTransferProtocol—encryptedfiletransferusingtheSSHprotocolandport 22;
+preferredoverplainFTP
+SOARecord StartofAuthority—theDNSrecordcontainingadministrativeinformationaboutaDNSzone
+Softaculous Anauto-installerscriptlibraryavailableforallthreepanelsthatenablesone-clickinstallation
+ofWordPress,Joomla,and400+apps
+SPF SenderPolicyFramework—aDNS TXTrecordspecifyingwhichmailservers areauthorised
+tosendemailforadomain
+SSH SecureShell—encryptedprotocolforremotecommand-lineaccesstoservers
+SSL/TLS SecureSocketsLayer/Transport LayerSecurity—cryptographicprotocolsthat encryptweb
+andemailconnections
+Subscription Plesk'stermforahostingaccountinstance—theequivalentofacPanelaccountora
+DirectAdminuseraccount
+TTL TimeToLive—thenumberofsecondsaDNSrecordiscachedbyresolvers beforetheyre-
+queryforanupdatedvalue
+UAPI cPanel'scurrentunifiedAPIforprogrammaticuser-levelaccountmanagement
+VPS VirtualPrivateServer—avirtualisedserverinstancewithdedicatedresourceallocations,
+isolatedfromotherVPSinstances
+WAF WebApplicationFirewall—securitylayerthatfiltersHTTP requestsagainstattack
+signatures(ModSecurityisthestandardimplementation)
+WHM WebHostManager—theserver-leveladministrationinterfaceforcPanelservers,accessed
+onport2087
+WHMCS WebHostManagerCompleteSolution—theleadingbilling,provisioning,andcustomer
+managementplatformforhostingcompanies
+WP-CLI Officialcommand-lineinterfaceforWordPressadministration—enablesscriptingand
+automationof WordPressmanagementtasks
+WordPressToolkit Plesk'sbuilt-inWordPressmanagement extension—providesone-clickinstall,bulkupdates,
+staging,securityscanning,andmore
+A8 ExamQuick-ReferenceCard
+Tearoutorscreenshotthispageforlast-minuterevisionbeforeyourcertificationexam.
+WebRoots—MemoriseThese
+Panel PrimaryDomainWeb Root FullAbsolutePath Example
+cPanel ~/public_html/ /home/username/public_html/
+DirectAdmin ~/domains/domain.com/public_html/ /home/username/domains/domain.com/public_html/
+Plesk(Linux) ~/httpdocs/ /var/www/vhosts/domain.com/httpdocs/
+CriticalPorts—MemoriseThese
+Port Service PanelAccess
+2083 cPanel(HTTPS) End-usercPanellogin
+2087 WHM(HTTPS) Serveradmin/resellerlogin
+2222 DirectAdmin AllDAlogins(admin, reseller,user)
+8443 Plesk(HTTPS) AllPlesklogins(admin,reseller,customer)
+25 SMTP Mailservertomailserver(blockfromusers)
+587 SMTPSubmission Emailclientssendoutboundmailhere
+993 IMAPS Emailclientsreceivemailhere(SSL)
+22 SSH Servercommand-lineaccess(changethisport!)
+MailQueueCommands—MemoriseThese
+Action Exim(cPanel/DA) Postfix(Plesk)
+Viewqueue exim-bp postqueue-p
+Countmessages exim-bp|wc-l postqueue-p|tail-1
+Flushqueue exim-qff postqueue-f
+Deleteonemessage exim-MrmMESSAGE_ID postsuper-dMESSAGE_ID
+Deletebysender exiqgrep-femail@domain.com-i|
+xargsexim-Mrm
+Nodirectequivalent—usepostsuper-d
+ALL(caution)
+Searchlog exigrep'term'/var/log/exim_mainlog grep'term'/var/log/maillog
+Three-PanelArchitectureSummary
+Feature cPanel/WHM DirectAdmin Plesk
+OSSupport AlmaLinux,CloudLinuxonly AlmaLinux,Debian,Ubuntu,
+CloudLinux
+Linux(any)+
+WindowsServer
+AdminPort 2087(WHM) 2222 8443
+UserPort 2083 2222 8443
+MTA Exim Exim Postfix(default)
+WebRoot ~/public_html/ ~/domains/d.com/public_html/ ~/httpdocs/
+BackupFormat cpmove-username.tar.gz DAbackuparchive PleskXML+data
+archive
+Firewall CSF(installseparately) CSF(installseparately) Fail2Ban+Plesk
+Firewall(built-in)
+WPToolkit Softaculous Softaculous/Installatron NativeWordPress
+Toolkit(best-in-class)
+APIStyle WHMAPI+UAPI(HTTP
+REST)
+JSONAPI(HTTPPOST) PleskCLI+REST
+API
+WindowsSupport No No Yes—unique
+advantage
+LicenceCost ~$20–45/server/mo ~$2–4/server/mo ~$15–30/server/mo
+BestCert cPanelProfessional(CPP) DirectAdminCertifiedAdmin PleskProfessional
+Certification
+EndofTextbook
+cPanel&WHM • DirectAdmin • Plesk
+HOSTAFRICAProfessionalTrainingProgramme—2026Edition
+©2026HOSTAFRICATrainingInstitute.Allrightsreserved.Forregisteredprogrammeparticipantsonly.
+Aligned with: cPanel v116+ | DirectAdmin 1.6x | Plesk Obsidian 18.x | Kenya DPA 2019

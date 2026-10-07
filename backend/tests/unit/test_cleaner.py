@@ -73,8 +73,7 @@ def test_clean_pages_full_pipeline_matches_verified_behavior() -> None:
         "AI Course Engine Textbook\n"
         "Continuing the discussion of systems theory in more depth.\n"
         "Multiple lines   with   irregular   spacing.\nPage 2",
-        "AI Course Engine Textbook\nFinal page wraps up chapter one.\n"
-        "Page 3",
+        "AI Course Engine Textbook\nFinal page wraps up chapter one.\nPage 3",
     ]
 
     cleaned = clean_pages(pages_text)

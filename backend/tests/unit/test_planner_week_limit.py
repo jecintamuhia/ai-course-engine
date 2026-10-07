@@ -57,9 +57,7 @@ def _config(total_weeks: int) -> PlanningConfig:
 
 
 def test_plan_never_exceeds_total_weeks() -> None:
-    topics = [
-        _topic(title=f"Topic {i}", workload=150) for i in range(1, 5)
-    ]
+    topics = [_topic(title=f"Topic {i}", workload=150) for i in range(1, 5)]
 
     weeks = FourMonthPlanner().plan(topics, [], _config(total_weeks=2))
 
@@ -69,9 +67,7 @@ def test_plan_never_exceeds_total_weeks() -> None:
 
 
 def test_plan_uses_all_available_weeks() -> None:
-    topics = [
-        _topic(title=f"Topic {i}", workload=300) for i in range(1, 4)
-    ]
+    topics = [_topic(title=f"Topic {i}", workload=300) for i in range(1, 4)]
 
     weeks = FourMonthPlanner().plan(topics, [], _config(total_weeks=3))
 
@@ -79,18 +75,14 @@ def test_plan_uses_all_available_weeks() -> None:
 
 
 def test_plan_raises_when_content_does_not_fit() -> None:
-    topics = [
-        _topic(title=f"Topic {i}", workload=200) for i in range(1, 5)
-    ]
+    topics = [_topic(title=f"Topic {i}", workload=200) for i in range(1, 5)]
 
     with pytest.raises(ValueError, match="does not fit"):
         FourMonthPlanner().plan(topics, [], _config(total_weeks=2))
 
 
 def test_plan_spills_overflow_within_limit() -> None:
-    topics = [
-        _topic(title=f"Topic {i}", workload=200) for i in range(1, 4)
-    ]
+    topics = [_topic(title=f"Topic {i}", workload=200) for i in range(1, 4)]
 
     weeks = FourMonthPlanner().plan(topics, [], _config(total_weeks=3))
 
@@ -98,9 +90,7 @@ def test_plan_spills_overflow_within_limit() -> None:
 
 
 def test_plan_pads_reaches_exactly_total_weeks() -> None:
-    topics = [
-        _topic(title=f"Topic {i}", workload=100) for i in range(1, 3)
-    ]
+    topics = [_topic(title=f"Topic {i}", workload=100) for i in range(1, 3)]
 
     weeks = FourMonthPlanner().plan(topics, [], _config(total_weeks=4))
 
@@ -118,9 +108,7 @@ def test_plan_spread_preserves_order_allocations_and_objectives() -> None:
     second.id = uuid.uuid4()
     second.learning_objectives = ["Objective Beta"]
 
-    weeks = FourMonthPlanner().plan(
-        [first, second], [], _config(total_weeks=3)
-    )
+    weeks = FourMonthPlanner().plan([first, second], [], _config(total_weeks=3))
 
     assert len(weeks) == 3
     allocations = [a for week in weeks for a in week.allocations]
@@ -132,9 +120,7 @@ def test_plan_spread_preserves_order_allocations_and_objectives() -> None:
 
 
 def test_plan_spread_never_exceeds_weekly_budget() -> None:
-    topics = [
-        _topic(title=f"Topic {i}", workload=80) for i in range(1, 9)
-    ]
+    topics = [_topic(title=f"Topic {i}", workload=80) for i in range(1, 9)]
 
     weeks = FourMonthPlanner().plan(topics, [], _config(total_weeks=4))
 
@@ -148,9 +134,7 @@ def test_plan_spread_never_exceeds_weekly_budget() -> None:
 
 
 def test_plan_spread_fills_every_week_when_topics_allow() -> None:
-    topics = [
-        _topic(title=f"Topic {i}", workload=100) for i in range(1, 21)
-    ]
+    topics = [_topic(title=f"Topic {i}", workload=100) for i in range(1, 21)]
 
     weeks = FourMonthPlanner().plan(topics, [], _config(total_weeks=16))
 

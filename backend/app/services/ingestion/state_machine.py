@@ -5,11 +5,14 @@ from __future__ import annotations
 from app.core.exceptions import InvalidStateTransition
 from app.models.ingestion_job import IngestionState
 
-# KNOWLEDGE_BUILDING onward (Batches 10-14: provenance, dependency
-# graph, curriculum engine/planner, review/approval, Moodle publishing)
-# are not implemented yet, so ANALYZING allows COMPLETED directly. Once
-# KNOWLEDGE_BUILDING lands, this narrows to
-# {IngestionState.KNOWLEDGE_BUILDING, IngestionState.FAILED, IngestionState.CANCELLED}.
+# Document ingestion ends once the knowledge graph is built. Curriculum
+# PLANNING and VALIDATING_OUTPUT are on-demand operations triggered by the
+# lecturer (a curriculum is generated from an already-analyzed document), so
+# they are reachable but not traversed by the ingestion worker.
+#
+# ANALYZING deliberately no longer reaches COMPLETED directly: skipping
+# KNOWLEDGE_BUILDING would report a completed job for a document whose
+# prerequisite graph was never resolved.
 ALLOWED_TRANSITIONS: dict[IngestionState, set[IngestionState]] = {
     IngestionState.PENDING: {
         IngestionState.VALIDATING,
@@ -42,12 +45,12 @@ ALLOWED_TRANSITIONS: dict[IngestionState, set[IngestionState]] = {
     },
     IngestionState.ANALYZING: {
         IngestionState.KNOWLEDGE_BUILDING,
-        IngestionState.COMPLETED,
         IngestionState.FAILED,
         IngestionState.CANCELLED,
     },
     IngestionState.KNOWLEDGE_BUILDING: {
         IngestionState.PLANNING,
+        IngestionState.COMPLETED,
         IngestionState.FAILED,
         IngestionState.CANCELLED,
     },
@@ -86,9 +89,7 @@ def get_allowed_transitions(current: IngestionState) -> set[IngestionState]:
     return ALLOWED_TRANSITIONS.get(current, set())
 
 
-def validate_transition(
-    current: IngestionState, target: IngestionState
-) -> None:
+def validate_transition(current: IngestionState, target: IngestionState) -> None:
     """
     Validate a proposed state transition.
 
@@ -99,8 +100,7 @@ def validate_transition(
 
     if target not in allowed:
         raise InvalidStateTransition(
-            f"Cannot transition from {current.value!r} to "
-            f"{target.value!r}.",
+            f"Cannot transition from {current.value!r} to {target.value!r}.",
             details={
                 "current_state": current.value,
                 "requested_state": target.value,

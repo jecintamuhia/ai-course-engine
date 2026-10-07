@@ -68,3 +68,22 @@ Date: 2026-09-17. 28 concrete items with status and evidence. Legend:
 ### Summary
 Done 24 · Partial 2 · Blocked 1 · N/A 1 (26 actionable). One external blocker
 (Moodle grant). No data was deleted; no force git operations were run.
+
+---
+
+## Phase 1 additions (canonicalization, QA, assessments)
+
+Date: 2026-09-25. The suite has grown from 333 to 380 tests and stays green.
+
+| # | Item | Status | Evidence |
+|---|---|---|---|
+| P1.1 | Topic canonicalization: normalized identity (`canonical_key`), importance, aliases; conservative auto-merge of exact normalized-title duplicates; near-duplicates surfaced, never auto-collapsed | ✔ | `app/services/topics/canonicalization.py`, `test_topic_canonicalization.py` (10 tests) |
+| P1.2 | Migration `c3f1a2b9d0e4` (topics columns, self-FK, `quality_reports`, `assessments`, enums); chain intact | ✔ | `alembic/versions/` |
+| P1.3 | Content QA: 6 rule domains (coverage, duplication, provenance, quality, learning design, moodle), verdict pass/warning/fail, persisted versioned report | ✔ | `test_qa_rules.py` (14), `test_qa_service.py` (7) |
+| P1.4 | QA gates on curriculum approval and Moodle publish (409 `qa_blocked`); Moodle sync code untouched | ✔ | `test_qa_assessment_api.py` |
+| P1.5 | Text-book coverage report (topics → lessons/resources/videos) | ✔ | QA service + `/coverage-report` |
+| P1.6 | Assessment generation (unit + final), structural validation, objective→lesson→evidence alignment, review workflow | ✔ | `test_assessment_service.py` (8) |
+| P1.7 | Frontend: QA run + verdict/findings, coverage, assessment generation & review panels | ✔ | `QAPanel.tsx`, `npm run build` green |
+| P1.8 | Full suite green: 380 passed; `ruff check app tests` clean | ✔ | run 2026-09-25 |
+
+Still required for end-to-end (external): OpenRouter/OpenAI key, `YOUTUBE_API_KEY`, Moodle web-service token with `moodle/course:create`, and a real client textbook.

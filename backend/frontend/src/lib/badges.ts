@@ -1,4 +1,9 @@
-import type { CurriculumStatus, CourseStatus, IngestionState } from "@/lib/types";
+import type {
+  CurriculumStatus,
+  CourseStatus,
+  IngestionState,
+  LessonStatus,
+} from "@/lib/types";
 import {
   courseLabel,
   courseTone,
@@ -6,6 +11,8 @@ import {
   curriculumTone,
   ingestionLabel,
   ingestionTone,
+  lessonLabel,
+  lessonTone,
   type Tone,
 } from "@/lib/status";
 
@@ -28,4 +35,11 @@ export function courseBadge(status: CourseStatus | string): {
   label: string;
 } {
   return { tone: courseTone(status), label: courseLabel(status) };
+}
+
+export function lessonBadge(status: LessonStatus | null | undefined): {
+  tone: Tone;
+  label: string;
+} {
+  return { tone: lessonTone(status), label: lessonLabel(status) };
 }

@@ -19,3 +19,6 @@ python-docx
 openai
 
 httpx
+
+PyJWT
+pwdlib[argon2]

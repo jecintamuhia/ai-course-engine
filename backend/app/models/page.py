@@ -23,9 +23,7 @@ class Page(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     __tablename__ = "pages"
     __table_args__ = (
-        UniqueConstraint(
-            "document_id", "page_number", name="uq_pages_document_page"
-        ),
+        UniqueConstraint("document_id", "page_number", name="uq_pages_document_page"),
     )
 
     document_id: Mapped[uuid.UUID] = mapped_column(

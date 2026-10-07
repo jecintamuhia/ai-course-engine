@@ -1,5 +1,23 @@
 export type UUID = string;
 
+export type UserRole = "admin" | "lecturer";
+
+export interface UserRead {
+  id: UUID;
+  email: string;
+  full_name: string;
+  role: UserRole;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TokenResponse {
+  access_token: string;
+  token_type: string;
+  user: UserRead;
+}
+
 export type IngestionState =
   | "pending"
   | "validating"
@@ -26,6 +44,28 @@ export type CurriculumStatus =
   | "published";
 
 export type CourseStatus = "synced" | "sync_failed";
+
+export type LessonStatus =
+  | "draft"
+  | "generating"
+  | "failed"
+  | "awaiting_review"
+  | "approved"
+  | "rejected";
+
+export type BlockReviewStatus = "generated" | "approved" | "rejected";
+
+export type LessonBlockType =
+  | "text"
+  | "heading"
+  | "example"
+  | "diagram"
+  | "table"
+  | "external_resource"
+  | "video"
+  | "activity"
+  | "knowledge_check"
+  | "summary";
 
 export type SourceType = "source_derived" | "ai_generated" | "ai_enriched";
 
@@ -346,6 +386,120 @@ export interface MoodleVerifyResponse {
   error: string | null;
 }
 
+export interface LessonBlockRead {
+  id: UUID;
+  lesson_id: UUID;
+  block_type: LessonBlockType;
+  order_index: number;
+  title: string | null;
+  payload: Record<string, unknown>;
+  review_status: BlockReviewStatus;
+  review_comments: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LessonRead {
+  id: UUID;
+  curriculum_id: UUID;
+  curriculum_unit_id: UUID;
+  topic_id: UUID | null;
+  week_number: number;
+  order_index: number;
+  title: string;
+  description: string;
+  learning_objectives: string[];
+  estimated_workload_minutes: number;
+  status: LessonStatus;
+  generation_errors: { component?: string; reason?: string; message?: string }[];
+  created_at: string;
+  updated_at: string;
+  blocks: LessonBlockRead[];
+}
+
+export interface LessonListResponse {
+  curriculum_unit_id: UUID;
+  lessons: LessonRead[];
+}
+
+export interface GenerateWeekResponse {
+  curriculum_unit_id: UUID;
+  generated: LessonRead[];
+  skipped: { topic_id?: UUID; reason?: string }[];
+  errors: { component?: string; reason?: string }[];
+}
+
+export type ContentGenerationStatus =
+  | "pending"
+  | "running"
+  | "completed"
+  | "failed"
+  | "cancelled";
+
+export interface ContentGenerationJob {
+  id: UUID;
+  curriculum_id: UUID;
+  status: ContentGenerationStatus;
+  correlation_id: string;
+  total_weeks: number;
+  completed_weeks: number;
+  lessons_generated: number;
+  skipped_weeks: number;
+  failed_weeks: number;
+  rebuild_existing: boolean;
+  error_message: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+}
+
+export interface ContentGenerationCreateResponse {
+  job: ContentGenerationJob;
+  created: boolean;
+}
+
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  full_name: string;
+}
+
+export interface AuthMethods {
+  google_enabled: boolean;
+  registration_enabled: boolean;
+  allowed_domains: string[];
+}
+
+export interface LessonReviewRequest {
+  decision: "approved" | "rejected";
+  reviewer_name?: string | null;
+  comments?: string | null;
+}
+
+export interface BlockReviewRequest {
+  review_status: "approved" | "rejected";
+  comments?: string | null;
+}
+
+export interface SourceMapBlockCitation {
+  block_id: UUID;
+  block_type: LessonBlockType;
+  title: string | null;
+  order_index: number;
+}
+
+export interface SourceMapItem {
+  chunk_id: UUID;
+  page_number: number | null;
+  document_index: number;
+  content: string;
+  cited_by: SourceMapBlockCitation[];
+}
+
+export interface LessonSourceMapRead {
+  lesson_id: UUID;
+  sources: SourceMapItem[];
+}
+
 export interface MoodlePreflightIssue {
   kind: string;
   message: string;
@@ -440,6 +594,183 @@ export interface DashboardResponse {
 export interface ApiErrorBody {
   error?: { code?: string; message?: string; details?: unknown };
   detail?: string | Record<string, unknown>;
+}
+
+export type QAVerdict = "pass" | "warning" | "fail";
+export type FindingSeverity = "error" | "warning" | "info";
+
+export interface QALocation {
+  kind: string;
+  id: UUID | null;
+  title: string | null;
+  detail: string | null;
+}
+
+export interface QAFinding {
+  rule: string;
+  code: string;
+  severity: FindingSeverity;
+  message: string;
+  locations: QALocation[];
+}
+
+export interface QAAreaStatus {
+  status: QAVerdict;
+  findings: number;
+}
+
+export interface QAReportRead {
+  id: UUID;
+  curriculum_id: UUID;
+  version_number: number;
+  verdict: QAVerdict;
+  areas: Record<string, QAAreaStatus>;
+  findings: QAFinding[];
+  summary: Record<string, number>;
+  checked_at: string;
+}
+
+export interface QAReportResponse {
+  report: QAReportRead;
+  blocked: boolean;
+}
+
+export interface TopicCoverageItem {
+  topic_id: UUID;
+  title: string;
+  chapter_id: UUID | null;
+  chapter_title: string | null;
+  importance: string | null;
+  workload_minutes: number;
+  sources_chapters: number;
+  mapped: boolean;
+  has_lesson: boolean;
+}
+
+export interface CoverageReportRead {
+  document_id: UUID;
+  document_title: string;
+  curriculum_id: UUID | null;
+  chapters: number;
+  sections: number;
+  topic_count: number;
+  importance_counts: Record<string, number>;
+  mapped_topic_count: number;
+  lesson_count: number;
+  coverage_percent: number;
+  duplicate_topics_removed: number;
+  unresolved_topic_count: number;
+  unresolved_topics: string[];
+  resource_count: number;
+  video_count: number;
+  activity_count: number;
+  knowledge_check_count: number;
+  diagram_count: number;
+  topics: TopicCoverageItem[];
+}
+
+export interface CanonicalTopicRead {
+  id: UUID;
+  chapter_id: UUID | null;
+  title: string;
+  canonical_key: string;
+  aliases: string[];
+  importance: string | null;
+  order_index: number;
+  parent_topic_id: UUID | null;
+}
+
+export interface DuplicateTopicRead {
+  id: UUID;
+  title: string;
+  duplicate_of_id: UUID;
+}
+
+export interface CanonicalizationResponse {
+  document_id: UUID;
+  topics_seen: number;
+  clusters: number;
+  duplicates_flagged: number;
+  aliases_created: number;
+  canonical: CanonicalTopicRead[];
+  duplicates: DuplicateTopicRead[];
+  near_duplicates: { left: string; right: string; similarity: number }[];
+  canonicalized_at: string;
+}
+
+export type AssessmentType =
+  | "weekly_quiz"
+  | "practical_assignment"
+  | "coding_task"
+  | "case_study"
+  | "mini_project"
+  | "final";
+
+export type AssessmentStatus =
+  | "draft"
+  | "generating"
+  | "awaiting_review"
+  | "approved"
+  | "rejected";
+
+export interface AssessmentOptionRead {
+  id: string;
+  text: string;
+}
+
+export interface AssessmentItemRead {
+  kind: string;
+  prompt: string;
+  learning_objective: string;
+  difficulty: "easy" | "medium" | "hard";
+  options: AssessmentOptionRead[];
+  correct_option_id: string | null;
+  correct_answer: string | null;
+  explanation: string;
+  rubric: string | null;
+  source_chunk_markers: string[];
+}
+
+export interface AssessmentAlignmentRead {
+  learning_objective: string;
+  lesson_id: UUID | null;
+  lesson_title: string | null;
+  unit_week: number | null;
+  evidence: string[];
+}
+
+export interface AssessmentRead {
+  id: UUID;
+  curriculum_id: UUID;
+  curriculum_unit_id: UUID | null;
+  week_number: number | null;
+  title: string;
+  description: string;
+  assessment_type: AssessmentType;
+  learning_objectives: string[];
+  estimated_minutes: number;
+  items: AssessmentItemRead[];
+  alignment: AssessmentAlignmentRead[];
+  status: AssessmentStatus;
+  generation_errors: { component?: string; reason?: string; message?: string }[];
+  reviewer_name: string | null;
+  review_comments: string | null;
+  created_at: string;
+}
+
+export interface AssessmentListResponse {
+  assessments: AssessmentRead[];
+}
+
+export interface AssessmentGenerateRequest {
+  assessment_type?: AssessmentType | null;
+  max_items?: number;
+}
+
+export interface AssessmentReviewRequest {
+  decision: "approved" | "rejected";
+  reviewer_name?: string | null;
+  comments?: string | null;
 }
 
 /** Persisted upload / curriculum-generation preferences for a document. */

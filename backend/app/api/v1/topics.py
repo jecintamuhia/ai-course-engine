@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+from datetime import UTC, datetime
 
 from app.core.dependencies import get_database_session, get_llm_provider
 from app.core.exceptions import TopicNotFound
@@ -17,6 +18,9 @@ from app.schemas.dependency import (
     UnresolvedPrerequisiteRead,
 )
 from app.schemas.topic import (
+    CanonicalizationResponse,
+    CanonicalTopicRead,
+    DuplicateTopicRead,
     ProvenanceChunkRead,
     TopicAnalysisResponse,
     TopicProvenanceResponse,
@@ -25,6 +29,7 @@ from app.schemas.topic import (
 from app.services.ai.base import LLMProvider
 from app.services.content_analysis.service import ContentAnalysisService
 from app.services.dependency.service import DependencyGraphService
+from app.services.topics.canonicalization import apply_canonicalization
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -91,9 +96,7 @@ async def list_document_topics(
     return [TopicRead.model_validate(topic) for topic in topics]
 
 
-@router.post(
-    "/{document_id}/dependencies", response_model=DependencyGraphResponse
-)
+@router.post("/{document_id}/dependencies", response_model=DependencyGraphResponse)
 async def build_document_dependencies(
     document_id: uuid.UUID,
     service: DependencyGraphService = Depends(get_dependency_graph_service),
@@ -129,9 +132,7 @@ async def build_document_dependencies(
     )
 
 
-@topic_router.get(
-    "/{topic_id}/provenance", response_model=TopicProvenanceResponse
-)
+@topic_router.get("/{topic_id}/provenance", response_model=TopicProvenanceResponse)
 async def get_topic_provenance(
     topic_id: uuid.UUID,
     session: AsyncSession = Depends(get_database_session),
@@ -161,4 +162,61 @@ async def get_topic_provenance(
             )
             for chunk, page in provenance
         ],
-    )  
+    )
+
+
+@router.post("/{document_id}/canonicalize", response_model=CanonicalizationResponse)
+async def canonicalize_document_topics(
+    document_id: uuid.UUID,
+    session: AsyncSession = Depends(get_database_session),
+) -> CanonicalizationResponse:
+    """
+    Canonicalize a document's topics: compute canonical keys, classify
+    importance, and merge safe exact-normalized-title duplicates into a
+    canonical topic with aliases. Nothing is deleted and genuinely
+    different concepts are never merged; near-duplicate candidates are
+    reported for lecturer review (QA surfaces them as findings, too).
+    """
+    topic_repository = TopicRepository(session)
+    topics = await topic_repository.list_flat_by_document(document_id)
+    result = apply_canonicalization(topics)
+    await topic_repository.commit()
+
+    canonical = [
+        CanonicalTopicRead(
+            id=topic.id,
+            chapter_id=topic.chapter_id,
+            title=topic.title,
+            canonical_key=topic.canonical_key or "",
+            aliases=list(topic.aliases or []),
+            importance=topic.importance,
+            order_index=topic.order_index,
+            parent_topic_id=topic.parent_topic_id,
+        )
+        for topic in topics
+        if topic.duplicate_of_id is None
+    ]
+    duplicates = [
+        DuplicateTopicRead(
+            id=topic.id,
+            title=topic.title,
+            duplicate_of_id=topic.duplicate_of_id,
+        )
+        for topic in topics
+        if topic.duplicate_of_id is not None
+    ]
+
+    return CanonicalizationResponse(
+        document_id=document_id,
+        topics_seen=result.topics_seen,
+        clusters=result.clusters,
+        duplicates_flagged=result.duplicates_flagged,
+        aliases_created=result.aliases_created,
+        canonical=canonical,
+        duplicates=duplicates,
+        near_duplicates=[
+            {"left": left, "right": right, "similarity": similarity}
+            for left, right, similarity in result.near_duplicates
+        ],
+        canonicalized_at=datetime.now(UTC),
+    )

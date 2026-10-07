@@ -144,6 +144,42 @@ services:
       - backend
 
 
+  content-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: ai-course-engine-content-worker
+    restart: unless-stopped
+
+    env_file:
+      - .env
+
+    environment:
+      DATABASE_URL: postgresql+asyncpg://course_engine:course_engine@postgres:5432/course_engine
+      REDIS_URL: redis://redis:6379/0
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+    volumes:
+      - ./app:/app/app
+      - document_storage:/app/storage
+
+    command:
+      [
+        "python",
+        "-m",
+        "app.workers.content_worker"
+      ]
+
+    networks:
+      - backend
+
+
 volumes:
   postgres_data:
   redis_data:

@@ -16,9 +16,7 @@ from app.services.document_storage import DocumentStorageService
 class FakeUploadFile:
     """Minimal stand-in for FastAPI's UploadFile in unit tests."""
 
-    def __init__(
-        self, filename: str, content: bytes, content_type: str
-    ) -> None:
+    def __init__(self, filename: str, content: bytes, content_type: str) -> None:
         self.filename = filename
         self.content_type = content_type
         self._content = content
@@ -48,10 +46,7 @@ class FakeDocumentRepository:
 
     async def get_latest_by_hash(self, sha256_hash: str) -> Document | None:
         for document in self.documents.values():
-            if (
-                document.sha256_hash == sha256_hash
-                and document.is_latest_version
-            ):
+            if document.sha256_hash == sha256_hash and document.is_latest_version:
                 return document
         return None
 
@@ -93,10 +88,7 @@ async def test_store_upload_persists_new_document(tmp_path: Path) -> None:
     assert document.version_number == 1
     assert document.is_latest_version is True
     assert await asyncio.to_thread(Path(document.storage_path).exists)
-    assert (
-        await asyncio.to_thread(Path(document.storage_path).read_bytes)
-        == PDF_BYTES
-    )
+    assert await asyncio.to_thread(Path(document.storage_path).read_bytes) == PDF_BYTES
     assert repository.committed is True
 
 
@@ -108,15 +100,11 @@ async def test_store_upload_detects_duplicate_content(
     settings = make_settings(tmp_path)
     service = DocumentStorageService(repository, settings)
 
-    first_upload = FakeUploadFile(
-        "textbook.pdf", PDF_BYTES, "application/pdf"
-    )
+    first_upload = FakeUploadFile("textbook.pdf", PDF_BYTES, "application/pdf")
     first_document, _ = await service.store_upload(first_upload)
 
     second_upload = FakeUploadFile("copy.pdf", PDF_BYTES, "application/pdf")
-    second_document, is_duplicate = await service.store_upload(
-        second_upload
-    )
+    second_document, is_duplicate = await service.store_upload(second_upload)
 
     assert is_duplicate is True
     assert second_document.id == first_document.id
@@ -167,9 +155,7 @@ async def test_store_upload_rejects_unsupported_extension(
     settings = make_settings(tmp_path)
     service = DocumentStorageService(repository, settings)
 
-    upload = FakeUploadFile(
-        "script.exe", b"MZ...", "application/octet-stream"
-    )
+    upload = FakeUploadFile("script.exe", b"MZ...", "application/octet-stream")
 
     with pytest.raises(DocumentProcessingError):
         await service.store_upload(upload)
@@ -186,6 +172,4 @@ async def test_store_upload_replace_missing_document_raises(
     upload = FakeUploadFile("v2.pdf", PDF_BYTES, "application/pdf")
 
     with pytest.raises(DocumentNotFound):
-        await service.store_upload(
-            upload, replaces_document_id=uuid.uuid4()
-        )
+        await service.store_upload(upload, replaces_document_id=uuid.uuid4())

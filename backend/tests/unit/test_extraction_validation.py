@@ -57,9 +57,7 @@ def test_duplicate_title_across_nesting_levels_rejected() -> None:
 
 
 def test_topics_with_no_concepts_or_objectives_anywhere_rejected() -> None:
-    empty_topic = _topic(
-        learning_objectives=[], concepts=[], subtopics=[]
-    )
+    empty_topic = _topic(learning_objectives=[], concepts=[], subtopics=[])
 
     with pytest.raises(AIOutputValidationError):
         validate_extraction_result(TopicExtractionResult(topics=[empty_topic]))

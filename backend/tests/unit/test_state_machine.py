@@ -20,11 +20,23 @@ def test_full_pipeline_path_is_valid() -> None:
         IngestionState.STRUCTURING,
         IngestionState.CHUNKING,
         IngestionState.ANALYZING,
+        IngestionState.KNOWLEDGE_BUILDING,
         IngestionState.COMPLETED,
     ]
 
     for current, target in zip(path[:-1], path[1:], strict=True):
         validate_transition(current, target)
+
+
+def test_analyzing_cannot_skip_knowledge_building() -> None:
+    """A completed job must have had its prerequisite graph resolved.
+
+    Regression: ANALYZING previously allowed a direct jump to COMPLETED,
+    which reported a finished ingestion for a document whose dependency
+    graph was never built.
+    """
+    with pytest.raises(InvalidStateTransition):
+        validate_transition(IngestionState.ANALYZING, IngestionState.COMPLETED)
 
 
 def test_skipping_stages_is_rejected() -> None:
@@ -34,9 +46,7 @@ def test_skipping_stages_is_rejected() -> None:
 
 def test_transition_from_terminal_state_is_rejected() -> None:
     with pytest.raises(InvalidStateTransition):
-        validate_transition(
-            IngestionState.COMPLETED, IngestionState.EXTRACTING
-        )
+        validate_transition(IngestionState.COMPLETED, IngestionState.EXTRACTING)
 
 
 def test_retry_path_from_failed_to_pending_is_valid() -> None:
@@ -45,9 +55,7 @@ def test_retry_path_from_failed_to_pending_is_valid() -> None:
 
 def test_resurrecting_cancelled_job_is_rejected() -> None:
     with pytest.raises(InvalidStateTransition):
-        validate_transition(
-            IngestionState.CANCELLED, IngestionState.PENDING
-        )
+        validate_transition(IngestionState.CANCELLED, IngestionState.PENDING)
 
 
 def test_mid_pipeline_cancellation_is_valid() -> None:

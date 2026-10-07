@@ -182,8 +182,8 @@ class TestDashboard:
             CurriculumStatus.REJECTED: 3,
             CurriculumStatus.PUBLISHED: 6,
         }
-        curriculum_repository.count_by_status.side_effect = (
-            lambda status: status_counts[status]
+        curriculum_repository.count_by_status.side_effect = lambda status: (
+            status_counts[status]
         )
         course_repository.count_all.return_value = 5
 

@@ -50,18 +50,14 @@ def resolve_prerequisites(
 
     title_index: dict[str, list[uuid.UUID]] = {}
     for topic in all_topics:
-        title_index.setdefault(_normalize_title(topic.title), []).append(
-            topic.id
-        )
+        title_index.setdefault(_normalize_title(topic.title), []).append(topic.id)
 
     edges: Edges = {topic.id: set() for topic in all_topics}
     unresolved: list[UnresolvedPrerequisite] = []
 
     for topic in all_topics:
         for prerequisite_title in topic.prerequisite_titles:
-            matches = title_index.get(
-                _normalize_title(prerequisite_title), []
-            )
+            matches = title_index.get(_normalize_title(prerequisite_title), [])
 
             if len(matches) == 0:
                 unresolved.append(

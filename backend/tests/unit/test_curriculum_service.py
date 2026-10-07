@@ -71,10 +71,8 @@ def _make_service(*, document=None, plan=None):
     curriculum_repository.list_latest_by_document.return_value = []
 
     planner = MagicMock()
-    planner.plan.side_effect = (
-        lambda topics, dependencies, config: plan
-        if plan is not None
-        else _week_plans(count=config.total_weeks)
+    planner.plan.side_effect = lambda topics, dependencies, config: (
+        plan if plan is not None else _week_plans(count=config.total_weeks)
     )
 
     service = CurriculumService(
@@ -129,9 +127,7 @@ class TestGenerateCurriculumOverrides:
     async def test_whitespace_only_title_falls_back_to_filename(self):
         service, _, _, _, curriculum_repository, _ = _make_service()
 
-        curriculum = await service.generate_curriculum(
-            uuid.uuid4(), title="   "
-        )
+        curriculum = await service.generate_curriculum(uuid.uuid4(), title="   ")
 
         assert curriculum.title == "machine_learning_textbook_v0"
 
@@ -172,9 +168,7 @@ class TestGenerateCurriculumOverrides:
     async def test_units_span_exactly_the_requested_total_weeks(self):
         service, _, _, _, _, _ = _make_service()
 
-        curriculum = await service.generate_curriculum(
-            uuid.uuid4(), total_weeks=12
-        )
+        curriculum = await service.generate_curriculum(uuid.uuid4(), total_weeks=12)
 
         assert curriculum.total_weeks == 12
         assert len(curriculum.units) == 12

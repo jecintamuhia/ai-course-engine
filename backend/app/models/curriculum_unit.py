@@ -51,9 +51,7 @@ class CurriculumUnit(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         back_populates="curriculum_unit",
     )
 
-    curriculum: Mapped[Curriculum] = relationship(
-        "Curriculum", back_populates="units"
-    )
+    curriculum: Mapped[Curriculum] = relationship("Curriculum", back_populates="units")
 
     @property
     def topics(self) -> list[CurriculumUnitTopic]:

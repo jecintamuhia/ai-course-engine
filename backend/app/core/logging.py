@@ -31,10 +31,7 @@ class SafeFormatter(logging.Formatter):
         """Format a log record consistently."""
         message = super().format(record)
 
-        return (
-            f"{message} "
-            f"request_id={getattr(record, 'request_id', '-')}"
-        )
+        return f"{message} request_id={getattr(record, 'request_id', '-')}"
 
 
 def set_request_id(request_id: str) -> None:
@@ -52,12 +49,7 @@ def configure_logging(settings: Settings) -> None:
     level = getattr(logging, settings.log_level.upper())
 
     formatter = SafeFormatter(
-        fmt=(
-            "%(asctime)s "
-            "%(levelname)s "
-            "%(name)s "
-            "%(message)s"
-        ),
+        fmt=("%(asctime)s %(levelname)s %(name)s %(message)s"),
         datefmt="%Y-%m-%dT%H:%M:%S%z",
     )
 
@@ -114,8 +106,5 @@ def log_event(
         level,
         "%s %s",
         event,
-        " ".join(
-            f"{key}={value!r}"
-            for key, value in safe_context.items()
-        ),
+        " ".join(f"{key}={value!r}" for key, value in safe_context.items()),
     )

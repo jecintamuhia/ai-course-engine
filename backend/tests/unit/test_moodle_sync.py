@@ -12,6 +12,7 @@ from app.core.exceptions import (
 )
 from app.models.course import CourseStatus
 from app.models.curriculum import Curriculum, CurriculumStatus
+from app.services.moodle.mapper import MoodleLessonPlan
 from app.services.moodle.preflight import FUNCTION_REQUIREMENTS
 from app.services.moodle.sync import MoodleSyncService
 
@@ -26,22 +27,38 @@ def _site_info(*, functions: list[str] | None = None) -> dict:
         "release": "4.5.1",
         "username": "ws-user",
         "functions": [
-        {"name": name, "version": 0} for name in functions or ALL_FUNCTIONS
-    ],
+            {"name": name, "version": 0} for name in functions or ALL_FUNCTIONS
+        ],
     }
 
 
 def _verified_contents(week_count: int) -> list[dict]:
-    """Course contents that satisfy the post-publish verification."""
+    """Course contents that satisfy the post-publish verification
+    (no lesson renderer: weeks contribute no page modules)."""
     return [
         {
             "id": week_number,
             "section": week_number,
             "name": f"Week {week_number}",
-            "modules": [{"modname": "page", "name": f"Week {week_number}"}],
+            "modules": [],
         }
         for week_number in range(1, week_count + 1)
     ]
+
+
+def _verified_lesson_contents(week_count: int) -> list[dict]:
+    """Course contents with one lesson page per week, matching a renderer
+    that emits a single ``<week title> Lesson`` page per unit."""
+    return [
+        {
+            "id": week_number,
+            "section": week_number,
+            "name": f"Week {week_number}",
+            "modules": [{"modname": "page", "name": f"Week {week_number} Lesson"}],
+        }
+        for week_number in range(1, week_count + 1)
+    ]
+
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -136,6 +153,19 @@ class TestPublishCurriculum:
             await s.publish_curriculum(c.id)
 
     @pytest.mark.anyio
+    async def test_already_published_curriculum_can_republish(self):
+        c = _make_curriculum(status=CurriculumStatus.PUBLISHED, week_count=1)
+        s, client, repo, course_repo, _ = _make_service(curriculum=c)
+        client.find_course_by_idnumber.return_value = {"id": 10}
+        client.get_course_contents.return_value = _verified_contents(1)
+        course_repo.get_by_curriculum.return_value = None
+
+        result = await s.publish_curriculum(c.id)
+
+        assert result.verified is True
+        assert c.status == CurriculumStatus.PUBLISHED
+
+    @pytest.mark.anyio
     async def test_raises_when_not_found(self):
         s, client, repo, course_repo, _ = _make_service()
         repo.get_by_id.return_value = None
@@ -158,6 +188,43 @@ class TestPublishCurriculum:
         assert result.created is True
         client.create_course.assert_awaited_once()
         assert c.status == CurriculumStatus.PUBLISHED
+
+    @pytest.mark.anyio
+    async def test_creates_course_with_human_readable_fullname(self):
+        c = _make_curriculum(status=CurriculumStatus.APPROVED, title="Linear Algebra")
+        s, client, repo, course_repo, _ = _make_service(curriculum=c)
+
+        client.find_course_by_idnumber.return_value = None
+        client.create_course.return_value = {"id": 42, "shortname": "cs"}
+        client.get_course_contents.return_value = _verified_contents(2)
+        course_repo.get_by_curriculum.return_value = None
+
+        result = await s.publish_curriculum(c.id)
+
+        kwargs = client.create_course.call_args.kwargs
+        assert kwargs["fullname"] == "Linear Algebra"
+        assert kwargs["idnumber"] == f"ai-ece-{c.id}"
+        assert kwargs["shortname"] != kwargs["idnumber"]
+        assert str(c.id) not in kwargs["shortname"]
+        assert result.course_fullname == "Linear Algebra"
+
+    @pytest.mark.anyio
+    async def test_uuid_titled_curriculum_never_surfaces_uuid_as_course_name(self):
+        c = _make_curriculum(status=CurriculumStatus.APPROVED, title=str(uuid.uuid4()))
+        s, client, repo, course_repo, _ = _make_service(curriculum=c)
+
+        client.find_course_by_idnumber.return_value = None
+        client.create_course.return_value = {"id": 42, "shortname": "cs"}
+        client.get_course_contents.return_value = _verified_contents(2)
+        course_repo.get_by_curriculum.return_value = None
+
+        result = await s.publish_curriculum(c.id)
+
+        kwargs = client.create_course.call_args.kwargs
+        assert kwargs["fullname"] != c.title
+        assert c.title not in kwargs["fullname"]
+        assert c.title not in kwargs["shortname"]
+        assert result.course_fullname != c.title
 
     @pytest.mark.anyio
     async def test_reuses_existing_moodle_course(self):
@@ -184,16 +251,24 @@ class TestPublishCurriculum:
         c = _make_curriculum(status=CurriculumStatus.APPROVED, week_count=2)
         s, client, repo, course_repo, _ = _make_service(curriculum=c)
 
+        def renderer(unit):
+            return [
+                MoodleLessonPlan(
+                    name=f"{unit.title} Lesson", content_html="<p>lesson</p>"
+                )
+            ]
+
         client.find_course_by_idnumber.return_value = {"id": 10}
-        # No sections/pages on the first read; pages exist after the sync.
+        # No sections/lesson pages on the first read; they exist after sync.
         client.get_course_contents.side_effect = [
             [],
-            _verified_contents(2),
+            _verified_lesson_contents(2),
         ]
         course_repo.get_by_curriculum.return_value = None
 
-        await s.publish_curriculum(c.id)
+        result = await s.publish_curriculum(c.id, lesson_renderer=renderer)
 
+        assert result.verified is True
         assert client.add_page_module.await_count == 2
         assert client.update_section.await_count == 2
 
@@ -203,8 +278,8 @@ class TestPublishCurriculum:
         s, client, repo, course_repo, _ = _make_service(curriculum=c)
 
         client.find_course_by_idnumber.return_value = {"id": 10}
-        # First read (sync): sections exist but have no page resources.
-        # Second read (post-publish verification): pages now present.
+        # First read (sync): sections exist with no page resources.
+        # Second read (post-publish verification): sections unchanged.
         client.get_course_contents.side_effect = [
             [
                 {"id": 1, "section": 1, "name": "Week 1", "modules": []},
@@ -217,14 +292,157 @@ class TestPublishCurriculum:
         await s.publish_curriculum(c.id)
 
         assert client.update_section.await_count == 2
-        assert client.add_page_module.await_count == 2
+        # Without a lesson renderer, publishing creates no page modules.
+        assert client.add_page_module.await_count == 0
         for call in client.update_section.call_args_list:
             assert call.kwargs["section_number"] in (1, 2)
 
     @pytest.mark.anyio
-    async def test_republish_does_not_duplicate_page_modules(self):
+    async def test_never_creates_page_named_after_week_section(self):
         c = _make_curriculum(status=CurriculumStatus.APPROVED, week_count=2)
         s, client, repo, course_repo, _ = _make_service(curriculum=c)
+
+        def renderer(unit):
+            return [
+                MoodleLessonPlan(
+                    name=f"{unit.title} Lesson", content_html="<p>lesson</p>"
+                )
+            ]
+
+        client.find_course_by_idnumber.return_value = {"id": 10}
+        # Sections exist but no lesson pages; the sync only adds lesson pages.
+        client.get_course_contents.side_effect = [
+            [
+                {"id": 1, "section": 1, "name": "Week 1", "modules": []},
+                {"id": 2, "section": 2, "name": "Week 2", "modules": []},
+            ],
+            _verified_lesson_contents(2),
+        ]
+        course_repo.get_by_curriculum.return_value = None
+
+        await s.publish_curriculum(c.id, lesson_renderer=renderer)
+
+        section_names = {
+            call.kwargs["name"] for call in client.update_section.call_args_list
+        }
+        page_names = [
+            call.kwargs["name"] for call in client.add_page_module.call_args_list
+        ]
+        assert page_names == ["Week 1 Lesson", "Week 2 Lesson"]
+        assert not (set(page_names) & section_names)
+
+    @pytest.mark.anyio
+    async def test_publishes_approved_lessons_as_pages_idempotently(self):
+        c = _make_curriculum(status=CurriculumStatus.APPROVED, week_count=2)
+        s, client, repo, course_repo, _ = _make_service(curriculum=c)
+
+        def renderer(unit):
+            return [
+                MoodleLessonPlan(
+                    name=f"{unit.title} Lesson", content_html="<p>lesson</p>"
+                )
+            ]
+
+        client.find_course_by_idnumber.return_value = {"id": 10}
+        # First read (sync): lesson pages are missing from the sections.
+        # Second read (verification): lesson pages are now present.
+        client.get_course_contents.side_effect = [
+            [
+                {"id": 1, "section": 1, "name": "Week 1", "modules": []},
+                {"id": 2, "section": 2, "name": "Week 2", "modules": []},
+            ],
+            _verified_lesson_contents(2),
+        ]
+        course_repo.get_by_curriculum.return_value = None
+
+        result = await s.publish_curriculum(c.id, lesson_renderer=renderer)
+
+        assert result.verified is True
+        lesson_page_adds = [
+            call.kwargs["name"]
+            for call in client.add_page_module.call_args_list
+            if call.kwargs["name"].endswith("Lesson")
+        ]
+        assert lesson_page_adds == ["Week 1 Lesson", "Week 2 Lesson"]
+
+    @pytest.mark.anyio
+    async def test_duplicate_lessons_with_identical_content_publish_once(self):
+        c = _make_curriculum(status=CurriculumStatus.APPROVED, week_count=1)
+        s, client, repo, course_repo, _ = _make_service(curriculum=c)
+
+        def renderer(unit):
+            return [
+                MoodleLessonPlan(name="Lesson A", content_html="<p>dup</p>"),
+                MoodleLessonPlan(name="Lesson B", content_html="<p>dup</p>"),
+            ]
+
+        client.find_course_by_idnumber.return_value = {"id": 10}
+        client.get_course_contents.side_effect = [
+            [{"id": 1, "section": 1, "name": "Week 1", "modules": []}],
+            [
+                {
+                    "id": 1,
+                    "section": 1,
+                    "name": "Week 1",
+                    "modules": [{"modname": "page", "name": "Lesson A"}],
+                }
+            ],
+        ]
+        course_repo.get_by_curriculum.return_value = None
+
+        result = await s.publish_curriculum(c.id, lesson_renderer=renderer)
+
+        assert result.verified is True
+        assert client.add_page_module.await_count == 1
+        assert client.add_page_module.await_args.kwargs["name"] == "Lesson A"
+
+    @pytest.mark.anyio
+    async def test_same_named_lessons_with_different_content_both_publish(self):
+        c = _make_curriculum(status=CurriculumStatus.APPROVED, week_count=1)
+        s, client, repo, course_repo, _ = _make_service(curriculum=c)
+
+        def renderer(unit):
+            return [
+                MoodleLessonPlan(name="Intro", content_html="<p>version one</p>"),
+                MoodleLessonPlan(name="Intro", content_html="<p>version two</p>"),
+            ]
+
+        client.find_course_by_idnumber.return_value = {"id": 10}
+        client.get_course_contents.side_effect = [
+            [{"id": 1, "section": 1, "name": "Week 1", "modules": []}],
+            [
+                {
+                    "id": 1,
+                    "section": 1,
+                    "name": "Week 1",
+                    "modules": [
+                        {"modname": "page", "name": "Intro"},
+                        {"modname": "page", "name": "Intro"},
+                    ],
+                }
+            ],
+        ]
+        course_repo.get_by_curriculum.return_value = None
+
+        result = await s.publish_curriculum(c.id, lesson_renderer=renderer)
+
+        assert result.verified is True
+        assert client.add_page_module.await_count == 2
+        assert [
+            call.kwargs["name"] for call in client.add_page_module.call_args_list
+        ] == ["Intro", "Intro"]
+
+    @pytest.mark.anyio
+    async def test_republish_does_not_duplicate_lesson_pages(self):
+        c = _make_curriculum(status=CurriculumStatus.APPROVED, week_count=1)
+        s, client, repo, course_repo, _ = _make_service(curriculum=c)
+
+        def renderer(unit):
+            return [
+                MoodleLessonPlan(
+                    name=f"{unit.title} Lesson", content_html="<p>lesson</p>"
+                )
+            ]
 
         client.find_course_by_idnumber.return_value = {"id": 10}
         client.get_course_contents.return_value = [
@@ -232,21 +450,51 @@ class TestPublishCurriculum:
                 "id": 1,
                 "section": 1,
                 "name": "Week 1",
-                "modules": [{"modname": "page", "name": "Week 1"}],
-            },
-            {
-                "id": 2,
-                "section": 2,
-                "name": "Week 2",
-                "modules": [{"modname": "page", "name": "Week 2"}],
-            },
+                "modules": [{"modname": "page", "name": "Week 1 Lesson"}],
+            }
         ]
         course_repo.get_by_curriculum.return_value = None
 
-        await s.publish_curriculum(c.id)
+        result = await s.publish_curriculum(c.id, lesson_renderer=renderer)
 
-        assert client.update_section.await_count == 2
+        assert result.verified is True
         assert client.add_page_module.await_count == 0
+
+    @pytest.mark.anyio
+    async def test_verification_requires_lesson_pages(self):
+        c = _make_curriculum(status=CurriculumStatus.APPROVED, week_count=1)
+        s, client, repo, course_repo, _ = _make_service(curriculum=c)
+
+        def renderer(unit):
+            return [
+                MoodleLessonPlan(
+                    name=f"{unit.title} Lesson", content_html="<p>lesson</p>"
+                )
+            ]
+
+        client.find_course_by_idnumber.return_value = {"id": 10}
+        # The lesson page was created during sync but Moodle's verification
+        # read does not report it, so publishing must not be reported synced.
+        missing_lesson_section = [
+            {
+                "id": 1,
+                "section": 1,
+                "name": "Week 1",
+                "modules": [],
+            }
+        ]
+        client.get_course_contents.side_effect = [
+            missing_lesson_section,
+            missing_lesson_section,
+            missing_lesson_section,
+        ]
+        course_repo.get_by_curriculum.return_value = None
+
+        with pytest.raises(MoodleIntegrationError, match="could not be verified"):
+            await s.publish_curriculum(c.id, lesson_renderer=renderer)
+
+        assert c.status == CurriculumStatus.APPROVED
+        assert client.add_page_module.await_count == 1
 
 
 class TestVerifyCourse:
@@ -256,6 +504,7 @@ class TestVerifyCourse:
 
         course_id = uuid.uuid4()
         mock_course = MagicMock()
+        mock_course.id = course_id
         mock_course.moodle_course_id = 42
         mock_course.moodle_url = "https://moodle.example.com/course/view.php?id=42"
         course_repo.get_by_id.return_value = mock_course
@@ -273,6 +522,7 @@ class TestVerifyCourse:
         result = await s.verify_course(course_id)
 
         assert result["found"] is True
+        assert result["course_id"] == str(course_id)
         assert result["sections_found"] == 2
         assert result["modules_found"] == 3
         assert len(result["section_names"]) == 2
@@ -283,9 +533,7 @@ class TestCategoryValidation:
     async def test_category_override_is_used_for_creation(self):
         c = _make_curriculum(status=CurriculumStatus.APPROVED)
         s, client, repo, course_repo, _ = _make_service(curriculum=c)
-        client.get_categories.return_value = [
-            {"id": 7, "name": "Custom Category"}
-        ]
+        client.get_categories.return_value = [{"id": 7, "name": "Custom Category"}]
         client.find_course_by_idnumber.return_value = None
         client.create_course.return_value = {"id": 55, "shortname": "cs"}
         client.get_course_contents.return_value = _verified_contents(2)
@@ -327,9 +575,7 @@ class TestCategoryValidation:
 class TestPublishOverrides:
     @pytest.mark.anyio
     async def test_fullname_and_shortname_overrides_flow_to_create(self):
-        c = _make_curriculum(
-            status=CurriculumStatus.APPROVED, title="Default Title"
-        )
+        c = _make_curriculum(status=CurriculumStatus.APPROVED, title="Default Title")
         s, client, repo, course_repo, _ = _make_service(curriculum=c)
         client.get_categories.return_value = [{"id": 1, "name": "Cat"}]
         client.find_course_by_idnumber.return_value = None
@@ -389,9 +635,7 @@ class TestPublishPreflightGate:
         s, client, repo, course_repo, _ = _make_service(curriculum=c)
         client.get_site_info.return_value = _site_info(
             functions=[
-                name
-                for name in ALL_FUNCTIONS
-                if name != "core_course_create_courses"
+                name for name in ALL_FUNCTIONS if name != "core_course_create_courses"
             ]
         )
 
@@ -403,9 +647,10 @@ class TestPublishPreflightGate:
         assert issues[0]["kind"] == "missing_capability"
         assert issues[0]["ws_function"] == "core_course_create_courses"
         assert issues[0]["capability"] == "moodle/course:create"
-        assert "core_course_create_courses" in exc_info.value.details[
-            "ws_functions_required"
-        ]
+        assert (
+            "core_course_create_courses"
+            in exc_info.value.details["ws_functions_required"]
+        )
         client.find_course_by_idnumber.assert_not_awaited()
         client.create_course.assert_not_awaited()
         assert c.status == CurriculumStatus.APPROVED
@@ -469,15 +714,22 @@ class TestPublishResumableRetry:
         c = _make_curriculum(status=CurriculumStatus.APPROVED, week_count=2)
         s, client, repo, course_repo, _ = _make_service(curriculum=c)
 
+        def renderer(unit):
+            return [
+                MoodleLessonPlan(
+                    name=f"{unit.title} Lesson", content_html="<p>lesson</p>"
+                )
+            ]
+
         # First attempt finds no Moodle course, creates it, syncs sections
-        # and pages, but the post-publish verification reads no contents.
+        # and lesson pages, but the post-publish verification reads nothing.
         client.find_course_by_idnumber.side_effect = [None, {"id": 42}]
         client.create_course.return_value = {"id": 42, "shortname": "cs"}
         client.get_course_contents.return_value = []
         course_repo.get_by_curriculum.return_value = None
 
         with pytest.raises(MoodleIntegrationError, match="could not be verified"):
-            await s.publish_curriculum(c.id)
+            await s.publish_curriculum(c.id, lesson_renderer=renderer)
         assert c.status == CurriculumStatus.APPROVED
         assert client.add_page_module.await_count == 2
 
@@ -485,9 +737,9 @@ class TestPublishResumableRetry:
         # same Moodle course and only adds what is still missing.
         partial = course_repo.add.await_args.args[0]
         course_repo.get_by_curriculum.return_value = partial
-        client.get_course_contents.return_value = _verified_contents(2)
+        client.get_course_contents.return_value = _verified_lesson_contents(2)
 
-        result = await s.publish_curriculum(c.id)
+        result = await s.publish_curriculum(c.id, lesson_renderer=renderer)
 
         assert result.verified is True
         assert result.created is False

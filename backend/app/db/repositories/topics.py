@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 
+from app.models.chapter import Chapter
 from app.models.chunks import Chunk
 from app.models.page import Page
 from app.models.topic import Topic
@@ -39,7 +40,9 @@ class TopicRepository:
         result = await self._session.execute(stmt)
         return list(result.scalars().unique().all())
 
-    async def list_flat_by_document(self, document_id: uuid.UUID) -> list[Topic]:
+    async def list_flat_by_document(
+        self, document_id: uuid.UUID, *, exclude_duplicates: bool = False
+    ) -> list[Topic]:
         """
         Return every topic row for a document (top-level topics and
         subtopics) as a flat list, ordered.
@@ -49,14 +52,113 @@ class TopicRepository:
         ``parent_topic_id`` pointers instead of walking the ORM
         relationship graph — that keeps the planner free of database
         lazy loads.
+
+        ``concepts`` and ``source_chunk_links`` are eagerly loaded
+        because the canonicalization pass (``apply_canonicalization``)
+        classifies importance from concept counts and sizes evidence
+        from source-chunk links; doing so lazily inside an async
+        session would raise ``MissingGreenlet``.
+
+        When ``exclude_duplicates`` is true, topics flagged as
+        duplicates (``duplicate_of_id`` set) are omitted, so the
+        canonical topic inventory drives curriculum generation without
+        accidental repetition.
+        """
+        stmt = select(Topic).where(Topic.document_id == document_id)
+        if exclude_duplicates:
+            stmt = stmt.where(Topic.duplicate_of_id.is_(None))
+        stmt = stmt.options(
+            selectinload(Topic.concepts),
+            selectinload(Topic.source_chunk_links),
+        ).order_by(Topic.order_index)
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def list_duplicates_by_document(self, document_id: uuid.UUID) -> list[Topic]:
+        """
+        Return every topic row flagged as a duplicate (``duplicate_of_id``
+        set) for a document, ordered — used by QA coverage reporting.
         """
         stmt = (
             select(Topic)
-            .where(Topic.document_id == document_id)
+            .where(
+                Topic.document_id == document_id,
+                Topic.duplicate_of_id.is_not(None),
+            )
             .order_by(Topic.order_index)
         )
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
+
+    async def list_top_level_by_document(self, document_id: uuid.UUID) -> list[Topic]:
+        """
+        Return all top-level topics for a document, ordered. Unlike
+        ``list_by_document`` this does not eager load subtopics/concepts,
+        which keeps canonicalization and QA passes light.
+        """
+        stmt = (
+            select(Topic)
+            .where(
+                Topic.document_id == document_id,
+                Topic.parent_topic_id.is_(None),
+            )
+            .order_by(Topic.order_index)
+        )
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def list_in_reading_order(
+        self, document_id: uuid.UUID
+    ) -> tuple[list[Topic], dict[uuid.UUID, str]]:
+        """
+        Return every top-level topic for a document ordered the way a
+        reader meets them, plus a chapter-id to chapter-label map.
+
+        ``list_by_document`` orders by ``order_index`` alone, which is
+        scoped to a chapter, so it interleaves chapters unpredictably.
+        Prerequisite linking has to reason about what comes *earlier* in
+        the book, so it needs the real order: chapter reading order first,
+        then position within the chapter. Topics with no chapter are kept
+        and sort last, matching where an un-chaptered document lands.
+        """
+        chapter_rows = (
+            await self._session.execute(
+                select(Chapter.id, Chapter.number, Chapter.order_index)
+                .where(Chapter.document_id == document_id)
+                .order_by(Chapter.order_index, Chapter.id)
+            )
+        ).all()
+
+        chapter_order = {
+            chapter_id: index for index, (chapter_id, _, _) in enumerate(chapter_rows)
+        }
+        chapter_labels = {
+            chapter_id: ((number or "").strip() or str(order_index + 1))
+            for chapter_id, number, order_index in chapter_rows
+        }
+
+        stmt = (
+            select(Topic)
+            .where(
+                Topic.document_id == document_id,
+                Topic.parent_topic_id.is_(None),
+            )
+            .options(
+                selectinload(Topic.subtopics).selectinload(Topic.concepts),
+                selectinload(Topic.concepts),
+            )
+        )
+        topics = list((await self._session.execute(stmt)).scalars().unique())
+
+        topics.sort(
+            key=lambda topic: (
+                chapter_order.get(topic.chapter_id, len(chapter_order)),
+                topic.order_index,
+                str(topic.id),
+            )
+        )
+
+        return topics, chapter_labels
 
     async def list_by_chapter(self, chapter_id: uuid.UUID) -> list[Topic]:
         """

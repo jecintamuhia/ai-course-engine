@@ -6,7 +6,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
+from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin, utcnow
 from sqlalchemy import DateTime, Enum, ForeignKey, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
@@ -37,9 +37,7 @@ class CurriculumReview(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         index=True,
     )
 
-    reviewer_name: Mapped[str | None] = mapped_column(
-        String(255), nullable=True
-    )
+    reviewer_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     decision: Mapped[ReviewDecision] = mapped_column(
         Enum(
@@ -55,6 +53,7 @@ class CurriculumReview(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     reviewed_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
+        default=utcnow,
         server_default=func.now(),
         nullable=False,
     )
