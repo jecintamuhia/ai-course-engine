@@ -20,7 +20,7 @@ jobs:
       run:
         working-directory: backend
     env:
-      ENVIRONMENT: test
+      ENVIRONMENT: testing
       SECRET_KEY: ci-only-secret-key-not-used-in-production
       TRUST_PROXY_HEADERS: "false"
     steps:

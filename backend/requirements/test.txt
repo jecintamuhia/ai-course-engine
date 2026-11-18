@@ -4,3 +4,5 @@ pytest
 pytest-asyncio
 httpx
 ruff==0.16.5
+fakeredis==2.37.1
+reportlab==5.0.1
