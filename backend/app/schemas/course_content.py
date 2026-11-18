@@ -104,6 +104,27 @@ class ActivityPayload(_BlockPayloadBase):
     estimated_minutes: int = Field(ge=0, le=10080)
 
 
+class PracticalTaskPayload(_BlockPayloadBase):
+    """
+    A source-grounded practical project brief.
+
+    Unlike ``ActivityPayload``'s free-form instructions, a practical task
+    states exactly what must be handed in and what counts as proof of
+    completion, because ``practical_submissions`` are later assessed
+    against these two fields. Every step must be grounded in the source
+    textbook so the brief describes real procedures rather than an
+    invented assignment.
+    """
+
+    brief: str = Field(min_length=1, max_length=2500)
+    scenario: str = Field(default="", max_length=1500)
+    steps: list[str] = Field(default_factory=list, max_length=20)
+    deliverable: str = Field(min_length=1, max_length=1200)
+    evidence: str = Field(min_length=1, max_length=1200)
+    difficulty: Literal["easy", "medium", "hard"] = "medium"
+    estimated_minutes: int = Field(ge=0, le=10080)
+
+
 class KnowledgeCheckOptionPayload(BaseModel):
     """One multiple-choice option."""
 

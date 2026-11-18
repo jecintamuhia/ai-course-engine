@@ -27,8 +27,13 @@ from app.schemas.auth import (
 )
 from app.services.auth.exchange_codes import issue_code, redeem_code
 from app.services.auth.google import GoogleOAuthProvider, new_state
+from app.services.auth.rate_limit import (
+    client_ip,
+    enforce_login_rate_limit,
+)
+from app.services.auth.routing import post_login_destination
 from app.services.auth.service import AuthService
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import RedirectResponse
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -70,17 +75,33 @@ def get_google_provider(
 @router.post("/login", response_model=TokenResponse)
 async def login(
     payload: LoginRequest,
-    settings=Depends(get_app_settings),
+    request: Request,
+    settings: Settings = Depends(get_app_settings),
     service=Depends(get_auth_service),
+    redis_client: Redis = Depends(get_redis_client),
 ) -> TokenResponse:
     """
-    Authenticate an administrator or lecturer.
+    Authenticate an administrator, lecturer or learner.
 
     Returns a signed JWT access token. Credential failures receive a
     generic 401 so the endpoint never reveals which field was wrong.
+    Redis-backed throttling runs before the password check so repeated
+    failures cannot be used to grind through credentials.
     """
+    normalized_email = payload.normalized_email()
+
+    await enforce_login_rate_limit(
+        redis_client,
+        settings=settings,
+        email=normalized_email,
+        client_ip_address=client_ip(
+            request,
+            trust_proxy_headers=settings.trust_proxy_headers,
+        ),
+    )
+
     user = await service.authenticate_user(
-        payload.normalized_email(),
+        normalized_email,
         payload.password,
     )
 
@@ -93,6 +114,7 @@ async def login(
         access_token=token_payload["access_token"],
         token_type=token_payload["token_type"],
         user=UserRead.model_validate(token_payload["user"]),
+        redirect_to=post_login_destination(user.role, settings),
     )
 
 
@@ -120,14 +142,19 @@ async def get_auth_methods(
 @router.post("/register", response_model=TokenResponse, status_code=201)
 async def register(
     payload: RegisterRequest,
+    settings: Settings = Depends(get_app_settings),
     service=Depends(get_auth_service),
 ) -> TokenResponse:
     """
-    Self-register a lecturer account and sign in immediately.
+    Self-register a learner account and sign in immediately.
 
-    Always creates a lecturer — there is no way to self-assign admin
-    rights through this endpoint. A duplicate email receives a 409 rather
-    than revealing whether that account exists beyond the obvious.
+    Always creates a learner — there is no way to self-assign lecturer,
+    teacher or admin rights through this endpoint, so a signed-up account
+    cannot reach the authoring or Moodle-publishing endpoints. Those
+    accounts are created by an administrator via ``POST /auth/users``.
+
+    A duplicate email receives a 409 rather than revealing whether that
+    account exists beyond the obvious.
     """
     user = await service.register_user(
         email=payload.normalized_email(),
@@ -141,6 +168,7 @@ async def register(
         access_token=token_payload["access_token"],
         token_type=token_payload["token_type"],
         user=UserRead.model_validate(token_payload["user"]),
+        redirect_to=post_login_destination(user.role, settings),
     )
 
 
@@ -157,15 +185,13 @@ async def google_start(
     browser to Google's consent screen.
     """
     state = new_state()
+    authorization_url = provider.authorization_url(
+        state=state,
+        redirect_uri=settings.effective_google_redirect_uri,
+    )
     await redis_client.set(f"{_STATE_KEY}{state}", "1", ex=_STATE_TTL_SECONDS)
 
-    return RedirectResponse(
-        provider.authorization_url(
-            state=state,
-            redirect_uri=settings.effective_google_redirect_uri,
-        ),
-        status_code=302,
-    )
+    return RedirectResponse(authorization_url, status_code=302)
 
 
 @router.get("/google/callback")
@@ -229,6 +255,7 @@ async def google_callback(
 @router.post("/google/exchange", response_model=TokenResponse)
 async def google_exchange(
     payload: GoogleExchangeRequest,
+    settings: Settings = Depends(get_app_settings),
     session: AsyncSession = Depends(get_database_session),
     redis_client: Redis = Depends(get_redis_client),
 ) -> TokenResponse:
@@ -250,6 +277,7 @@ async def google_exchange(
         access_token=token["access_token"],
         token_type=token["token_type"],
         user=UserRead.model_validate(user),
+        redirect_to=post_login_destination(user.role, settings),
     )
 
 
@@ -267,7 +295,12 @@ async def create_user(
     _admin: User = Depends(require_admin),
     service=Depends(get_auth_service),
 ) -> UserRead:
-    """Create a new user account (administrator-only)."""
+    """
+    Create a new user account (administrator-only).
+
+    This is the only path to lecturer, teacher and admin accounts:
+    self-registration always produces a learner.
+    """
     user = await service.create_user(
         email=payload.normalized_email(),
         password=payload.password,

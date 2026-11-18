@@ -14,10 +14,12 @@ class AppError(Exception):
         message: str,
         *,
         details: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
     ) -> None:
         super().__init__(message)
         self.message = message
         self.details = details or {}
+        self.headers = headers or {}
 
 
 class ConfigurationError(AppError):
@@ -48,6 +50,32 @@ class CourseNotFound(AppError):
     error_code = "course_not_found"
 
 
+class EnrolmentNotFound(AppError):
+    """Raised when a learner has no active enrolment in a course."""
+
+    status_code = 404
+    error_code = "enrolment_not_found"
+
+
+class CourseNotEnrollableError(AppError):
+    """
+    Raised when a course cannot be enrolled in.
+
+    A course that never reached Moodle has no content for a learner to
+    open, so enrolment is refused until the course is published.
+    """
+
+    status_code = 409
+    error_code = "course_not_enrollable"
+
+
+class NotEnrolledError(AppError):
+    """Raised when a learner must enrol in a course before acting."""
+
+    status_code = 403
+    error_code = "not_enrolled"
+
+
 class CurriculumNotFound(AppError):
     """Raised when a requested curriculum does not exist."""
 
@@ -74,6 +102,20 @@ class LessonContentBlockNotFound(AppError):
 
     status_code = 404
     error_code = "lesson_content_block_not_found"
+
+
+class PracticalSubmissionNotFound(AppError):
+    """Raised when a requested practical submission does not exist."""
+
+    status_code = 404
+    error_code = "practical_submission_not_found"
+
+
+class SubmissionNotAllowedError(AppError):
+    """Raised when a block that does not accept hand-ins is submitted to."""
+
+    status_code = 422
+    error_code = "submission_not_allowed"
 
 
 class CurriculumUnitNotFound(AppError):
@@ -170,6 +212,34 @@ class AssessmentNotFound(AppError):
     error_code = "assessment_not_found"
 
 
+class AssessmentNotAvailableError(AppError):
+    """Raised when a course has no approved final assessment to take."""
+
+    status_code = 409
+    error_code = "assessment_not_available"
+
+
+class AssessmentSubmissionError(AppError):
+    """Raised when an assessment answer sheet is incomplete or invalid."""
+
+    status_code = 422
+    error_code = "assessment_submission_invalid"
+
+
+class CertificateNotEligibleError(AppError):
+    """Raised when a learner has not met the certification conditions."""
+
+    status_code = 409
+    error_code = "certificate_not_eligible"
+
+
+class CertificateNotFound(AppError):
+    """Raised when a certificate reference does not exist."""
+
+    status_code = 404
+    error_code = "certificate_not_found"
+
+
 class ContentQAError(AppError):
     """
     Raised when automated content QA is severe enough to block an action.
@@ -194,6 +264,38 @@ class InvalidCredentialsError(AuthenticationError):
     """Raised when an email/password pair does not authenticate."""
 
     error_code = "invalid_credentials"
+
+
+class RateLimitedError(AppError):
+    """Raised when a caller exceeds an authentication rate limit."""
+
+    status_code = 429
+    error_code = "rate_limited"
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        retry_after_seconds: int,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        retry_after = max(1, int(retry_after_seconds))
+        merged_details = {"retry_after_seconds": retry_after}
+        if details:
+            merged_details.update(details)
+        super().__init__(
+            message,
+            details=merged_details,
+            headers={"Retry-After": str(retry_after)},
+        )
+        self.retry_after_seconds = retry_after
+
+
+class RateLimitUnavailableError(AppError):
+    """Raised when the authentication rate limiter cannot be consulted."""
+
+    status_code = 503
+    error_code = "rate_limit_unavailable"
 
 
 class AuthorizationError(AppError):

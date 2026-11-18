@@ -49,6 +49,7 @@ const BLOCK_TYPE_LABELS: Record<LessonBlockType, string> = {
   video: "Video",
   activity: "Activity",
   knowledge_check: "Knowledge check",
+  practical_task: "Practical task",
   summary: "Summary",
 };
 
@@ -73,6 +74,8 @@ function renderBlockPayload(block: LessonBlockRead): string {
     "instructions",
     "question",
     "description",
+    "scenario",
+    "brief",
     "caption",
     "url",
     "reason",
@@ -96,6 +99,21 @@ function renderBlockPayload(block: LessonBlockRead): string {
       .map((o) => o as { id?: unknown; text?: unknown })
       .find((o) => String(o.id) === correct)?.text;
     bits.push(`Correct answer: ${typeof answer === "string" ? answer : correct}`);
+  }
+  if (block.block_type === "practical_task") {
+    const steps = Array.isArray(p.steps) ? (p.steps as unknown[]) : [];
+    const stepBits = steps
+      .filter((s): s is string => typeof s === "string" && s.trim().length > 0)
+      .map((s) => s.trim());
+    if (stepBits.length > 0) bits.push(`Steps: ${stepBits.join(" -> ")}`);
+    const deliverable = p.deliverable;
+    if (typeof deliverable === "string" && deliverable.trim()) {
+      bits.push(`Hand in: ${deliverable.trim()}`);
+    }
+    const evidence = p.evidence;
+    if (typeof evidence === "string" && evidence.trim()) {
+      bits.push(`Proof: ${evidence.trim()}`);
+    }
   }
   if (block.block_type === "diagram" && Array.isArray(p.nodes)) {
     const nodes = (p.nodes as { label?: string }[])
@@ -302,7 +320,7 @@ export function LessonReviewPage() {
           curriculum && (
             <Link
               to={`/curriculum/${curriculum.id}`}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-burgundy-700 hover:text-burgundy-800"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-brand-700 hover:text-brand-800"
             >
               <ArrowLeft className="h-3.5 w-3.5" /> Curriculum
             </Link>
@@ -330,7 +348,7 @@ export function LessonReviewPage() {
       {lessons.length === 0 ? (
         <Card>
           <CardContent className="py-14 text-center">
-            <Sparkles className="mx-auto mb-3 h-8 w-8 text-burgundy/40" />
+            <Sparkles className="mx-auto mb-3 h-8 w-8 text-brand/40" />
             <p className="text-sm font-medium text-foreground">
               No lessons for this week yet.
             </p>
@@ -433,7 +451,7 @@ export function LessonReviewPage() {
                   {isExpanded && (
                     <div className="mt-5 space-y-5">
                       {lesson.status === "awaiting_review" && (
-                        <div className="grid gap-3 rounded-lg border border-border bg-cream-100/50 p-4 sm:grid-cols-[1fr_1fr_auto]">
+                        <div className="grid gap-3 rounded-lg border border-border bg-sand-100/50 p-4 sm:grid-cols-[1fr_1fr_auto]">
                           <div>
                             <Label htmlFor={`reviewer-${lesson.id}`}>
                               Reviewer name
@@ -541,7 +559,7 @@ export function LessonReviewPage() {
                                 </Button>
                               </div>
                             </div>
-                            <pre className="mt-2 whitespace-pre-wrap rounded-md bg-cream-100/70 p-3 text-xs leading-relaxed text-foreground/80">
+                            <pre className="mt-2 whitespace-pre-wrap rounded-md bg-sand-100/70 p-3 text-xs leading-relaxed text-foreground/80">
                               {renderBlockPayload(block)}
                             </pre>
                             {block.review_comments && (
@@ -563,7 +581,7 @@ export function LessonReviewPage() {
                             {sourceMap.sources.map((src) => (
                               <div
                                 key={src.chunk_id}
-                                className="rounded-lg border border-border bg-cream-100/40 p-3"
+                                className="rounded-lg border border-border bg-sand-100/40 p-3"
                               >
                                 <p className="text-xs leading-relaxed text-foreground/75">
                                   {src.content}

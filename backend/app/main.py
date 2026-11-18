@@ -17,8 +17,10 @@ from app.db.session import create_session_factory
 from app.services.ai.factory import create_llm_provider
 from app.services.moodle.client import create_moodle_client
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import text
 
 logger = get_logger(__name__)
 
@@ -74,8 +76,9 @@ def create_application() -> FastAPI:
         title=settings.app_name,
         version=settings.app_version,
         description=(
-            "Production backend for AI-powered educational content "
-            "ingestion and curriculum planning."
+            f"{settings.app_name} — {settings.app_tagline}. "
+            "Backend for textbook ingestion, AI structure extraction, "
+            "curriculum planning, learner assessment and certification."
         ),
         docs_url="/docs" if not settings.is_production else None,
         redoc_url="/redoc" if not settings.is_production else None,
@@ -88,6 +91,51 @@ def create_application() -> FastAPI:
     )
 
     application.state.settings = settings
+
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origins,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=[
+            "Authorization",
+            "Content-Type",
+            "X-Request-ID",
+            "Accept",
+            "Origin",
+        ],
+        expose_headers=["X-Request-ID"],
+        max_age=86400,
+    )
+
+    @application.get("/health/ready")
+    async def readiness(request: Request) -> dict[str, str]:
+        """Readiness probe. Verifies database and Redis connectivity."""
+        engine = request.app.state.engine
+        redis_client = request.app.state.redis_client
+
+        try:
+            async with engine.begin() as conn:
+                await conn.execute(text("SELECT 1"))
+        except Exception:  # noqa: BLE001 - surface as unhealthy
+            return JSONResponse(
+                status_code=503,
+                content={"status": "not_ready", "database": "unreachable"},
+            )
+
+        try:
+            await redis_client.ping()
+        except Exception:  # noqa: BLE001 - surface as unhealthy
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "status": "not_ready",
+                    "database": "ok",
+                    "redis": "unreachable",
+                },
+            )
+
+        return {"status": "ready"}
 
     @application.middleware("http")
     async def request_context_middleware(
@@ -143,6 +191,7 @@ def create_application() -> FastAPI:
 
         return JSONResponse(
             status_code=exc.status_code,
+            headers=exc.headers or None,
             content={
                 "error": {
                     "code": exc.error_code,

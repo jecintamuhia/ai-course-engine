@@ -2,7 +2,12 @@
 
 This document describes the Moodle integration: read-level web service
 client, publish pipeline, preflight readiness check, export fallback,
-and the current live-publish blocker.
+and the live configuration of the client site
+(`https://elearning.skillupafrica.co.ke`).
+
+For the student-facing experience — public registration, branding,
+enrolment, roles, and the teacher workflow — see
+[`moodle-public-access.md`](moodle-public-access.md).
 
 ## Capabilities Required
 
@@ -16,8 +21,9 @@ All functions below must be registered for the external service token
 | `core_webservice_get_site_info` | (none) | Connectivity / version probe |
 | `core_course_get_categories` | `moodle/course:view` | Category existence check |
 | `core_course_get_courses_by_field` | `moodle/course:view` | Find existing course by idnumber |
-| `core_course_get_contents` | `moodle/course:view` | Read sections + modules |
-| `core_course_create_courses` | `moodle/course:create` | **BLOCKED** — currently missing |
+| `core_course_get_contents` | `moodle/course:view` | Read sections + modules (Page **bodies are not included**) |
+| `mod_page_get_pages_by_courses` | `mod/page:view` | Read published Page bodies (lesson content) |
+| `core_course_create_courses` | `moodle/course:create` | Create the Moodle course |
 | `core_course_update_courses` | `moodle/course:update` | Update fullname/shortname |
 | `local_ai_course_engine_update_section` | `moodle/course:update` | Name/summarise a section (plugin) |
 | `local_ai_course_engine_add_page` | `mod/page:addinstance` | Add a Page activity (plugin) |
@@ -26,9 +32,16 @@ The two `local_ai_course_engine_*` functions are provided by the bundled
 **local Moodle plugin** (`moodle-plugin/local/ai_course_engine`). Moodle
 core ships no web service that can name a course section or create an
 activity instance: `core_course_edit_section`/`core_course_edit_module`
-only change visibility/marker/deletion, and no `mod_page_*` web service
-exists. A missing plugin function is reported as a
-`content_api_unavailable` issue.
+only change visibility/marker/deletion. A missing plugin function is
+reported as a `content_api_unavailable` issue.
+
+`core_course_get_contents` returns a Page module's *file* contents (a link
+to the generated `index.html`), not the page body. The body is read with
+the core `mod_page_get_pages_by_courses` function and merged onto the
+contents before lesson rendering and post-publish verification. A token
+that does not expose it is reported as `missing_capability` with
+`mod/page:view`, and lesson content lookup raises a clear
+`moodle_integration_error` instead of serving an empty lesson.
 
 ### Moodle configuration
 
@@ -43,11 +56,12 @@ exists. A missing plugin function is reported as a
 
 ```
 backend/app/services/moodle/
-├── __init__.py
 ├── client.py          # low-level WS client (httpx AsyncClient)
 ├── preflight.py       # readiness check (read-only, never writes)
 ├── mapper.py          # curriculum → Moodle course plan
 ├── sync.py            # idempotent publish pipeline
+├── lessons.py         # lecturer-approved lesson → page renderer
+├── page_content.py    # read published Page bodies (mod_page_get_pages_by_courses)
 ├── status.py          # status probe (legacy, kept for status endpoint)
 └── export.py          # fallback curriculum export (JSON)
 ```
@@ -92,6 +106,24 @@ on the site-info handshake (function registered but not exposed to the
 token's service) is reported as `missing_capability` with the list of
 functions the admin must add to the service.
 
+## Status and deep check
+
+`GET /api/v1/moodle/status` is the permissive liveness view:
+`connected=true` means the Moodle site-info probe succeeded.
+
+`GET /api/v1/moodle/check` adds a category-visibility probe without
+collapsing the two signals. It returns `connected`, `ready`, and
+`degraded`:
+
+- `connected=false` means the site/token probe failed.
+- `connected=true, degraded=true, ready=false` means Moodle answered, but
+  the configured `MOODLE_COURSE_CATEGORY_ID` is not visible to the token.
+  The error says publishing would fail rather than claiming Moodle is down.
+- `connected=true, ready=true` means both probes passed.
+
+This is a read-only check. No live Moodle run is claimed for the current
+remediation pass; the production URL is never verification evidence.
+
 ## Publish pipeline
 
 `POST /api/v1/moodle/publish` triggers `MoodleSyncService.publish_curriculum`.
@@ -134,9 +166,10 @@ functions the admin must add to the service.
    are published only once, so duplicated curriculum/lesson items never
    create duplicate pages; two genuinely different lessons that share a
    title are both published
-8. **Post-publish verification** — read back course contents and assert
-   every planned section and its lesson pages are present (verification
-   applies the same content-dedup rule as sync)
+8. **Post-publish verification** — read back course contents, merge Page
+   bodies via `mod_page_get_pages_by_courses`, and assert every planned
+   section and its lesson pages are present (verification applies the same
+   content-dedup rule as sync)
 9. If verified: status = `PUBLISHED`, record persisted as `SYNCED`
 10. If NOT verified: status stays `APPROVED`, a `SYNC_FAILED` record is
     persisted (with moodle_course_id and idnumber so retries resume
@@ -184,62 +217,45 @@ The `MoodlePublishPanel` component (in
   for the Moodle administrator
 - **Re-check button**: re-runs the preflight without a page reload
 
-## Current blocker
+## Live configuration (historical evidence only)
 
-Configuration verified against the live client site
-(`https://elearning.skillupafrica.co.ke`, Moodle **4.3.12**):
+The facts below were verified against the live client site in an earlier pass.
+They are not execution evidence for the current remediation pass, and the
+production URL must not be used as a staging target. Verified against the live client site
+(`https://elearning.skillupafrica.co.ke`, Moodle **4.3.12**, site name
+**Skillup Action Africa**):
 
 - Token user: `skillupadmin`
-- The token's external service declares **only the two course write
-  functions** (`core_course_create_courses`, `core_course_update_courses`).
-- Every read function (`core_webservice_get_site_info`,
+- The token's external service must expose the full set of functions the
+  publisher needs: `core_webservice_get_site_info`,
   `core_course_get_categories`, `core_course_get_courses_by_field`,
-  `core_course_get_contents`) is registered on the site but **not
-  exposed to the token's service**, so all reads return `accessexception`.
-- The originally-assumed section/page functions are **not part of Moodle
-  core**: `core_course_create_sections`, `core_course_update_sections`,
-  and `mod_page_add_instance` return `invalidrecord` (function does not
-  exist) and do not appear in any official Moodle Web Services function
-  list. `core_course_edit_section`/`core_course_edit_module` only change
-  visibility/marker/deletion — they cannot set section names or create
-  activities.
+  `core_course_get_contents`, `mod_page_get_pages_by_courses`,
+  `core_course_create_courses`, `core_course_update_courses`, and the two
+  bundled plugin functions `local_ai_course_engine_update_section` and
+  `local_ai_course_engine_add_page`.
+- The last recorded live check (`GET /api/v1/moodle/preflight` returning
+  `ready: true`) predates the Page-body requirement. Re-run preflight on
+  the site: the token must also expose `mod_page_get_pages_by_courses`
+  (`mod/page:view`) before lesson content can be read back.
+- Published course id **5** (`idnumber ai-ece-643a805c-…`) belongs to
+  curriculum `643a805c-050d-4910-bf2d-97da7ef68dfb`. It currently
+  contains 17 sections (General + Week 1–16) but only **Week 1** has
+  page resources, so it must be re-published to deliver the complete
+  16-week content.
 
-Consequences:
+The two `local_ai_course_engine_*` functions are provided by the bundled
+**local Moodle plugin** (`moodle-plugin/local/ai_course_engine`), which
+must remain installed on the site:
+- `local_ai_course_engine_update_section` — `moodle/course:update`
+- `local_ai_course_engine_add_page` — `mod/page:addinstance`
 
-- Preflight correctly reports `ready: false` with precise, actionable
-  issues (read functions missing; bundled plugin functions missing) and
-  the publisher refuses to start.
-- Live publishing cannot proceed until the Moodle admin exposes the read
-  functions to the token's service **and** installs the bundled local
-  `ai_course_engine` plugin (adding its two web service functions to the
-  service).
+Moodle core ships no web service that can name a course section or
+create an activity instance; the plugin exists for exactly that reason
+and is required for publishing. Keep it installed and up to date when
+the plugin repository changes.
 
-### What the Moodle administrator must do
-
-1. In Site administration → Plugins → Web services → External services,
-   open the service bound to the `skillupadmin` token and **add the four
-   read functions**: `core_webservice_get_site_info`,
-   `core_course_get_categories`, `core_course_get_courses_by_field`,
-   `core_course_get_contents`
-2. Install the bundled local plugin:
-   `moodle-plugin/local/ai_course_engine` (copy to
-   `$MOODLEDATA/../local/ai_course_engine` or
-   `moodle/local/ai_course_engine`, then run the site upgrade). The
-   plugin registers `local_ai_course_engine_update_section` and
-   `local_ai_course_engine_add_page`
-3. Add the two plugin functions to the token's service, and grant (or
-   allow auto-grant) the capabilities: `moodle/course:view`,
-   `moodle/course:create`, `moodle/course:update`,
-   `mod/page:addinstance`
-4. Run `GET /api/v1/moodle/preflight` to confirm `ready: true` and every
-   check is `ok`
-5. Test publishing with a small curriculum into a test course/category,
-   and confirm the post-publish verification succeeds, before publishing
-   to production
-
-Live publishing must NOT be attempted or claimed successful until the
-admin exposes the read functions, installs the plugin, and the preflight
-returns ready.
+Student-facing configuration (registration, enrolment, branding, roles)
+is tracked in [`moodle-public-access.md`](moodle-public-access.md).
 
 ## Migrations
 
@@ -255,6 +271,8 @@ includes `moodle_course_id`, `moodle_url`, `idnumber`, `status`
 | `test_moodle_preflight.py` | All issue kinds (incl. `content_api_unavailable`), classification (incl. `accessexception`), category probe, plain-string functions, readiness checklist items + verification method |
 | `test_moodle_export.py` | Export structure, importable flag, fields, provenance |
 | `test_moodle_sync.py` | Preflight gate, verification gate, idempotent retry, partial persistence, overrides, section upsert-by-number |
-| `test_moodle_api.py` | API routes for status and preflight |
-| `test_moodle_client.py` | HTTP client edge cases, plugin section/page function calls |
-| `test_moodle_mapper.py` | Plan building (unchanged) |
+| `test_moodle_api.py` | API routes for status, preflight, and the degraded `/check` response when category probing fails |
+| `test_moodle_client.py` | HTTP client edge cases, plugin section/page function calls, Page-body read |
+| `test_moodle_content.py` | Lesson content resolution: marker, computed name, legacy title, content equality, missing body |
+| `test_moodle_mapper.py` | Plan building (unchanged) and page-name disambiguation |
+| `backend/tests/integration/test_moodle.py` | Mocked end-to-end page-body mapping and missing-body errors (no live Moodle) |

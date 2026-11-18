@@ -7,10 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AuthShell } from "@/components/auth/AuthShell";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { api, ApiError } from "@/lib/api";
-import { setToken } from "@/lib/auth";
+import { beginSession, isAbsoluteUrl } from "@/lib/session";
 import type { AuthMethods } from "@/lib/types";
+
+function applyDestination(destination: string, navigate: ReturnType<typeof useNavigate>) {
+  if (isAbsoluteUrl(destination)) {
+    window.location.assign(destination);
+  } else {
+    navigate(destination, { replace: true });
+  }
+}
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -58,9 +67,9 @@ export function LoginPage() {
       .exchangeGoogleCode(code)
       .then((response) => {
         if (!active) return;
-        setToken(response.access_token);
+        const destination = beginSession(response);
         toast.success(`Welcome, ${response.user.full_name || response.user.email}.`);
-        navigate("/dashboard", { replace: true });
+        applyDestination(destination, navigate);
       })
       .catch((error: unknown) => {
         if (!active) return;
@@ -89,9 +98,9 @@ export function LoginPage() {
     setSubmitting(true);
     try {
       const response = await api.login(email, password);
-      setToken(response.access_token);
+      const destination = beginSession(response);
       toast.success(`Welcome back, ${response.user.full_name || response.user.email}.`);
-      navigate("/dashboard", { replace: true });
+      applyDestination(destination, navigate);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Sign-in failed. Try again.",
@@ -106,108 +115,100 @@ export function LoginPage() {
   const busy = submitting || exchanging;
 
   return (
-    <div className="flex min-h-svh items-center justify-center px-4 py-12">
-      <div className="w-full max-w-sm">
-        <div className="mb-6 text-center">
-          <h1 className="text-xl font-bold tracking-tight text-ink">
-            AI Course Engine
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Sign in to continue to your workspace
-          </p>
-        </div>
-
-        <Card>
-          <CardContent className="p-6">
-            {googleEnabled && (
-              <>
-                <GoogleSignInButton
-                  startUrl={api.googleStartUrl()}
-                  disabled={busy}
-                />
-                {methods?.allowed_domains?.length ? (
-                  <p className="mt-2 text-center text-[11px] text-muted-foreground">
-                    Or use {methods.allowed_domains.join(", ")} email
-                  </p>
-                ) : null}
-                <div className="my-5 flex items-center gap-3">
-                  <span className="h-px flex-1 bg-border" />
-                  <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                    or
-                  </span>
-                  <span className="h-px flex-1 bg-border" />
-                </div>
-              </>
-            )}
-
-            {exchanging ? (
-              <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Completing Google sign-in…
+    <AuthShell
+      title="Sign in"
+      subtitle="Learners, lecturers and administrators of SkillUp Action Africa."
+    >
+      <Card>
+        <CardContent className="p-6">
+          {googleEnabled && (
+            <>
+              <GoogleSignInButton
+                startUrl={api.googleStartUrl()}
+                disabled={busy}
+              />
+              {methods?.allowed_domains?.length ? (
+                <p className="mt-2 text-center text-[11px] text-muted-foreground">
+                  Or use {methods.allowed_domains.join(", ")} email
+                </p>
+              ) : null}
+              <div className="my-5 flex items-center gap-3">
+                <span className="h-px flex-1 bg-border" />
+                <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                  or
+                </span>
+                <span className="h-px flex-1 bg-border" />
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="login-email">Email address</Label>
-                  <Input
-                    id="login-email"
-                    type="email"
-                    autoComplete="username"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    required
-                    autoFocus
-                  />
-                </div>
+            </>
+          )}
 
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="login-password">Password</Label>
-                  <Input
-                    id="login-password"
-                    type="password"
-                    autoComplete="current-password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    required
-                  />
-                </div>
+          {exchanging ? (
+            <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Completing Google sign-in…
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="login-email">Email address</Label>
+                <Input
+                  id="login-email"
+                  type="email"
+                  autoComplete="username"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
+                  autoFocus
+                />
+              </div>
 
-                <Button type="submit" className="mt-1 w-full" disabled={busy}>
-                  {submitting ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Signing in…
-                    </>
-                  ) : (
-                    <>
-                      <LogIn className="h-4 w-4" />
-                      Sign in
-                    </>
-                  )}
-                </Button>
-              </form>
-            )}
-          </CardContent>
-        </Card>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="login-password">Password</Label>
+                <Input
+                  id="login-password"
+                  type="password"
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  required
+                />
+              </div>
 
+              <Button type="submit" className="mt-1 w-full" disabled={busy}>
+                {submitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Signing in…
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="h-4 w-4" />
+                    Sign in
+                  </>
+                )}
+              </Button>
+            </form>
+          )}
+        </CardContent>
+      </Card>
+
+      <div className="mt-6 space-y-3 text-center text-xs text-muted-foreground">
         {registrationEnabled && (
-          <p className="mt-6 text-center text-xs text-muted-foreground">
+          <p>
             New here?{" "}
             <Link
               to="/register"
-              className="font-semibold text-burgundy-700 hover:text-burgundy-800"
+              className="font-semibold text-brand-700 hover:text-brand-800"
             >
-              Create a lecturer account
+              Create a learner account
             </Link>
           </p>
         )}
 
-        <p className="mt-4 text-center text-xs text-muted-foreground">
-          Authenticated access is required to view course content.
-        </p>
+        <p>Authenticated access is required to view course content.</p>
       </div>
-    </div>
+    </AuthShell>
   );
 }

@@ -101,6 +101,9 @@ def render_block_to_html(
             f"<p>{instructions}</p>"
         )
 
+    if block_type == LessonBlockType.PRACTICAL_TASK:
+        return _render_practical_task(payload, heading=h3)
+
     if block_type == LessonBlockType.KNOWLEDGE_CHECK:
         return _render_knowledge_check(payload, include_answers=include_answers)
 
@@ -232,6 +235,52 @@ def _render_knowledge_check(payload: dict[Any, Any], *, include_answers: bool) -
         f"<p><strong>Knowledge check ({difficulty}):</strong> {question}</p>"
         f"<ul>{''.join(option_items)}</ul>{answer_entry}</div>"
     )
+
+
+def _render_practical_task(payload: dict[Any, Any], *, heading: str) -> str:
+    """Render a practical project brief to Moodle-safe HTML.
+
+    Everything the model produced is escaped; the ordered step list is
+    rebuilt from primitives so no markup can pass through, which keeps
+    the brief readable and submit-ready in a Moodle page.
+    """
+    brief = _esc(payload.get("brief", ""))
+    scenario = _esc(payload.get("scenario", ""))
+    deliverable = _esc(payload.get("deliverable", ""))
+    evidence = _esc(payload.get("evidence", ""))
+    difficulty = _esc(payload.get("difficulty", "medium"))
+    minutes = _esc(payload.get("estimated_minutes", ""))
+
+    parts = [f"{heading}<div class='practical-task'>"]
+    if scenario:
+        parts.append(f"<p><strong>Scenario:</strong> {scenario}</p>")
+    if brief:
+        parts.append(f"<p>{brief}</p>")
+
+    steps = [
+        step.strip()
+        for step in payload.get("steps") or []
+        if isinstance(step, str) and step.strip()
+    ]
+    if steps:
+        items = "".join(f"<li>{_esc(step)}</li>" for step in steps)
+        parts.append(f"<p><strong>Steps:</strong></p><ol>{items}</ol>")
+
+    if deliverable:
+        parts.append(f"<p><strong>Hand in:</strong> {deliverable}</p>")
+    if evidence:
+        parts.append(f"<p><strong>Proof of completion:</strong> {evidence}</p>")
+
+    meta = []
+    if minutes != "":
+        meta.append(f"<strong>Estimated time:</strong> {minutes} minutes")
+    if difficulty:
+        meta.append(f"<strong>Difficulty:</strong> {difficulty}")
+    if meta:
+        parts.append(f"<p>{' &middot; '.join(meta)}</p>")
+
+    parts.append("</div>")
+    return "".join(parts)
 
 
 def _safe_url(value: Any) -> str | None:

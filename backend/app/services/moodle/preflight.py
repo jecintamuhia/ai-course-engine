@@ -59,6 +59,15 @@ FUNCTION_REQUIREMENTS: dict[str, dict[str, Any]] = {
         "since": None,
         "detail": "Read course sections/modules for sync and verification.",
     },
+    "mod_page_get_pages_by_courses": {
+        "capability": "mod/page:view",
+        "since": "3.3",
+        "detail": (
+            "Read the published Page bodies that learners and lecturers "
+            "open in the portals (core_course_get_contents returns page "
+            "files, not the body)."
+        ),
+    },
     "core_course_create_courses": {
         "capability": "moodle/course:create",
         "since": None,
@@ -713,7 +722,8 @@ def _classify_connectivity_issue(exc: MoodleIntegrationError) -> MoodleReadiness
                 "service and grant the required capabilities: "
                 "core_webservice_get_site_info, core_course_get_categories, "
                 "core_course_get_courses_by_field, core_course_get_contents, "
-                "core_course_create_courses, core_course_update_courses, "
+                "mod_page_get_pages_by_courses, core_course_create_courses, "
+                "core_course_update_courses, "
                 "local_ai_course_engine_update_section, "
                 "local_ai_course_engine_add_page."
             ),

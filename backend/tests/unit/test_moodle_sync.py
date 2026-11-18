@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from app.core.exceptions import (
+    ConfigurationError,
     CurriculumNotFound,
     CurriculumValidationError,
     MoodleIntegrationError,
@@ -12,7 +13,7 @@ from app.core.exceptions import (
 )
 from app.models.course import CourseStatus
 from app.models.curriculum import Curriculum, CurriculumStatus
-from app.services.moodle.mapper import MoodleLessonPlan
+from app.services.moodle.mapper import MoodleLessonPlan, lesson_id_marker
 from app.services.moodle.preflight import FUNCTION_REQUIREMENTS
 from app.services.moodle.sync import MoodleSyncService
 
@@ -526,6 +527,322 @@ class TestVerifyCourse:
         assert result["sections_found"] == 2
         assert result["modules_found"] == 3
         assert len(result["section_names"]) == 2
+
+
+class TestLessonPageIdentity:
+    """Marker-based identity of lesson pages across sync and verification."""
+
+    @pytest.mark.anyio
+    async def test_page_matching_marker_is_reused_even_when_renamed_in_moodle(self):
+        c = _make_curriculum(status=CurriculumStatus.APPROVED, week_count=1)
+        s, client, repo, course_repo, _ = _make_service(curriculum=c)
+        lesson_id = uuid.uuid4()
+
+        def renderer(unit):
+            return [
+                MoodleLessonPlan(
+                    name="Lesson",
+                    content_html=f"{lesson_id_marker(lesson_id)}\n<p>lesson</p>",
+                    lesson_id=lesson_id,
+                )
+            ]
+
+        client.find_course_by_idnumber.return_value = {"id": 10}
+        # A lecturer renamed the page inside Moodle; it still carries the
+        # lesson's identity marker, so it must be reused, not duplicated.
+        client.get_course_contents.side_effect = [
+            [
+                {
+                    "id": 1,
+                    "section": 1,
+                    "name": "Week 1",
+                    "modules": [
+                        {
+                            "modname": "page",
+                            "name": "Renamed in Moodle",
+                            "contents": [
+                                {
+                                    "content": (
+                                        f"{lesson_id_marker(lesson_id)}\n"
+                                        "<p>lesson</p>"
+                                    )
+                                }
+                            ],
+                        }
+                    ],
+                }
+            ],
+            [
+                {
+                    "id": 1,
+                    "section": 1,
+                    "name": "Week 1",
+                    "modules": [
+                        {
+                            "modname": "page",
+                            "name": "Renamed in Moodle",
+                            "contents": [
+                                {
+                                    "content": (
+                                        f"{lesson_id_marker(lesson_id)}\n"
+                                        "<p>lesson</p>"
+                                    )
+                                }
+                            ],
+                        }
+                    ],
+                }
+            ],
+        ]
+        course_repo.get_by_curriculum.return_value = None
+
+        result = await s.publish_curriculum(c.id, lesson_renderer=renderer)
+
+        assert result.verified is True
+        assert client.add_page_module.await_count == 0
+
+    @pytest.mark.anyio
+    async def test_page_with_same_name_but_other_lesson_marker_is_added_for(self):
+        c = _make_curriculum(status=CurriculumStatus.APPROVED, week_count=1)
+        s, client, repo, course_repo, _ = _make_service(curriculum=c)
+        other_lesson_id = uuid.uuid4()
+        planned_lesson_id = uuid.uuid4()
+
+        def renderer(unit):
+            return [
+                MoodleLessonPlan(
+                    name="Shared Title",
+                    content_html=(
+                        f"{lesson_id_marker(planned_lesson_id)}\n<p>new</p>"
+                    ),
+                    lesson_id=planned_lesson_id,
+                )
+            ]
+
+        def existing_page(name: str, marker_id: uuid.UUID | None = None) -> dict:
+            content = "<p>old</p>"
+            if marker_id is not None:
+                content = f"{lesson_id_marker(marker_id)}\n<p>old</p>"
+            return {
+                "modname": "page",
+                "name": name,
+                "contents": [{"content": content}],
+            }
+
+        client.find_course_by_idnumber.return_value = {"id": 10}
+        # The existing "Shared Title" page holds another lesson's content;
+        # the planned lesson must still get its own page.
+        client.get_course_contents.side_effect = [
+            [
+                {
+                    "id": 1,
+                    "section": 1,
+                    "name": "Week 1",
+                    "modules": [
+                        existing_page("Shared Title", marker_id=other_lesson_id)
+                    ],
+                }
+            ],
+            [
+                {
+                    "id": 1,
+                    "section": 1,
+                    "name": "Week 1",
+                    "modules": [
+                        existing_page("Shared Title"),
+                        existing_page("Shared Title", marker_id=planned_lesson_id),
+                    ],
+                }
+            ],
+        ]
+        course_repo.get_by_curriculum.return_value = None
+
+        result = await s.publish_curriculum(c.id, lesson_renderer=renderer)
+
+        assert result.verified is True
+        assert client.add_page_module.await_count == 1
+        assert (
+            client.add_page_module.await_args.kwargs["name"] == "Shared Title"
+        )
+
+    @pytest.mark.anyio
+    async def test_page_body_service_supplies_identity_when_core_omits_content(self):
+        c = _make_curriculum(status=CurriculumStatus.APPROVED, week_count=1)
+        s, client, repo, course_repo, _ = _make_service(curriculum=c)
+        lesson_id = uuid.uuid4()
+
+        def renderer(unit):
+            return [
+                MoodleLessonPlan(
+                    name="Lesson",
+                    content_html=f"{lesson_id_marker(lesson_id)}\n<p>lesson</p>",
+                    lesson_id=lesson_id,
+                )
+            ]
+
+        client.find_course_by_idnumber.return_value = {"id": 10}
+        # core_course_get_contents never returns the Page body; the marker is
+        # only visible through mod_page_get_pages_by_courses.
+        contents = [
+            {
+                "id": 1,
+                "section": 1,
+                "name": "Week 1",
+                "modules": [
+                    {"id": 55, "modname": "page", "name": "Lesson", "contents": []}
+                ],
+            }
+        ]
+        client.get_course_contents.side_effect = [contents, contents]
+        client.get_pages_by_courses.return_value = {
+            "pages": [
+                {
+                    "coursemodule": 55,
+                    "name": "Lesson",
+                    "content": f"{lesson_id_marker(lesson_id)}\n<p>lesson</p>",
+                    "contentformat": 1,
+                }
+            ]
+        }
+        course_repo.get_by_curriculum.return_value = None
+
+        result = await s.publish_curriculum(c.id, lesson_renderer=renderer)
+
+        assert result.verified is True
+        assert client.add_page_module.await_count == 0
+
+    @pytest.mark.anyio
+    async def test_verification_accepts_legacy_page_without_marker_by_name(self):
+        c = _make_curriculum(status=CurriculumStatus.APPROVED, week_count=1)
+        s, client, repo, course_repo, _ = _make_service(curriculum=c)
+
+        def renderer(unit):
+            return [MoodleLessonPlan(name="Lesson", content_html="<p>lesson</p>")]
+
+        client.find_course_by_idnumber.return_value = {"id": 10}
+        contents = [
+            {
+                "id": 1,
+                "section": 1,
+                "name": "Week 1",
+                "modules": [{"modname": "page", "name": "Lesson"}],
+            }
+        ]
+        client.get_course_contents.side_effect = [contents, contents]
+        course_repo.get_by_curriculum.return_value = None
+
+        result = await s.publish_curriculum(c.id, lesson_renderer=renderer)
+
+        assert result.verified is True
+        assert client.add_page_module.await_count == 0
+
+    @pytest.mark.anyio
+    async def test_verification_fails_when_page_holds_other_lesson_marker(self):
+        c = _make_curriculum(status=CurriculumStatus.APPROVED, week_count=1)
+        s, client, repo, course_repo, _ = _make_service(curriculum=c)
+        other_lesson_id = uuid.uuid4()
+        planned_lesson_id = uuid.uuid4()
+
+        def renderer(unit):
+            return [
+                MoodleLessonPlan(
+                    name="Shared Title",
+                    content_html=(
+                        f"{lesson_id_marker(planned_lesson_id)}\n<p>new</p>"
+                    ),
+                    lesson_id=planned_lesson_id,
+                )
+            ]
+
+        client.find_course_by_idnumber.return_value = {"id": 10}
+        contents = [
+            {
+                "id": 1,
+                "section": 1,
+                "name": "Week 1",
+                "modules": [
+                    {
+                        "modname": "page",
+                        "name": "Shared Title",
+                        "contents": [
+                            {
+                                "content": (
+                                    f"{lesson_id_marker(other_lesson_id)}\n"
+                                    "<p>old</p>"
+                                )
+                            }
+                        ],
+                    }
+                ],
+            }
+        ]
+        client.get_course_contents.side_effect = [contents, contents, contents]
+        course_repo.get_by_curriculum.return_value = None
+
+        with pytest.raises(MoodleIntegrationError, match="could not be verified"):
+            await s.publish_curriculum(c.id, lesson_renderer=renderer)
+
+
+class TestUnconfiguredClient:
+    """A sync service without a Moodle client fails clearly and late."""
+
+    def _make_unconfigured_service(self, curriculum=None):
+        repo = AsyncMock()
+        course_repo = AsyncMock()
+        curriculum_obj = curriculum or _make_curriculum()
+        repo.get_by_id.return_value = curriculum_obj
+        repo.list_latest_by_document.return_value = []
+        return (
+            MoodleSyncService(
+                None,
+                repo,
+                course_repo,
+                moodle_base_url="https://moodle.example.com",
+                moodle_course_category_id=1,
+            ),
+            repo,
+            course_repo,
+            curriculum_obj,
+        )
+
+    @pytest.mark.anyio
+    async def test_check_connection_raises_configuration_error(self):
+        s, *_ = self._make_unconfigured_service()
+
+        with pytest.raises(ConfigurationError, match="MOODLE_URL and MOODLE_TOKEN"):
+            await s.check_connection()
+
+    @pytest.mark.anyio
+    async def test_publish_curriculum_raises_configuration_error(self):
+        s, repo, course_repo, c = self._make_unconfigured_service()
+
+        with pytest.raises(ConfigurationError, match="MOODLE_URL and MOODLE_TOKEN"):
+            await s.publish_curriculum(c.id)
+
+        # Nothing was published or recorded as a failed sync.
+        assert c.status == CurriculumStatus.APPROVED
+        course_repo.add.assert_not_awaited()
+
+    @pytest.mark.anyio
+    async def test_publish_curriculum_still_validates_curriculum_first(self):
+        c = _make_curriculum(status=CurriculumStatus.DRAFT)
+        s, *_ = self._make_unconfigured_service(curriculum=c)
+
+        with pytest.raises(CurriculumValidationError):
+            await s.publish_curriculum(c.id)
+
+    @pytest.mark.anyio
+    async def test_verify_course_raises_configuration_error(self):
+        s, repo, course_repo, _ = self._make_unconfigured_service()
+        course_id = uuid.uuid4()
+        mock_course = MagicMock()
+        mock_course.id = course_id
+        mock_course.moodle_course_id = 42
+        repo = course_repo
+        repo.get_by_id.return_value = mock_course
+
+        with pytest.raises(ConfigurationError, match="MOODLE_URL and MOODLE_TOKEN"):
+            await s.verify_course(course_id)
 
 
 class TestCategoryValidation:

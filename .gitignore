@@ -12,12 +12,18 @@ env/
 .env
 .env.*
 !.env.example
+!.env.production.example
 
 # Testing
 .pytest_cache/
+.pytest-tmp-moodle/
 .coverage
 coverage.xml
 htmlcov/
+
+# Local investigation scratch
+_state/
+_repo_moodle_auth/
 
 # Type checking
 .mypy_cache/
@@ -38,6 +44,7 @@ storage/
 uploads/
 tmp/
 logs/
+deploy/oci/data/
 
 # Runtime databases
 *.db

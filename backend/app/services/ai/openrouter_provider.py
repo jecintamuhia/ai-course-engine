@@ -139,6 +139,7 @@ class OpenRouterProvider(LLMProvider):
         max_retries: int = 5,
         retry_base_delay_seconds: float = 2.0,
         max_retry_delay_seconds: float = 120.0,
+        app_title: str = "SkillUp Action Africa",
     ) -> None:
         self._api_key = api_key
         self._model = model
@@ -148,13 +149,14 @@ class OpenRouterProvider(LLMProvider):
         self._max_retries = max_retries
         self._retry_base_delay_seconds = retry_base_delay_seconds
         self._max_retry_delay_seconds = max_retry_delay_seconds
+        self._app_title = app_title
         self.last_usage: ProviderUsage | None = None
 
     def _headers(self) -> dict[str, str]:
         return {
             "Authorization": f"Bearer {self._api_key}",
             "Content-Type": "application/json",
-            "X-Title": "AI Course Engine",
+            "X-Title": self._app_title,
         }
 
     def _payload(

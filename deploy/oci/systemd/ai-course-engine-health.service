@@ -1,0 +1,8 @@
+[Unit]
+Description=SkillUp AI Course Engine health check
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /opt/ai-course-engine/deploy/oci/healthcheck.sh

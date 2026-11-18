@@ -6,11 +6,14 @@ The sync flow is idempotent. Publishing the same curriculum twice:
    (``ai-ece-<curriculum_id>``);
 2. updates weekly section names/summaries in place;
 3. adds a "Page" activity per lecturer-approved lesson (when a lesson
-   renderer is provided) only if a page with the lesson's name does not
-   already exist in that week's section. Lessons with byte-identical
-   content are published once, so duplicated curriculum/lesson items do
-   not create duplicate pages. No page is ever created that repeats a
-   weekly section's name: the section itself represents the week.
+   renderer is provided) only if the lesson's own page does not already
+   exist in that week's section (matched by the lesson's identity
+   marker, falling back to the planned page name for pages published
+   before markers existed). Lessons with byte-identical content are
+   published once, so duplicated curriculum/lesson items do not create
+   duplicate pages, and distinct lessons sharing a title are published
+   under course-wide unique names. No page is ever created that repeats
+   a weekly section's name: the section itself represents the week.
 
 Only APPROVED (or already PUBLISHED) curricula can be published; the
 status transition to PUBLISHED is recorded on success. Moodle call
@@ -26,6 +29,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from app.core.exceptions import (
+    ConfigurationError,
     CourseNotFound,
     CurriculumNotFound,
     CurriculumValidationError,
@@ -43,7 +47,9 @@ from app.services.moodle.mapper import (
     MoodleCoursePlan,
     MoodleLessonPlan,
     build_course_plan,
+    extract_lesson_id,
 )
+from app.services.moodle.page_content import apply_page_bodies, load_page_bodies
 from app.services.moodle.preflight import issue_to_dict, run_readiness_check
 
 logger = get_logger(__name__)
@@ -74,12 +80,41 @@ class MoodlePublishResult:
     verified: bool
 
 
+def _page_module_html(module: dict) -> str:
+    """Best-effort page content of a module, for identity-marker checks."""
+    contents = module.get("contents") or []
+    if (
+        isinstance(contents, list)
+        and contents
+        and isinstance(contents[0], dict)
+        and isinstance(contents[0].get("content"), str)
+    ):
+        return contents[0]["content"]
+    return ""
+
+
+def _is_lesson_page(module: dict, lesson: MoodleLessonPlan) -> bool:
+    """
+    Whether a module is the planned lesson's own page.
+
+    A page that carries an identity marker belongs only to the lesson it
+    was published from (the marker survives the Moodle round trip), so it
+    matches the plan only when its marker is that lesson's. Pages
+    published before markers were introduced carry no marker and are
+    matched by the planned (course-wide unique) page name.
+    """
+    module_marker = extract_lesson_id(_page_module_html(module))
+    if module_marker is not None:
+        return lesson.lesson_id is not None and module_marker == lesson.lesson_id
+    return module.get("name") == lesson.name
+
+
 class MoodleSyncService:
     """Coordinates idempotent publishing of curricula to Moodle."""
 
     def __init__(
         self,
-        client: MoodleClient,
+        client: MoodleClient | None,
         curriculum_repository: CurriculumRepository,
         course_repository: CourseRepository,
         *,
@@ -92,13 +127,30 @@ class MoodleSyncService:
         self._moodle_base_url = (moodle_base_url or "").rstrip("/")
         self._category_id = moodle_course_category_id
 
+    def _require_client(self) -> MoodleClient:
+        """
+        Return the configured Moodle client.
+
+        The client is resolved lazily (not at dependency-injection time)
+        so route-level gates such as the content-QA check keep their error
+        precedence: a QA-failing curriculum must be reported as blocked
+        even when Moodle is not configured at all.
+        """
+        if self._client is None:
+            raise ConfigurationError(
+                "Moodle integration is not configured. Set MOODLE_URL and "
+                "MOODLE_TOKEN in the environment."
+            )
+        return self._client
+
     # ------------------------------------------------------------------
     # Connection helpers
     # ------------------------------------------------------------------
 
     async def check_connection(self) -> dict:
         """Return site info for the configured Moodle connection."""
-        info = await self._client.get_site_info()
+        client = self._require_client()
+        info = await client.get_site_info()
         return {
             "connected": True,
             "site_name": info.get("sitename"),
@@ -147,6 +199,8 @@ class MoodleSyncService:
         # Close the read-only transaction before any external calls.
         await self._curriculum_repository.commit()
 
+        client = self._require_client()
+
         category_id = (
             category_id_override
             if category_id_override is not None
@@ -156,7 +210,7 @@ class MoodleSyncService:
         # Preflight gate: only read-only Moodle calls happen here. When
         # Moodle is not ready (token/capability/category problems), the
         # curriculum is left untouched and publishing never starts.
-        readiness = await run_readiness_check(self._client, category_id=category_id)
+        readiness = await run_readiness_check(client, category_id=category_id)
         if not readiness.ready:
             issues = [issue_to_dict(issue) for issue in readiness.issues]
             summary = " ".join(
@@ -189,11 +243,11 @@ class MoodleSyncService:
             # reusing the same Moodle course instead of duplicating it.
             plan.idnumber = existing_record.idnumber
 
-        moodle_course = await self._client.find_course_by_idnumber(plan.idnumber)
+        moodle_course = await client.find_course_by_idnumber(plan.idnumber)
 
         created = False
         if moodle_course is None:
-            moodle_course = await self._client.create_course(
+            moodle_course = await client.create_course(
                 fullname=plan.fullname,
                 shortname=plan.shortname,
                 idnumber=plan.idnumber,
@@ -203,7 +257,7 @@ class MoodleSyncService:
             )
             created = True
         else:
-            await self._client.update_course(
+            await client.update_course(
                 int(moodle_course["id"]),
                 fullname=plan.fullname,
                 shortname=plan.shortname,
@@ -328,8 +382,19 @@ class MoodleSyncService:
         Verify the published course actually contains every planned
         section and its lesson page resources. Returns True only when the
         live Moodle contents match the plan.
+
+        A lesson page is verified by its identity marker when the plan
+        carries the lesson id, falling back to the planned page name for
+        pages published before markers were introduced — so genuinely
+        distinct lessons that share a title are verified individually.
         """
-        contents = await self._client.get_course_contents(moodle_course_id)
+        contents = await self._require_client().get_course_contents(
+            moodle_course_id
+        )
+        apply_page_bodies(
+            contents,
+            await load_page_bodies(self._require_client(), moodle_course_id),
+        )
         sections_by_number = {
             int(section.get("section", -1)): section for section in contents
         }
@@ -351,8 +416,7 @@ class MoodleSyncService:
                 seen_content.add(lesson.content_html)
 
                 has_lesson_page = any(
-                    module.get("modname") == "page"
-                    and module.get("name") == lesson.name
+                    module.get("modname") == "page" and _is_lesson_page(module, lesson)
                     for module in modules
                 )
                 if not has_lesson_page:
@@ -362,6 +426,7 @@ class MoodleSyncService:
 
     async def verify_course(self, course_id: uuid.UUID) -> dict:
         """Verify a published course exists in Moodle and report its contents."""
+        client = self._require_client()
         record = await self._course_repository.get_by_id(course_id)
         await self._course_repository.commit()
 
@@ -372,7 +437,7 @@ class MoodleSyncService:
                 "Course record has no Moodle course id yet.",
             )
 
-        contents = await self._client.get_course_contents(record.moodle_course_id)
+        contents = await client.get_course_contents(record.moodle_course_id)
 
         sections_found = len(contents)
         modules_found = sum(len(section.get("modules", [])) for section in contents)
@@ -451,7 +516,9 @@ class MoodleSyncService:
         Returns (0, 0) when the contents cannot be read.
         """
         try:
-            contents = await self._client.get_course_contents(moodle_course_id)
+            contents = await self._require_client().get_course_contents(
+                moodle_course_id
+            )
         except MoodleIntegrationError:
             return 0, 0
         sections = max(
@@ -480,9 +547,21 @@ class MoodleSyncService:
         sections auto-created by ``create_courses`` are named in place.
         Lesson pages are only added when missing, so re-publishing never
         duplicates them; lessons with identical content are added once.
+        An existing page counts as the planned lesson's own page when it
+        carries the lesson's identity marker or (for legacy pages
+        published before markers) when its name matches the planned,
+        course-wide unique page name — so a page that holds a different
+        lesson's content under the same name never blocks the planned
+        lesson from getting its own page.
         Returns (sections_published, resources_published).
         """
-        contents = await self._client.get_course_contents(moodle_course_id)
+        contents = await self._require_client().get_course_contents(
+            moodle_course_id
+        )
+        apply_page_bodies(
+            contents,
+            await load_page_bodies(self._require_client(), moodle_course_id),
+        )
         modules_by_section: dict[int, list[dict]] = {}
         for section in contents:
             number = int(section.get("section", -1))
@@ -494,7 +573,7 @@ class MoodleSyncService:
         for week in plan.weeks:
             number = week.section_number
 
-            await self._client.update_section(
+            await self._require_client().update_section(
                 moodle_course_id,
                 section_number=number,
                 name=week.section_name,
@@ -514,10 +593,10 @@ class MoodleSyncService:
                     module
                     for module in section_modules
                     if module.get("modname") == "page"
-                    and module.get("name") == lesson.name
+                    and _is_lesson_page(module, lesson)
                 ]
                 if not existing_lesson:
-                    await self._client.add_page_module(
+                    await self._require_client().add_page_module(
                         moodle_course_id,
                         section_number=number,
                         name=lesson.name,

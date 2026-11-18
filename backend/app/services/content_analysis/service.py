@@ -27,6 +27,8 @@ from app.services.content_analysis.topic_extractor import (
 
 logger = get_logger(__name__)
 
+AnalysisWarning = dict[str, object]
+
 
 def _build_topic_tree_with_provenance(
     extracted_topics: list[ExtractedTopic],
@@ -123,17 +125,15 @@ class ContentAnalysisService:
         self._llm_provider = llm_provider
 
     async def analyze_document(self, document_id: uuid.UUID) -> list[Topic]:
-        """
-        Run AI-assisted topic extraction for every chapter of a
-        document (or the whole document as one implicit chapter, if no
-        structure was detected), and persist the results with real
-        provenance links to the chunks that supported each topic.
+        topics, _ = await self.analyze_document_with_report(document_id)
+        return topics
 
-        Idempotent and non-destructive: a chapter (or the un-chaptered
-        document) that already has persisted topics is skipped rather
-        than re-analyzed, so a job retry does not recompute successful
-        AI work. Re-running only issues LLM calls for chapters with no
-        topics yet.
+    async def analyze_document_with_report(
+        self, document_id: uuid.UUID
+    ) -> tuple[list[Topic], list[AnalysisWarning]]:
+        """
+        Run AI-assisted topic extraction and return non-fatal warnings
+        alongside the persisted topics.
         """
         document = await self._document_repository.get_by_id(document_id)
 
@@ -157,6 +157,7 @@ class ContentAnalysisService:
         await self._chunk_repository.commit()
 
         all_persisted_topics: list[Topic] = []
+        warnings: list[AnalysisWarning] = []
 
         if not chapters:
             existing = await self._topic_repository.list_unassociated_by_document(
@@ -178,6 +179,7 @@ class ContentAnalysisService:
                     chapter_id=None,
                     chapter_title=document.original_filename,
                     chunks=chapter_chunks,
+                    warnings=warnings,
                 )
                 all_persisted_topics.extend(topics)
         else:
@@ -193,6 +195,18 @@ class ContentAnalysisService:
                     )
                     await self._topic_repository.delete_by_chapter(chapter.id)
                     await self._topic_repository.commit()
+                    warnings.append(
+                        {
+                            "kind": "empty_chapter",
+                            "message": (
+                                f"No chunks were available for chapter "
+                                f"{chapter.title!r}; stale topics were removed."
+                            ),
+                            "chapter_id": chapter.id,
+                            "chapter_title": chapter.title,
+                            "total_chunks": 0,
+                        }
+                    )
                     continue
 
                 existing = await self._topic_repository.list_by_chapter(chapter.id)
@@ -213,10 +227,11 @@ class ContentAnalysisService:
                     chapter_id=chapter.id,
                     chapter_title=chapter.title,
                     chunks=chapter_chunks,
+                    warnings=warnings,
                 )
                 all_persisted_topics.extend(topics)
 
-        return all_persisted_topics
+        return all_persisted_topics, warnings
 
     async def _analyze_and_persist(
         self,
@@ -225,6 +240,7 @@ class ContentAnalysisService:
         chapter_id: uuid.UUID | None,
         chapter_title: str,
         chunks: list[Chunk],
+        warnings: list[AnalysisWarning],
     ) -> list[Topic]:
         settings = get_settings()
         annotated_text, marker_map = build_marker_annotated_context(
@@ -241,10 +257,42 @@ class ContentAnalysisService:
                 len(annotated_text),
                 settings.ai_min_content_chars,
             )
+            warnings.append(
+                {
+                    "kind": "insufficient_content",
+                    "message": (
+                        f"Chapter {chapter_title!r} was skipped because only "
+                        f"{len(annotated_text)} characters of extractable "
+                        f"content were available (minimum "
+                        f"{settings.ai_min_content_chars})."
+                    ),
+                    "chapter_id": chapter_id,
+                    "chapter_title": chapter_title,
+                    "actual_chars": len(annotated_text),
+                    "minimum_chars": settings.ai_min_content_chars,
+                }
+            )
             return []
 
         omitted_chunks = len(chunks) - len(marker_map)
         if omitted_chunks:
+            warnings.append(
+                {
+                    "kind": "context_truncated",
+                    "message": (
+                        f"Only the first {len(marker_map)} of {len(chunks)} "
+                        "chunks were analysed because chapter context is "
+                        f"limited to {settings.ai_max_context_chars} "
+                        "characters. Later source chunks were omitted, so "
+                        "results may be incomplete."
+                    ),
+                    "chapter_id": chapter_id,
+                    "chapter_title": chapter_title,
+                    "omitted_chunks": omitted_chunks,
+                    "total_chunks": len(chunks),
+                    "max_chars": settings.ai_max_context_chars,
+                }
+            )
             logger.warning(
                 "Bounded chapter context for LLM request chapter_id=%s "
                 "document_id=%s dropped_chunks=%s of %s "

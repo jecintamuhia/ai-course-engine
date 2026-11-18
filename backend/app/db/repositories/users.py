@@ -20,10 +20,18 @@ class UserRepository:
         return await self._session.get(User, user_id)
 
     async def get_by_email(self, email: str) -> User | None:
-        """Fetch a user by its normalized email address."""
+        """Fetch a user by their normalized email address."""
         stmt = select(User).where(User.email == email.strip().lower())
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def list_by_ids(self, user_ids: list[uuid.UUID]) -> list[User]:
+        """Fetch several users by primary key."""
+        if not user_ids:
+            return []
+        stmt = select(User).where(User.id.in_(user_ids))
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
 
     async def add(self, user: User) -> User:
         """Stage a new user for persistence."""

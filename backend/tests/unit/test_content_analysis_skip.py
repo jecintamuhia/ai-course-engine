@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+from types import SimpleNamespace
 from unittest.mock import Mock
 
 from app.models.topic import Topic
@@ -240,6 +241,30 @@ async def test_skips_reanalysis_when_some_chapters_still_unanalyzed() -> None:
     await service.analyze_document(uuid.uuid4())
 
     assert llm.llm_called
+
+
+async def test_reports_context_truncation_warning(monkeypatch) -> None:
+    chapter = _FakeChapter(uuid.uuid4(), "Chapter 1")
+    chunks = [_FakeChunk(uuid.uuid4(), chapter.id) for _ in range(3)]
+    monkeypatch.setattr(
+        "app.services.content_analysis.service.get_settings",
+        lambda: SimpleNamespace(ai_max_context_chars=120, ai_min_content_chars=1),
+    )
+
+    service = _make_service(
+        chapters=[chapter],
+        chunks=chunks,
+        topics=_TopicRepo(by_chapter={}),
+        llm=_LLM(),
+    )
+
+    _, warnings = await service.analyze_document_with_report(uuid.uuid4())
+
+    assert len(warnings) == 1
+    assert warnings[0]["kind"] == "context_truncated"
+    assert warnings[0]["omitted_chunks"] == 2
+    assert warnings[0]["total_chunks"] == 3
+    assert "results may be incomplete" in warnings[0]["message"]
 
 
 async def test_extraction_prompt_never_offers_other_chapter_titles() -> None:

@@ -110,14 +110,23 @@ class LessonRepository:
             await self._session.flush()
         return relinked
 
-    async def delete_not_approved_by_unit(self, curriculum_unit_id: uuid.UUID) -> None:
+    async def delete_not_approved_by_topics(
+        self, curriculum_unit_id: uuid.UUID, topic_ids: set[uuid.UUID]
+    ) -> None:
         """
-        Delete all lessons for a weekly unit that are NOT approved, so a
-        regeneration run never destroys lecturer-approved content.
+        Delete non-approved lessons in a weekly unit for specific topics.
+
+        Regeneration replaces lessons topic by topic, so only topics whose
+        lesson was successfully regenerated are deleted. Topics whose
+        regeneration failed or was skipped keep their existing lesson
+        rather than losing it. Approved lessons are never deleted.
         """
+        if not topic_ids:
+            return
         stmt = delete(Lesson).where(
             Lesson.curriculum_unit_id == curriculum_unit_id,
             Lesson.status != LessonStatus.APPROVED,
+            Lesson.topic_id.in_(topic_ids),
         )
         await self._session.execute(stmt)
         await self._session.flush()

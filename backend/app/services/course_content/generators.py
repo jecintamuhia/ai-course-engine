@@ -8,14 +8,18 @@ record per-component failures without fabricating content.
 
 from __future__ import annotations
 
+from typing import get_args
+
 from app.core.config import Settings
 from app.core.exceptions import AIOutputValidationError
 from app.schemas.ai_content import (
     ActivityGenerationResult,
     DiagramGenerationResult,
     GeneratedDiagram,
+    GeneratedTextBlock,
     KnowledgeCheckGenerationResult,
     LessonGenerationResult,
+    PracticalTaskGenerationResult,
     ResourceCandidateResult,
 )
 from app.services.ai.base import LLMProvider
@@ -24,15 +28,19 @@ from app.services.course_content.prompts import (
     _DIAGRAM_SYSTEM_PROMPT,
     _KNOWLEDGE_CHECK_SYSTEM_PROMPT,
     _LESSON_SYSTEM_PROMPT,
+    _PRACTICAL_TASK_SYSTEM_PROMPT,
     _RESOURCE_SYSTEM_PROMPT,
     build_activity_prompt,
     build_diagram_prompt,
     build_knowledge_check_prompt,
     build_lesson_prompt,
+    build_practical_task_prompt,
     build_resource_prompt,
 )
 
-_VALID_TEXT_KINDS = {"heading", "text", "example", "summary"}
+# Keep the validator vocabulary in lockstep with the schema's Literal so a
+# prompt/schema change can never silently desynchronise them again.
+_VALID_TEXT_KINDS = set(get_args(GeneratedTextBlock.model_fields["kind"].annotation))
 
 
 async def generate_lesson(
@@ -143,6 +151,30 @@ async def generate_activities(
     )
 
 
+async def generate_practical_tasks(
+    provider: LLMProvider,
+    settings: Settings,
+    *,
+    lesson_title: str,
+    annotated_text: str,
+    max_tasks: int,
+) -> PracticalTaskGenerationResult:
+    """Generate source-grounded practical project briefs for a lesson."""
+    result = await provider.complete_structured(
+        system_prompt=_PRACTICAL_TASK_SYSTEM_PROMPT,
+        user_prompt=build_practical_task_prompt(
+            lesson_title=lesson_title,
+            annotated_text=annotated_text,
+            max_tasks=max_tasks,
+        ),
+        response_model=PracticalTaskGenerationResult,
+        temperature=0.0,
+        max_output_tokens=settings.content_max_tokens,
+    )
+    _validate_practical_tasks(result)
+    return result
+
+
 async def propose_resource_candidates(
     provider: LLMProvider,
     settings: Settings,
@@ -193,3 +225,22 @@ def _validate_diagram_edges(diagrams: list[GeneratedDiagram]) -> None:
                     f"Diagram {diagram.title!r} references a missing node in "
                     f"edge {edge.source!r} -> {edge.target!r}."
                 )
+
+
+def _usable_steps(steps: list[str]) -> list[str]:
+    """Return a brief's non-blank steps, in order, with whitespace trimmed."""
+    return [step.strip() for step in steps if step and step.strip()]
+
+
+def _validate_practical_tasks(result: PracticalTaskGenerationResult) -> None:
+    """Reject practical project briefs a learner could not carry out.
+
+    A brief with no usable procedure is an unusable assignment, so it is
+    surfaced as a component failure instead of being persisted.
+    """
+    for task in result.tasks:
+        if not _usable_steps(task.steps):
+            raise AIOutputValidationError(
+                f"Practical task {task.title!r} has no usable steps; a "
+                "project brief without a procedure cannot be carried out."
+            )

@@ -105,7 +105,7 @@ export function CoursesPage() {
                   <TableRow key={course.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-burgundy-50 text-burgundy ring-4 ring-burgundy/[0.04]">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand ring-4 ring-brand/[0.04]">
                           <BookOpen className="h-3.5 w-3.5" />
                         </span>
                         <div>
@@ -194,7 +194,7 @@ export function CoursesPage() {
                         href={verifyResult.course_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="font-medium text-burgundy-700 hover:underline"
+                        className="font-medium text-brand-700 hover:underline"
                       >
                         Open ↗
                       </a>
@@ -213,7 +213,7 @@ export function CoursesPage() {
                     {verifyResult.section_names.map((name) => (
                       <span
                         key={name}
-                        className="inline-block rounded-md border border-burgundy/20 bg-burgundy-50 px-2 py-0.5 text-xs text-burgundy-800"
+                        className="inline-block rounded-md border border-brand/20 bg-brand-50 px-2 py-0.5 text-xs text-brand-800"
                       >
                         {name}
                       </span>

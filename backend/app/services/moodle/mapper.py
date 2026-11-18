@@ -7,12 +7,20 @@ course section named after the week; lecturer-approved lessons render to
 "Page" activities inside that section (no page repeats the week's
 section name). The sync service then executes that plan through the
 MoodleClient.
+
+Every published lesson page embeds an identity marker (an HTML comment
+carrying the lesson id) so lesson content can always be resolved back
+to exactly the lesson it was generated from, even when two lessons
+share a title. Section and lesson page names are disambiguated
+course-wide so no two published records of the same kind share a title.
 """
 
 from __future__ import annotations
 
 import html
 import re
+import uuid
+from collections import Counter
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
@@ -39,6 +47,46 @@ UUID_PATTERN = re.compile(
 # the full shortname) always fits under Moodle's 255-char limit.
 SHORTNAME_SLUG_BASE = 200
 
+#: Identity marker embedded at the top of every published lesson page.
+#: Moodle stores page content verbatim, so the marker survives the
+#: round trip and lets the content services resolve a lesson to exactly
+#: its own page even when two lessons share a title.
+LESSON_ID_MARKER_TEMPLATE = "<!-- skillup-lesson-id: {lesson_id} -->"
+
+_LESSON_ID_MARKER_PATTERN = re.compile(
+    r"<!--\s*skillup-lesson-id:\s*"
+    r"([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-"
+    r"[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\s*-->",
+)
+
+
+def lesson_id_marker(lesson_id: uuid.UUID) -> str:
+    """Return the identity marker HTML comment for a lesson id."""
+    return LESSON_ID_MARKER_TEMPLATE.format(lesson_id=lesson_id)
+
+
+def extract_lesson_id(content_html: str | None) -> uuid.UUID | None:
+    """
+    Return the lesson id a published page was generated from, if any.
+
+    Returns None for pages published before markers were introduced, or
+    when the content carries no recognizable marker.
+    """
+    if not content_html:
+        return None
+    match = _LESSON_ID_MARKER_PATTERN.search(content_html)
+    if match is None:
+        return None
+    try:
+        return uuid.UUID(match.group(1))
+    except ValueError:  # pragma: no cover - regex already constrains the shape
+        return None
+
+
+def strip_lesson_id_marker(content_html: str) -> str:
+    """Remove the identity marker (and the whitespace around it) from HTML."""
+    return _LESSON_ID_MARKER_PATTERN.sub("", content_html).lstrip("\n")
+
 
 @dataclass
 class MoodleLessonPlan:
@@ -46,6 +94,7 @@ class MoodleLessonPlan:
 
     name: str
     content_html: str
+    lesson_id: uuid.UUID | None = None
 
 
 @dataclass
@@ -154,6 +203,41 @@ def _section_name(unit: CurriculumUnit) -> str:
     return _clamp(unit.title or f"Week {unit.week_number}", MAX_TITLE)
 
 
+def _unique_section_names(
+    units: list[CurriculumUnit],
+) -> dict[uuid.UUID, str]:
+    """
+    Deterministic, course-wide unique names for the weekly sections.
+
+    Moodle identifies sections by number, so duplicate section names are
+    not ambiguous to the integration — but two weeks sharing a title is
+    confusing for learners and lecturers browsing the published course.
+    When a raw section name is used by more than one unit, every unit
+    with that name is published as "<title> (Week N)"; week numbers are
+    unique, so the suffixed names are unique too. A final guard appends
+    a counter for the pathological case where even a disambiguated name
+    collides with another unit's literal title.
+    """
+    raw_names = {unit.id: _section_name(unit) for unit in units}
+    counts = Counter(raw_names.values())
+
+    names: dict[uuid.UUID, str] = {}
+    taken: set[str] = set()
+    for unit in units:
+        base = raw_names[unit.id]
+        candidate = (
+            base if counts[base] == 1 else f"{base} (Week {unit.week_number})"
+        )
+        name = _clamp(candidate, MAX_TITLE)
+        counter = 2
+        while name in taken:
+            name = _clamp(f"{candidate} ({counter})", MAX_TITLE)
+            counter += 1
+        taken.add(name)
+        names[unit.id] = name
+    return names
+
+
 def build_course_plan(
     curriculum: Curriculum,
     *,
@@ -189,6 +273,7 @@ def build_course_plan(
     else:
         shortname = _course_shortname(curriculum, idnumber)
 
+    section_names = _unique_section_names(curriculum.units)
     weeks: list[MoodleWeekPlan] = []
     for unit in curriculum.units:
         lessons = lesson_renderer(unit) if lesson_renderer is not None else []
@@ -196,13 +281,14 @@ def build_course_plan(
             MoodleLessonPlan(
                 name=_clamp(lesson.name, MAX_TITLE),
                 content_html=lesson.content_html,
+                lesson_id=lesson.lesson_id,
             )
             for lesson in lessons
         ]
         weeks.append(
             MoodleWeekPlan(
                 section_number=unit.week_number,
-                section_name=_section_name(unit),
+                section_name=section_names[unit.id],
                 section_summary_html=_section_summary(unit),
                 lessons=named_lessons,
             )

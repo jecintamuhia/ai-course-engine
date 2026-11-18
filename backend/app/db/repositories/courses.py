@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 
-from app.models.course import Course
+from app.models.course import Course, CourseStatus
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -46,6 +46,21 @@ class CourseRepository:
     async def list_all(self) -> list[Course]:
         """Return all published course records, newest first."""
         stmt = select(Course).order_by(Course.created_at.desc())
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def list_published(self) -> list[Course]:
+        """
+        Return the courses that reached Moodle successfully, newest first.
+
+        A course whose publication failed has no content for a learner to
+        open, so it is not offered on the learner portal.
+        """
+        stmt = (
+            select(Course)
+            .where(Course.status == CourseStatus.SYNCED)
+            .order_by(Course.created_at.desc())
+        )
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 

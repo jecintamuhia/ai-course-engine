@@ -37,10 +37,10 @@ export function TextbookCard({ doc }: TextbookCardProps) {
   );
 
   return (
-    <Card className="group flex h-full flex-col transition-all hover:-translate-y-0.5 hover:border-burgundy/30 hover:shadow-lift">
+    <Card className="group flex h-full flex-col transition-all hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-lift">
       <CardContent className="flex flex-1 flex-col p-5">
         <div className="flex items-start justify-between gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-burgundy-50 text-burgundy ring-4 ring-burgundy/[0.04]">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand ring-4 ring-brand/[0.04]">
             <FileText className="h-5 w-5" />
           </div>
           <StatusBadge tone={badge.tone} label={badge.label} />
@@ -48,7 +48,7 @@ export function TextbookCard({ doc }: TextbookCardProps) {
 
         <Link
           to={`/document/${doc.document.id}`}
-          className="mt-4 block text-[15px] font-semibold leading-snug text-ink transition-colors hover:text-burgundy-700"
+          className="mt-4 block text-[15px] font-semibold leading-snug text-ink transition-colors hover:text-brand-700"
           title={doc.document.original_filename}
         >
           <span className="line-clamp-2">{doc.document.original_filename}</span>
@@ -69,7 +69,7 @@ export function TextbookCard({ doc }: TextbookCardProps) {
         <div className="mt-4 grid grid-cols-2 gap-2 border-t border-border pt-4">
           <MiniStat value={doc.page_count} label="Pages" />
           <MiniStat value={doc.chunk_count} label="Chunks" />
-          <MiniStat value={doc.topic_count} label="Topics" toneOut="text-burgundy" />
+          <MiniStat value={doc.topic_count} label="Topics" toneOut="text-brand" />
           <MiniStat value={doc.curriculum_count} label="Curricula" />
         </div>
 
@@ -85,7 +85,7 @@ export function TextbookCard({ doc }: TextbookCardProps) {
                     : doc.latest_job?.status === "completed" ||
                         doc.latest_job?.status === "approved"
                       ? "bg-emerald-500"
-                      : "bg-burgundy",
+                      : "bg-brand",
                 )}
                 style={{ width: `${progress}%` }}
               />
@@ -105,7 +105,7 @@ export function TextbookCard({ doc }: TextbookCardProps) {
 
         <Link
           to={`/document/${doc.document.id}`}
-          className="mt-auto inline-flex items-center gap-1 pt-4 text-xs font-semibold text-burgundy-700 transition-colors hover:text-burgundy-800"
+          className="mt-auto inline-flex items-center gap-1 pt-4 text-xs font-semibold text-brand-700 transition-colors hover:text-brand-800"
         >
           <Layers className="h-3.5 w-3.5" />
           Open analysis workspace
@@ -126,7 +126,7 @@ function MiniStat({
   toneOut?: string;
 }) {
   return (
-    <div className="rounded-lg bg-cream-100/60 px-2.5 py-2 text-center">
+    <div className="rounded-lg bg-sand-100/60 px-2.5 py-2 text-center">
       <div className={cn("tnum text-base font-bold text-ink", toneOut)}>{value ?? 0}</div>
       <div className="text-[10px] font-medium text-muted-foreground">{label}</div>
     </div>

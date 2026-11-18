@@ -191,3 +191,95 @@ def test_dedupe_links_keeps_one_link_per_chunk() -> None:
     unique = _dedupe_links(links)
 
     assert len(unique) == 1
+
+
+def _practical_payload(**overrides: object) -> dict:
+    payload: dict = {
+        "brief": "Deploy the documented service stack.",
+        "scenario": "A single-node lab.",
+        "steps": ["Install the packages.", "Start the service."],
+        "deliverable": "A running instance plus notes.",
+        "evidence": "A transcript of the documented checks.",
+        "difficulty": "medium",
+        "estimated_minutes": 60,
+        "source_chunk_markers": [],
+    }
+    payload.update(overrides)
+    return payload
+
+
+def test_practical_task_renders_brief_steps_and_evidence() -> None:
+    html = render_block_to_html(
+        block_type=LessonBlockType.PRACTICAL_TASK,
+        title="Build it",
+        payload=_practical_payload(),
+    )
+
+    assert "<h4>Build it</h4>" in html
+    assert "class='practical-task'" in html
+    assert "<strong>Scenario:</strong> A single-node lab." in html
+    assert "<strong>Hand in:</strong> A running instance plus notes." in html
+    assert "<strong>Proof of completion:</strong>" in html
+    assert "<ol><li>Install the packages.</li><li>Start the service.</li></ol>" in html
+    assert "<strong>Estimated time:</strong> 60 minutes" in html
+    assert "<strong>Difficulty:</strong> medium" in html
+
+
+def test_practical_task_escapes_every_model_supplied_field() -> None:
+    html = render_block_to_html(
+        block_type=LessonBlockType.PRACTICAL_TASK,
+        title="<script>alert(1)</script>",
+        payload=_practical_payload(
+            brief="<script>alert(1)</script>",
+            scenario="\"><script>alert(1)</script>",
+            steps=["<img src=x onerror=alert(1)>"],
+            deliverable="<svg onload=alert(1)>",
+            evidence="<iframe src=//evil></iframe>",
+        ),
+    )
+
+    assert "<script" not in html
+    assert "<img" not in html
+    assert "<svg" not in html
+    assert "<iframe" not in html
+    assert "&lt;script&gt;" in html
+    assert "&lt;img" in html
+
+
+def test_practical_task_without_steps_omits_the_step_list() -> None:
+    html = render_block_to_html(
+        block_type=LessonBlockType.PRACTICAL_TASK,
+        title=None,
+        payload=_practical_payload(steps=[], scenario=""),
+    )
+
+    assert "<ol>" not in html
+    assert "Steps:" not in html
+    assert "Scenario:" not in html
+
+
+def test_practical_task_ignores_steps_that_are_not_strings() -> None:
+    html = render_block_to_html(
+        block_type=LessonBlockType.PRACTICAL_TASK,
+        title=None,
+        payload=_practical_payload(steps=[None, 42, "  Keep me  "]),
+    )
+
+    assert "<ol><li>Keep me</li></ol>" in html
+    assert "<li>42</li>" not in html
+    assert "None" not in html
+
+
+def test_practical_task_is_published_within_a_lesson() -> None:
+    blocks = [
+        _block(LessonBlockType.TEXT, {"content": "Background."}),
+        _block(
+            LessonBlockType.PRACTICAL_TASK,
+            _practical_payload(),
+            title="Build it",
+        ),
+    ]
+    html = render_lesson_html(_lesson(blocks))
+
+    assert "class='practical-task'" in html
+    assert "Deploy the documented service stack." in html

@@ -35,6 +35,7 @@ class MoodleConnectionCheck(BaseModel):
     default_category_id: int | None = None
     default_category_found: bool | None = None
     categories_visible: int = 0
+    degraded: bool = False
     error: str | None = None
 
 
@@ -98,6 +99,57 @@ class MoodlePreflightResponse(BaseModel):
     issues: list[MoodlePreflightIssue] = Field(default_factory=list)
     blocking_issues: list[MoodlePreflightIssue] = Field(default_factory=list)
     checked_at: datetime
+
+
+class MoodleModuleRead(BaseModel):
+    """A single module (activity/resource) inside a Moodle course section.
+
+    ``lesson_id`` is the internal curriculum lesson the published Page
+    module was created from (resolved by identity marker or the
+    deterministic page name). It is ``None`` for non-lesson modules and
+    for legacy pages that cannot be resolved unambiguously; callers must
+    not guess a lesson from the page title alone.
+    """
+
+    cmid: int
+    name: str
+    modname: str
+    content: str | None = None
+    content_format: int | None = None
+    url: str | None = None
+    lesson_id: uuid.UUID | None = None
+
+
+class MoodleSectionRead(BaseModel):
+    """One course section (week) in the published Moodle course."""
+
+    section_number: int
+    name: str
+    summary: str | None = None
+    modules: list[MoodleModuleRead] = Field(default_factory=list)
+
+
+class MoodleCourseStructureRead(BaseModel):
+    """The full published structure of one Moodle course."""
+
+    course_id: uuid.UUID
+    moodle_course_id: int
+    moodle_url: str | None = None
+    title: str
+    fullname: str
+    shortname: str
+    sections: list[MoodleSectionRead] = Field(default_factory=list)
+
+
+class MoodleLessonContentRead(BaseModel):
+    """The published HTML content of one lesson (Moodle Page activity)."""
+
+    course_id: uuid.UUID
+    lesson_id: uuid.UUID
+    title: str
+    content_html: str
+    content_format: int | None = None
+    page_name: str | None = None
 
 
 class MoodlePublishRequest(BaseModel):

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import AsyncGenerator
+from typing import TYPE_CHECKING
 
 from app.core.config import Settings, get_settings
 from app.core.exceptions import AuthenticationError, AuthorizationError
@@ -15,6 +16,9 @@ from fastapi import Depends, Request
 from fastapi.security import OAuth2PasswordBearer
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
+
+if TYPE_CHECKING:
+    from app.services.moodle.content import MoodleCourseContentService
 
 _oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
@@ -78,6 +82,26 @@ def get_moodle_client(request: Request) -> MoodleClient:
     return client
 
 
+def get_moodle_content_service(
+    session: AsyncSession = Depends(get_database_session),
+    client: MoodleClient = Depends(get_moodle_client),
+) -> MoodleCourseContentService:
+    """
+    Provide a request-scoped Moodle course-content service.
+
+    Resolves internal course/lesson identifiers to the matching published
+    Moodle records and retrieves curriculum structure and lesson content
+    through read-only Moodle web service calls only.
+    """
+    from app.db.repositories.courses import CourseRepository
+    from app.db.repositories.lessons import LessonRepository
+    from app.services.moodle.content import MoodleCourseContentService
+
+    return MoodleCourseContentService(
+        client, CourseRepository(session), LessonRepository(session)
+    )
+
+
 async def get_current_user(
     token: str = Depends(_oauth2_scheme),
     session: AsyncSession = Depends(get_database_session),
@@ -117,9 +141,38 @@ def require_admin(user: User = Depends(get_current_user)) -> User:
     return user
 
 
-def require_lecturer(user: User = Depends(get_current_user)) -> User:
-    """Authorize lecturers and administrators for an endpoint."""
-    if user.role not in (UserRole.ADMIN, UserRole.LECTURER):
-        raise AuthorizationError("Lecturer role is required.")
+def require_staff(user: User = Depends(get_current_user)) -> User:
+    """
+    Require an authoring role (administrator or lecturer).
+
+    Learner accounts must never reach workspace endpoints.
+    """
+    from app.services.auth.routing import is_staff
+
+    if not is_staff(user.role):
+        raise AuthorizationError(
+            "This account does not have access to the authoring workspace."
+        )
+
+    return user
+
+
+def require_learner(user: User = Depends(get_current_user)) -> User:
+    """
+    Authorize the learner portal surface.
+
+    Learner accounts are the intended audience, and every response on
+    this surface is scoped to the caller's own records. Authoring roles
+    are admitted too, so a lecturer can preview exactly what a learner
+    sees; because the data is self-scoped that exposes nothing of
+    anyone else's. Any role that is neither a learner nor authoring
+    staff is rejected.
+    """
+    from app.services.auth.routing import is_learner, is_staff
+
+    if not (is_learner(user.role) or is_staff(user.role)):
+        raise AuthorizationError(
+            "This account does not have access to the learner portal."
+        )
 
     return user

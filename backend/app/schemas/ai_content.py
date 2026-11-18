@@ -1,10 +1,10 @@
 """Pydantic schemas defining the LLM's structured course-content output.
 
 These schemas are the contract with the AI provider for course content
-generation (lessons, diagrams, activities, knowledge checks, external
-resource candidates). Structured-output mode guarantees the response
-conforms to this shape at the API level; no arbitrary LLM prose is
-accepted.
+generation (lessons, diagrams, activities, practical tasks, knowledge
+checks, external resource candidates). Structured-output mode guarantees
+the response conforms to this shape at the API level; no arbitrary LLM
+prose is accepted.
 
 External resource URLs are returned as *candidates* only — they are
 HTTP-validated before being persisted (see
@@ -14,6 +14,8 @@ they come from the YouTube discovery service.
 """
 
 from __future__ import annotations
+
+from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -34,7 +36,13 @@ class SourceMarkersMixin(BaseModel):
 class GeneratedTextBlock(SourceMarkersMixin):
     """A paragraph/heading/example/summary block of lesson prose."""
 
-    kind: str = Field(description="One of: 'heading', 'text', 'example', 'summary'.")
+    kind: Literal["heading", "text", "example", "summary"] = Field(
+        description=(
+            "One of: 'heading', 'text', 'example', 'summary'. Tabular or "
+            "list-like information must use 'text' or 'example'; there is no "
+            "'table' kind."
+        )
+    )
     title: str | None = Field(default=None, max_length=300)
     content: str = Field(min_length=1, max_length=6000)
     heading_level: int | None = Field(default=None, ge=2, le=3)
@@ -75,8 +83,12 @@ class GeneratedDiagram(SourceMarkersMixin):
     """A structured diagram definition rendered to Moodle-safe HTML later."""
 
     title: str = Field(min_length=1, max_length=300)
-    diagram_type: str = Field(
-        description="One of: 'flowchart', 'hierarchy', 'concept_map', 'comparison'."
+    diagram_type: Literal["flowchart", "hierarchy", "concept_map", "comparison"] = (
+        Field(
+            description=(
+                "One of: 'flowchart', 'hierarchy', 'concept_map', 'comparison'."
+            )
+        )
     )
     caption: str = Field(min_length=1, max_length=500)
     nodes: list[DiagramNode] = Field(default_factory=list)
@@ -89,11 +101,18 @@ class DiagramGenerationResult(BaseModel):
     diagrams: list[GeneratedDiagram] = Field(default_factory=list)
 
 
+class GeneratedKnowledgeCheckOption(BaseModel):
+    """One multiple-choice option of a generated knowledge check."""
+
+    id: str = Field(min_length=1, max_length=50)
+    text: str = Field(min_length=1, max_length=500)
+
+
 class GeneratedKnowledgeCheck(SourceMarkersMixin):
     """A single multiple-choice knowledge check grounded in the lesson."""
 
     question: str = Field(min_length=1, max_length=1000)
-    options: list[dict] = Field(default_factory=list)
+    options: list[GeneratedKnowledgeCheckOption] = Field(default_factory=list)
     correct_option_id: str = Field(min_length=1, max_length=50)
     explanation: str = Field(min_length=1, max_length=1500)
     difficulty: str = Field(
@@ -122,6 +141,35 @@ class ActivityGenerationResult(BaseModel):
     """Activities generated for a single lesson."""
 
     activities: list[GeneratedActivity] = Field(default_factory=list)
+
+
+class GeneratedPracticalTask(SourceMarkersMixin):
+    """A practical project brief grounded in the lesson's source text."""
+
+    title: str = Field(min_length=1, max_length=300)
+    brief: str = Field(min_length=1, max_length=2500)
+    scenario: str = Field(default="", max_length=1500)
+    steps: list[str] = Field(default_factory=list, max_length=20)
+    deliverable: str = Field(min_length=1, max_length=1200)
+    evidence: str = Field(min_length=1, max_length=1200)
+    difficulty: str = Field(
+        default="medium", description="One of: 'easy', 'medium', 'hard'."
+    )
+    estimated_minutes: int = Field(ge=0, le=10080)
+
+
+class PracticalTaskGenerationResult(BaseModel):
+    """Practical project briefs generated for a single lesson."""
+
+    tasks: list[GeneratedPracticalTask] = Field(default_factory=list)
+
+    @field_validator("tasks")
+    @classmethod
+    def _limit_tasks(
+        cls, value: list[GeneratedPracticalTask]
+    ) -> list[GeneratedPracticalTask]:
+        """Guard against a single over-large response by capping tasks."""
+        return value[:3]
 
 
 class GeneratedResourceCandidate(SourceMarkersMixin):

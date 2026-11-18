@@ -84,6 +84,7 @@ class _PlannableTopic:
     difficulty: int
     workload_minutes: int
     learning_objectives: list[str]
+    document_order: int
 
 
 def _aggregate_topics(topics: list[Topic]) -> list[_PlannableTopic]:
@@ -95,9 +96,24 @@ def _aggregate_topics(topics: list[Topic]) -> list[_PlannableTopic]:
     Subtree membership is resolved from ``parent_topic_id`` pointers on
     the flat topic list rather than the ``subtopics`` ORM relationship,
     so the planner never triggers a lazy load outside an async session.
+
+    Topics already flagged as duplicates (``duplicate_of_id`` set by
+    canonicalization) are excluded — including their subtrees — so a
+    deduplicated topic can never be scheduled twice.
+
+    The caller is expected to deliver topics in document reading order
+    (the repository does); each top-level topic records its position as
+    ``document_order`` so independent topics can be tie-broken in that
+    order.
     """
+    active = [
+        topic
+        for topic in topics
+        if getattr(topic, "duplicate_of_id", None) is None
+    ]
+
     children_of: dict[uuid.UUID, list[Topic]] = defaultdict(list)
-    for topic in topics:
+    for topic in active:
         if topic.parent_topic_id is not None:
             children_of[topic.parent_topic_id].append(topic)
 
@@ -115,7 +131,7 @@ def _aggregate_topics(topics: list[Topic]) -> list[_PlannableTopic]:
         return workload, objectives, hardest
 
     plannable: list[_PlannableTopic] = []
-    for topic in topics:
+    for position, topic in enumerate(active):
         if topic.parent_topic_id is not None:
             continue
         workload, objectives, hardest = collect_subtree(topic)
@@ -126,6 +142,7 @@ def _aggregate_topics(topics: list[Topic]) -> list[_PlannableTopic]:
                 difficulty=hardest,
                 workload_minutes=workload,
                 learning_objectives=objectives,
+                document_order=position,
             )
         )
 
@@ -139,6 +156,11 @@ def _order_topics(
     Order topics for scheduling. If dependency edges exist, use a
     topological order (prerequisites scheduled before dependents);
     otherwise fall back to ordering by workload then difficulty.
+
+    Independent topics (no edges between them) are tie-broken by their
+    position in the delivered document order so the reading order of the
+    source is preserved rather than an arbitrary UUID order — foundational
+    and front-matter topics stay near the start of the course.
     """
     by_id = {topic.topic_id: topic for topic in plannable}
 
@@ -150,9 +172,10 @@ def _order_topics(
             if dependent in by_id and prerequisite in by_id:
                 edges[dependent].add(prerequisite)
 
+        priority = {topic.topic_id: topic.document_order for topic in plannable}
         acyclic_edges, _ = break_all_cycles(edges)
         try:
-            ordered_ids = topological_sort(acyclic_edges)
+            ordered_ids = topological_sort(acyclic_edges, priority=priority)
         except RuntimeError:
             ordered_ids = list(by_id.keys())
         return [by_id[topic_id] for topic_id in ordered_ids]

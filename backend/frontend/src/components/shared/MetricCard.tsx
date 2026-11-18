@@ -18,13 +18,13 @@ interface MetricCardProps {
 
 const toneStyles: Record<MetricTone, { accent: string; chip: string; value: string }> = {
   neutral: {
-    accent: "bg-cream-300",
+    accent: "bg-sand-300",
     chip: "bg-muted text-muted-foreground",
     value: "text-ink",
   },
   primary: {
-    accent: "bg-burgundy",
-    chip: "bg-burgundy-50 text-burgundy",
+    accent: "bg-brand",
+    chip: "bg-brand-50 text-brand",
     value: "text-ink",
   },
   success: {
@@ -100,7 +100,7 @@ export function MetricCard({
 
   const classes = cn(
     "group relative overflow-hidden rounded-xl border border-border bg-card p-5 shadow-card transition-all",
-    to && "hover:-translate-y-0.5 hover:border-burgundy/25 hover:shadow-lift",
+    to && "hover:-translate-y-0.5 hover:border-brand/25 hover:shadow-lift",
     className,
   );
 
@@ -108,7 +108,7 @@ export function MetricCard({
     return (
       <Link to={to} className={classes}>
         {body}
-        <ArrowUpRight className="absolute right-4 top-4 h-4 w-4 text-muted-foreground/50 transition-colors group-hover:text-burgundy" />
+        <ArrowUpRight className="absolute right-4 top-4 h-4 w-4 text-muted-foreground/50 transition-colors group-hover:text-brand" />
       </Link>
     );
   }

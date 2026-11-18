@@ -131,6 +131,25 @@ class TestMissingCapability:
         assert issues[0].capability == "mod/page:addinstance"
         assert "ai_course_engine plugin" in issues[0].admin_action
 
+    @pytest.mark.anyio
+    async def test_missing_page_body_function_reports_capability(self):
+        info = {
+            **DEFAULT_SITE_INFO,
+            "functions": [
+                name
+                for name in ALL_FUNCTIONS
+                if name != "mod_page_get_pages_by_courses"
+            ],
+        }
+        client = FakeClient(site_info=info)
+        result = await run_readiness_check(client, category_id=1)
+
+        assert result.ready is False
+        issues = _finding_issue(result, MoodleIssueKind.MISSING_CAPABILITY)
+        assert issues[0].ws_function == "mod_page_get_pages_by_courses"
+        assert issues[0].capability == "mod/page:view"
+        assert "mod/page:view" in issues[0].admin_action
+
 
 class TestContentPluginFunctions:
     @pytest.mark.anyio

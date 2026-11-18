@@ -23,10 +23,12 @@ class TopicRepository:
     async def list_by_document(self, document_id: uuid.UUID) -> list[Topic]:
         """
         Return all top-level topics (parent_topic_id is null) for a
-        document, with subtopics and concepts eagerly loaded, ordered.
+        document, with subtopics and concepts eagerly loaded, ordered in
+        document reading order (chapter, then topic).
         """
         stmt = (
             select(Topic)
+            .outerjoin(Chapter, Chapter.id == Topic.chapter_id)
             .where(
                 Topic.document_id == document_id,
                 Topic.parent_topic_id.is_(None),
@@ -35,7 +37,11 @@ class TopicRepository:
                 selectinload(Topic.subtopics).selectinload(Topic.concepts),
                 selectinload(Topic.concepts),
             )
-            .order_by(Topic.order_index)
+            .order_by(
+                Chapter.order_index.nulls_last(),
+                Topic.order_index,
+                Topic.id,
+            )
         )
         result = await self._session.execute(stmt)
         return list(result.scalars().unique().all())
@@ -45,13 +51,17 @@ class TopicRepository:
     ) -> list[Topic]:
         """
         Return every topic row for a document (top-level topics and
-        subtopics) as a flat list, ordered.
+        subtopics) as a flat list, ordered in document reading order
+        (``Chapter.order_index`` then ``Topic.order_index``). Ordering by
+        chapter is required because ``Topic.order_index`` restarts per
+        chapter, so it is not globally monotonic on its own.
 
         The curriculum service passes this flat list straight to the
         planner, which assembles subtree aggregates from
         ``parent_topic_id`` pointers instead of walking the ORM
         relationship graph — that keeps the planner free of database
-        lazy loads.
+        lazy loads. The planner relies on this order to tie-break
+        independent topics.
 
         ``concepts`` and ``source_chunk_links`` are eagerly loaded
         because the canonicalization pass (``apply_canonicalization``)
@@ -67,10 +77,14 @@ class TopicRepository:
         stmt = select(Topic).where(Topic.document_id == document_id)
         if exclude_duplicates:
             stmt = stmt.where(Topic.duplicate_of_id.is_(None))
-        stmt = stmt.options(
+        stmt = stmt.outerjoin(Chapter, Chapter.id == Topic.chapter_id).options(
             selectinload(Topic.concepts),
             selectinload(Topic.source_chunk_links),
-        ).order_by(Topic.order_index)
+        ).order_by(
+            Chapter.order_index.nulls_last(),
+            Topic.order_index,
+            Topic.id,
+        )
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
@@ -114,12 +128,11 @@ class TopicRepository:
         Return every top-level topic for a document ordered the way a
         reader meets them, plus a chapter-id to chapter-label map.
 
-        ``list_by_document`` orders by ``order_index`` alone, which is
-        scoped to a chapter, so it interleaves chapters unpredictably.
-        Prerequisite linking has to reason about what comes *earlier* in
-        the book, so it needs the real order: chapter reading order first,
-        then position within the chapter. Topics with no chapter are kept
-        and sort last, matching where an un-chaptered document lands.
+        Ordering is chapter reading order first, then position within the
+        chapter (``list_by_document`` now follows the same rule). Topics
+        with no chapter are kept and sort last, matching where an
+        un-chaptered document lands. This is the order prerequisite
+        linking needs to reason about what comes *earlier* in the book.
         """
         chapter_rows = (
             await self._session.execute(

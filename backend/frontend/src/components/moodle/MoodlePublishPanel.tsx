@@ -1,16 +1,18 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/shared/StatusBadge";
-import { curriculumBadge } from "@/lib/badges";
+import { curriculumBadge, courseBadge } from "@/lib/badges";
+import { formatDate } from "@/lib/format";
 import { getDraft } from "@/lib/drafts";
 import { api, ApiError } from "@/lib/api";
 import { toast } from "sonner";
 import type {
   CurriculumDetailRead,
+  MoodleCourseRead,
   MoodlePreflightCheck,
   MoodlePreflightResponse,
   MoodlePublishResponse,
@@ -77,6 +79,25 @@ export function MoodlePublishPanel({ curriculum }: MoodlePublishPanelProps) {
   const [preflight, setPreflight] = useState<MoodlePreflightResponse | null>(null);
   const [preflightLoading, setPreflightLoading] = useState(true);
 
+  // Publication state for this curriculum, derived from the existing
+  // Course record (never a second state machine): undefined = loading,
+  // null = never published, otherwise the stored Moodle course row.
+  const [publication, setPublication] = useState<MoodleCourseRead | null | undefined>(
+    undefined,
+  );
+
+  const refreshPublication = useCallback(() => {
+    api
+      .listCourses()
+      .then((res) => {
+        const match = (res.courses ?? []).find(
+          (course) => course.curriculum_id === curriculum.id,
+        );
+        setPublication(match ?? null);
+      })
+      .catch(() => setPublication(null));
+  }, [curriculum.id]);
+
   const loadPreflight = async () => {
     setPreflightLoading(true);
     try {
@@ -95,7 +116,8 @@ export function MoodlePublishPanel({ curriculum }: MoodlePublishPanelProps) {
 
   useEffect(() => {
     void loadPreflight();
-  }, []);
+    refreshPublication();
+  }, [curriculum.id, refreshPublication]);
 
   const handlePublish = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,6 +131,7 @@ export function MoodlePublishPanel({ curriculum }: MoodlePublishPanelProps) {
         idnumber: idnumber.trim() || undefined,
       });
       setResult(res);
+      refreshPublication();
       toast.success(`Published: ${res.course_fullname}`);
     } catch (err) {
       const message = err instanceof ApiError ? err.message : (err as Error).message;
@@ -171,6 +194,68 @@ export function MoodlePublishPanel({ curriculum }: MoodlePublishPanelProps) {
               </li>
             ))}
           </ul>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm">Publication status</CardTitle>
+            {publication ? (
+              <StatusBadge {...courseBadge(publication.status)} />
+            ) : publication === null ? (
+              <StatusBadge tone="neutral" label="Not published" dot={false} />
+            ) : (
+              <StatusBadge tone="neutral" label="Checking…" dot={false} />
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0 text-sm">
+          {publication === undefined ? (
+            <p className="text-muted-foreground">Checking publication state…</p>
+          ) : publication === null ? (
+            <p className="text-muted-foreground">
+              This curriculum has not been published to Moodle yet.
+              {ready
+                ? " Use “Publish now” below to create the Moodle course."
+                : " Resolve the readiness issues below before publishing."}
+            </p>
+          ) : publication.status === "sync_failed" ? (
+            <div className="space-y-1">
+              <p className="font-medium text-red-700">
+                Publication failed — the last sync did not complete.
+              </p>
+              {publication.sync_error && (
+                <p className="text-xs text-red-700">{publication.sync_error}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Moodle course id {publication.moodle_course_id ?? "—"} · last sync{" "}
+                {formatDate(publication.last_sync_at)}. Re-publishing resumes the
+                sync idempotently without duplicating content.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              <p className="font-medium text-emerald-700">Published to Moodle.</p>
+              <p className="text-xs text-muted-foreground">
+                Moodle course id {publication.moodle_course_id ?? "—"} ·{" "}
+                {publication.sections_published} sections ·{" "}
+                {publication.resources_published} page resources · last sync{" "}
+                {formatDate(publication.last_sync_at)}.
+              </p>
+              {publication.moodle_url && (
+                <a
+                  href={publication.moodle_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:underline"
+                >
+                  Open course in Moodle
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -282,7 +367,7 @@ export function MoodlePublishPanel({ curriculum }: MoodlePublishPanelProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-burgundy-50 text-burgundy ring-4 ring-burgundy/[0.04]">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-50 text-brand ring-4 ring-brand/[0.04]">
                 <ExternalLink className="h-4 w-4" />
               </span>
               <div>

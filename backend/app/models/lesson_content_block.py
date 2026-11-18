@@ -24,6 +24,7 @@ class LessonBlockType(str, enum.Enum):
     ACTIVITY = "activity"
     KNOWLEDGE_CHECK = "knowledge_check"
     SUMMARY = "summary"
+    PRACTICAL_TASK = "practical_task"
 
 
 class BlockReviewStatus(str, enum.Enum):

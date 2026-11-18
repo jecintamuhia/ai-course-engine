@@ -202,20 +202,20 @@ def _registration_settings(**overrides) -> Settings:
 
 
 @pytest.mark.anyio
-async def test_register_user_always_creates_a_lecturer() -> None:
+async def test_register_user_always_creates_a_learner() -> None:
     repository = AsyncMock()
     repository.get_by_email.return_value = None
 
     user = await AuthService(repository, _registration_settings()).register_user(
-        email="  New.Lecturer@Example.com ",
+        email="  New.Learner@Example.com ",
         password="a-strong-password",
-        full_name="  New Lecturer ",
+        full_name="  New Learner ",
     )
 
-    assert user.email == "new.lecturer@example.com"
-    assert user.full_name == "New Lecturer"
-    # Self-registration can never mint an administrator.
-    assert user.role == UserRole.LECTURER
+    assert user.email == "new.learner@example.com"
+    assert user.full_name == "New Learner"
+    # Self-registration can never mint a lecturer or an administrator.
+    assert user.role == UserRole.STUDENT
     assert user.is_active is True
     assert verify_password("a-strong-password", user.password_hash)
 
@@ -270,7 +270,7 @@ async def test_register_user_enforces_domain_allowlist() -> None:
         password="a-strong-password",
         full_name="Student",
     )
-    assert allowed.role == UserRole.LECTURER
+    assert allowed.role == UserRole.STUDENT
 
 
 # ---------------------------------------------------------------------------
@@ -279,17 +279,17 @@ async def test_register_user_enforces_domain_allowlist() -> None:
 
 
 @pytest.mark.anyio
-async def test_external_signin_creates_a_lecturer_on_first_use() -> None:
+async def test_external_signin_creates_a_learner_on_first_use() -> None:
     repository = AsyncMock()
     repository.get_by_email.return_value = None
 
     user = await AuthService(repository).get_or_create_external_user(
-        email="Lecturer@Gmail.com",
-        full_name="Google Lecturer",
+        email="Learner@Gmail.com",
+        full_name="Google Learner",
     )
 
-    assert user.email == "lecturer@gmail.com"
-    assert user.role == UserRole.LECTURER
+    assert user.email == "learner@gmail.com"
+    assert user.role == UserRole.STUDENT
     repository.add.assert_awaited_once()
 
 
@@ -323,6 +323,54 @@ async def test_external_signin_rejects_an_inactive_account() -> None:
             email="inactive@gmail.com",
             full_name="Inactive",
         )
+
+
+@pytest.mark.anyio
+async def test_external_signin_honors_disabled_registration() -> None:
+    repository = AsyncMock()
+    repository.get_by_email.return_value = None
+    settings = _registration_settings(auth_registration_enabled=False)
+
+    with pytest.raises(RegistrationDisabledError):
+        await AuthService(repository, settings).get_or_create_external_user(
+            email="learner@gmail.com",
+            full_name="Google Learner",
+        )
+
+    repository.add.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_external_signin_honors_domain_allowlist() -> None:
+    repository = AsyncMock()
+    repository.get_by_email.return_value = None
+    settings = _registration_settings(
+        auth_registration_allowed_domains=["skillupafrica.co.ke"]
+    )
+
+    with pytest.raises(RegistrationDomainNotAllowedError):
+        await AuthService(repository, settings).get_or_create_external_user(
+            email="learner@gmail.com",
+            full_name="Google Learner",
+        )
+
+    repository.add.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_existing_account_can_sign_in_when_registration_is_disabled() -> None:
+    existing = make_test_user(email="existing@gmail.com")
+    repository = AsyncMock()
+    repository.get_by_email.return_value = existing
+    settings = _registration_settings(auth_registration_enabled=False)
+
+    user = await AuthService(repository, settings).get_or_create_external_user(
+        email="existing@gmail.com",
+        full_name="Existing",
+    )
+
+    assert user is existing
+    repository.add.assert_not_awaited()
 
 
 def test_external_account_password_is_unusable() -> None:

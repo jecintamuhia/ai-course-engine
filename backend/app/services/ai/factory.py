@@ -49,6 +49,7 @@ def create_llm_provider(settings: Settings) -> LLMProvider:
             max_retries=settings.openrouter_max_retries,
             retry_base_delay_seconds=settings.openrouter_retry_base_delay_seconds,
             max_retry_delay_seconds=settings.openrouter_max_retry_delay_seconds,
+            app_title=settings.app_name,
         )
 
     raise ConfigurationError(

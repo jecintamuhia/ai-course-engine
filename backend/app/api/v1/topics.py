@@ -18,6 +18,7 @@ from app.schemas.dependency import (
     UnresolvedPrerequisiteRead,
 )
 from app.schemas.topic import (
+    AnalysisWarningRead,
     CanonicalizationResponse,
     CanonicalTopicRead,
     DuplicateTopicRead,
@@ -75,12 +76,13 @@ async def analyze_document(
     Runs synchronously for now. Re-running this replaces each chapter's
     previously extracted topics rather than duplicating them.
     """
-    topics = await service.analyze_document(document_id)
+    topics, warnings = await service.analyze_document_with_report(document_id)
 
     return TopicAnalysisResponse(
         document_id=document_id,
         topic_count=len(topics),
         topics=[TopicRead.model_validate(topic) for topic in topics],
+        warnings=[AnalysisWarningRead.model_validate(w) for w in warnings],
     )
 
 

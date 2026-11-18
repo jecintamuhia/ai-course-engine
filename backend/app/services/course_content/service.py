@@ -43,8 +43,10 @@ from app.schemas.ai_content import (
     GeneratedActivity,
     GeneratedDiagram,
     GeneratedKnowledgeCheck,
+    GeneratedPracticalTask,
     KnowledgeCheckGenerationResult,
     LessonGenerationResult,
+    PracticalTaskGenerationResult,
     ResourceCandidateResult,
 )
 from app.schemas.course_content import (
@@ -58,6 +60,7 @@ from app.schemas.course_content import (
     KnowledgeCheckOptionPayload,
     KnowledgeCheckPayload,
     LessonSourceMapRead,
+    PracticalTaskPayload,
     SourceMapBlockCitation,
     SourceMapItem,
     SummaryBlockPayload,
@@ -75,16 +78,19 @@ from app.services.course_content.context import (
     collect_unit_chunk_ids,
 )
 from app.services.course_content.generators import (
+    _usable_steps,
     generate_activities,
     generate_diagrams,
     generate_knowledge_checks,
     generate_lesson,
+    generate_practical_tasks,
     propose_resource_candidates,
 )
 from app.services.course_content.resource_discovery import (
     validate_resource_candidates,
 )
 from app.services.course_content.video_discovery import discover_videos
+from pydantic import ValidationError
 
 logger = get_logger(__name__)
 
@@ -229,8 +235,11 @@ class CourseContentService:
             )
 
         if not preserve_existing:
-            await self._lesson_repository.delete_not_approved_by_unit(
-                curriculum_unit_id
+            regenerated_topic_ids = {
+                lesson.topic_id for lesson in generated if lesson.topic_id is not None
+            }
+            await self._lesson_repository.delete_not_approved_by_topics(
+                curriculum_unit_id, regenerated_topic_ids
             )
         for lesson in generated:
             await self._lesson_repository.add(lesson)
@@ -273,7 +282,7 @@ class CourseContentService:
                 week_number=context.week_number,
                 lesson_position=context.order_index + 1,
             )
-        except (AIProviderError, AIOutputValidationError) as exc:
+        except (AIProviderError, AIOutputValidationError, ValidationError) as exc:
             logger.warning(
                 "Lesson generation failed topic=%r error=%s",
                 context.topic_title,
@@ -312,7 +321,7 @@ class CourseContentService:
             block_index = self._append_diagram_blocks(
                 diagrams, context, lesson, blocks, block_index
             )
-        except (AIProviderError, AIOutputValidationError) as exc:
+        except (AIProviderError, AIOutputValidationError, ValidationError) as exc:
             component_errors.append({"component": "diagrams", "error": str(exc)})
 
         try:
@@ -326,7 +335,7 @@ class CourseContentService:
             block_index = self._append_knowledge_check_blocks(
                 checks, context, lesson, blocks, block_index
             )
-        except (AIProviderError, AIOutputValidationError) as exc:
+        except (AIProviderError, AIOutputValidationError, ValidationError) as exc:
             component_errors.append(
                 {"component": "knowledge_checks", "error": str(exc)}
             )
@@ -342,8 +351,29 @@ class CourseContentService:
             block_index = self._append_activity_blocks(
                 activities, context, lesson, blocks, block_index
             )
-        except (AIProviderError, AIOutputValidationError) as exc:
+        except (AIProviderError, AIOutputValidationError, ValidationError) as exc:
             component_errors.append({"component": "activities", "error": str(exc)})
+
+        if settings.content_max_practical_tasks > 0:
+            try:
+                practical_tasks = await generate_practical_tasks(
+                    self._llm_provider,
+                    settings,
+                    lesson_title=lesson.title,
+                    annotated_text=context.annotated_text,
+                    max_tasks=settings.content_max_practical_tasks,
+                )
+                block_index = self._append_practical_task_blocks(
+                    practical_tasks, context, lesson, blocks, block_index
+                )
+            except (
+                AIProviderError,
+                AIOutputValidationError,
+                ValidationError,
+            ) as exc:
+                component_errors.append(
+                    {"component": "practical_tasks", "error": str(exc)}
+                )
 
         try:
             candidates = await propose_resource_candidates(
@@ -365,7 +395,7 @@ class CourseContentService:
                 block_index = self._append_resource_blocks(
                     validated, context, lesson, blocks, block_index
                 )
-        except (AIProviderError, AIOutputValidationError) as exc:
+        except (AIProviderError, AIOutputValidationError, ValidationError) as exc:
             component_errors.append(
                 {"component": "external_resources", "error": str(exc)}
             )
@@ -476,7 +506,7 @@ class CourseContentService:
                     order_index=index,
                     title=diagram.title,
                     payload=DiagramBlockPayload(
-                        diagram_type=diagram.diagram_type,
+                        diagram_type=_safe_diagram_type(diagram.diagram_type),
                         caption=diagram.caption,
                         nodes=[
                             DiagramNodePayload(id=n.id, label=n.label)
@@ -518,7 +548,7 @@ class CourseContentService:
                     payload=KnowledgeCheckPayload(
                         question=check.question,
                         options=[
-                            KnowledgeCheckOptionPayload(id=o["id"], text=o["text"])
+                            KnowledgeCheckOptionPayload(id=o.id, text=o.text)
                             for o in check.options
                         ],
                         correct_option_id=check.correct_option_id,
@@ -556,6 +586,39 @@ class CourseContentService:
                         estimated_minutes=activity.estimated_minutes,
                         source_chunk_markers=_resolved(
                             list(activity.source_chunk_markers), context.marker_map
+                        ),
+                    ).model_dump(mode="json"),
+                )
+            )
+            index += 1
+        return index
+
+    def _append_practical_task_blocks(
+        self,
+        result: PracticalTaskGenerationResult,
+        context: LessonContext,
+        lesson: Lesson,
+        blocks: list[LessonContentBlock],
+        start_index: int,
+    ) -> int:
+        index = start_index
+        for task in result.tasks:
+            blocks.append(
+                _block(
+                    lesson_id=lesson.id,
+                    block_type=LessonBlockType.PRACTICAL_TASK,
+                    order_index=index,
+                    title=task.title,
+                    payload=PracticalTaskPayload(
+                        brief=task.brief,
+                        scenario=task.scenario,
+                        steps=_usable_steps(list(task.steps)),
+                        deliverable=task.deliverable,
+                        evidence=task.evidence,
+                        difficulty=_safe_difficulty(task.difficulty),
+                        estimated_minutes=task.estimated_minutes,
+                        source_chunk_markers=_resolved(
+                            list(task.source_chunk_markers), context.marker_map
                         ),
                     ).model_dump(mode="json"),
                 )
@@ -708,9 +771,9 @@ class CourseContentService:
         """
         Regenerate a single content block using the lesson's own source
         grounding. Supports diagram, knowledge_check, activity,
-        external_resource, and video blocks; the prose block kinds
-        (text/heading/example/summary) are regenerated as part of the
-        full lesson and raise here.
+        practical_task, external_resource, and video blocks; the prose
+        block kinds (text/heading/example/summary) are regenerated as part
+        of the full lesson and raise here.
         """
         block = await self._lesson_repository.get_block_by_id(block_id)
         if block is None:
@@ -774,7 +837,7 @@ class CourseContentService:
             return (
                 diagram.title,
                 DiagramBlockPayload(
-                    diagram_type=diagram.diagram_type,
+                    diagram_type=_safe_diagram_type(diagram.diagram_type),
                     caption=diagram.caption,
                     nodes=[
                         DiagramNodePayload(id=n.id, label=n.label)
@@ -810,7 +873,7 @@ class CourseContentService:
                 KnowledgeCheckPayload(
                     question=check.question,
                     options=[
-                        KnowledgeCheckOptionPayload(id=o["id"], text=o["text"])
+                        KnowledgeCheckOptionPayload(id=o.id, text=o.text)
                         for o in check.options
                     ],
                     correct_option_id=check.correct_option_id,
@@ -842,6 +905,35 @@ class CourseContentService:
                     estimated_minutes=activity.estimated_minutes,
                     source_chunk_markers=_resolved(
                         list(activity.source_chunk_markers), marker_map
+                    ),
+                ).model_dump(mode="json"),
+            )
+
+        if block_type == LessonBlockType.PRACTICAL_TASK:
+            tasks: PracticalTaskGenerationResult = await generate_practical_tasks(
+                self._llm_provider,
+                settings,
+                lesson_title=lesson.title,
+                annotated_text=annotated_text,
+                max_tasks=1,
+            )
+            if not tasks.tasks:
+                raise AIOutputValidationError(
+                    "Practical-task generator returned none."
+                )
+            task: GeneratedPracticalTask = tasks.tasks[0]
+            return (
+                task.title,
+                PracticalTaskPayload(
+                    brief=task.brief,
+                    scenario=task.scenario,
+                    steps=_usable_steps(list(task.steps)),
+                    deliverable=task.deliverable,
+                    evidence=task.evidence,
+                    difficulty=_safe_difficulty(task.difficulty),
+                    estimated_minutes=task.estimated_minutes,
+                    source_chunk_markers=_resolved(
+                        list(task.source_chunk_markers), marker_map
                     ),
                 ).model_dump(mode="json"),
             )
@@ -986,6 +1078,12 @@ def _safe_difficulty(value: str) -> str:
     if value in ("easy", "medium", "hard"):
         return value
     return "medium"
+
+
+def _safe_diagram_type(value: str) -> str:
+    if value in ("flowchart", "hierarchy", "concept_map", "comparison"):
+        return value
+    return "concept_map"
 
 
 def _safe_activity_kind(value: str) -> str:

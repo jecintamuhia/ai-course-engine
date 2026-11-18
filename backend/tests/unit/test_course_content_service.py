@@ -8,7 +8,11 @@ from datetime import UTC, datetime
 
 import pytest
 from app.core.config import Settings
-from app.core.exceptions import AIOutputValidationError, CurriculumUnitNotFound
+from app.core.exceptions import (
+    AIOutputValidationError,
+    AIProviderError,
+    CurriculumUnitNotFound,
+)
 from app.models.chunks import Chunk
 from app.models.curriculum_unit import CurriculumUnit
 from app.models.curriculum_unit_topic import CurriculumUnitTopic
@@ -24,9 +28,11 @@ from app.schemas.ai_content import (
     GeneratedDiagram,
     GeneratedKnowledgeCheck,
     GeneratedLesson,
+    GeneratedPracticalTask,
     GeneratedTextBlock,
     KnowledgeCheckGenerationResult,
     LessonGenerationResult,
+    PracticalTaskGenerationResult,
     ResourceCandidateResult,
 )
 from app.schemas.course_content import ExternalResourcePayload
@@ -122,12 +128,17 @@ class _FakeLessonRepository:
     def __init__(self, existing: list[Lesson] | None = None) -> None:
         self.existing = existing or []
         self.added: list[Lesson] = []
+        self.deleted_topic_ids: set[uuid.UUID] = set()
 
     async def list_by_unit(self, curriculum_unit_id: uuid.UUID) -> list[Lesson]:
         return list(self.existing)
 
-    async def delete_not_approved_by_unit(self, curriculum_unit_id: uuid.UUID) -> None:
-        _TIMELINE.append("delete_lessons")
+    async def delete_not_approved_by_topics(
+        self, curriculum_unit_id: uuid.UUID, topic_ids: set[uuid.UUID]
+    ) -> None:
+        if topic_ids:
+            _TIMELINE.append("delete_lessons")
+        self.deleted_topic_ids = set(topic_ids)
 
     async def add(self, lesson: Lesson) -> Lesson:
         _TIMELINE.append("add_lesson")
@@ -144,15 +155,27 @@ class _FakeLessonRepository:
 
 class _RecordingLLM:
     def __init__(
-        self, fail_diagrams: bool = False, heading_content: str = "Deep dive"
+        self,
+        fail_diagrams: bool = False,
+        heading_content: str = "Deep dive",
+        fail_lesson: bool = False,
+        invalid_diagram: bool = False,
+        fail_practical: bool = False,
+        stepless_practical: bool = False,
     ) -> None:
         self._fail_diagrams = fail_diagrams
         self._heading_content = heading_content
+        self._fail_lesson = fail_lesson
+        self._invalid_diagram = invalid_diagram
+        self._fail_practical = fail_practical
+        self._stepless_practical = stepless_practical
 
     async def complete_structured(self, **kwargs):
         _TIMELINE.append("llm_call")
         response_model = kwargs["response_model"]
         if response_model is LessonGenerationResult:
+            if self._fail_lesson:
+                raise AIProviderError("OpenRouter error (HTTP 402).")
             return LessonGenerationResult(
                 lesson=GeneratedLesson(
                     title="Intro to Alpha",
@@ -177,6 +200,22 @@ class _RecordingLLM:
         if response_model is DiagramGenerationResult:
             if self._fail_diagrams:
                 raise AIOutputValidationError("No edges validate.")
+            if self._invalid_diagram:
+                # Build a diagram whose node violates DiagramNodePayload
+                # (empty id) without re-validating the generated schema, so
+                # payload construction raises a pydantic ValidationError.
+                return DiagramGenerationResult.model_construct(
+                    diagrams=[
+                        GeneratedDiagram.model_construct(
+                            title="Bad map",
+                            diagram_type="concept_map",
+                            caption="Alpha concepts.",
+                            nodes=[DiagramNode.model_construct(id="", label="Alpha")],
+                            edges=[],
+                            source_chunk_markers=[],
+                        )
+                    ]
+                )
             return DiagramGenerationResult(
                 diagrams=[
                     GeneratedDiagram(
@@ -214,6 +253,27 @@ class _RecordingLLM:
                     )
                 ]
             )
+        if response_model is PracticalTaskGenerationResult:
+            if self._fail_practical:
+                raise AIProviderError("Practical brief pass unavailable (HTTP 503).")
+            steps = [] if self._stepless_practical else ["Run the described procedure."]
+            return PracticalTaskGenerationResult(
+                tasks=[
+                    GeneratedPracticalTask(
+                        title="Build the Alpha service",
+                        brief=(
+                            "Stand up Alpha end to end using the documented procedure."
+                        ),
+                        scenario="A small team needs Alpha running.",
+                        steps=steps,
+                        deliverable="A configured Alpha instance plus notes.",
+                        evidence="A transcript showing the documented checks passing.",
+                        difficulty="medium",
+                        estimated_minutes=60,
+                        source_chunk_markers=["C1"],
+                    )
+                ]
+            )
         if response_model is ResourceCandidateResult:
             return ResourceCandidateResult(candidates=[])
         raise AssertionError(f"Unexpected response model {response_model!r}")
@@ -230,6 +290,7 @@ def _settings() -> Settings:
         content_max_diagrams=2,
         content_max_knowledge_checks=3,
         content_max_activities=2,
+        content_max_practical_tasks=1,
         content_max_tokens=4000,
         ai_max_context_chars=100_000,
         content_resource_timeout_seconds=2,
@@ -242,13 +303,23 @@ def _make_service(
     *,
     existing: list[Lesson] | None = None,
     heading_content: str = "Deep dive",
+    fail_lesson: bool = False,
+    invalid_diagram: bool = False,
+    fail_practical: bool = False,
+    stepless_practical: bool = False,
 ) -> tuple[CourseContentService, _FakeLessonRepository]:
     lesson_repository = _FakeLessonRepository(existing)
     service = CourseContentService(
         _FakeCurriculumRepository(unit),
         _FakeChunkRepository(chunks),
         lesson_repository,
-        _RecordingLLM(heading_content=heading_content),
+        _RecordingLLM(
+            heading_content=heading_content,
+            fail_lesson=fail_lesson,
+            invalid_diagram=invalid_diagram,
+            fail_practical=fail_practical,
+            stepless_practical=stepless_practical,
+        ),
         settings=_settings(),
     )
     return service, lesson_repository
@@ -301,6 +372,7 @@ async def test_generated_lesson_is_awaiting_review_with_blocks() -> None:
     assert LessonBlockType.DIAGRAM in block_types
     assert LessonBlockType.KNOWLEDGE_CHECK in block_types
     assert LessonBlockType.ACTIVITY in block_types
+    assert LessonBlockType.PRACTICAL_TASK in block_types
     assert len(result["errors"]) == 0
 
 
@@ -374,6 +446,80 @@ async def test_resume_preserves_unapproved_lesson_and_fills_missing_topic() -> N
     assert result["generated"]
     assert [lesson.topic_id for lesson in lesson_repository.added] == [topic_b.id]
     assert "delete_lessons" not in _TIMELINE
+
+
+async def test_failed_regeneration_preserves_existing_lessons() -> None:
+    """A failed regeneration must not delete the existing lessons.
+
+    Regression: regeneration used to delete every non-approved lesson in
+    the unit *before* adding replacements, so when the LLM provider failed
+    (e.g. HTTP 402) the whole week's existing lessons were destroyed and
+    never replaced. Only topics that are successfully regenerated may
+    replace their previous lesson.
+    """
+    _reset_timeline()
+    chunk = _chunk("Alpha source text.", 0)
+    topic_a = _topic("Alpha Topic", [chunk.id])
+    topic_b = _topic("Beta Topic", [chunk.id])
+    unit = _unit([topic_a, topic_b])
+    existing_a = _existing_lesson(topic_a.id)
+    existing_a.status = LessonStatus.AWAITING_REVIEW
+    existing_b = _existing_lesson(topic_b.id)
+    existing_b.status = LessonStatus.AWAITING_REVIEW
+    service, lesson_repository = _make_service(
+        unit, [chunk], existing=[existing_a, existing_b], fail_lesson=True
+    )
+
+    result = await service.generate_week(unit.id)
+
+    assert result["generated"] == []
+    assert len(result["errors"]) == 2
+    assert lesson_repository.added == []
+    assert lesson_repository.deleted_topic_ids == set()
+    assert "delete_lessons" not in _TIMELINE
+
+
+async def test_regeneration_replaces_only_regenerated_topic_lessons() -> None:
+    """Successfully regenerated topics have their previous lesson replaced."""
+    _reset_timeline()
+    chunk = _chunk("Alpha source text.", 0)
+    topic_a = _topic("Alpha Topic", [chunk.id])
+    topic_b = _topic("Beta Topic", [chunk.id])
+    unit = _unit([topic_a, topic_b])
+    existing_a = _existing_lesson(topic_a.id)
+    existing_a.status = LessonStatus.AWAITING_REVIEW
+    service, lesson_repository = _make_service(unit, [chunk], existing=[existing_a])
+
+    await service.generate_week(unit.id)
+
+    assert [lesson.topic_id for lesson in lesson_repository.added] == [
+        topic_a.id,
+        topic_b.id,
+    ]
+    assert lesson_repository.deleted_topic_ids == {topic_a.id, topic_b.id}
+
+
+async def test_invalid_diagram_payload_degrades_to_component_error() -> None:
+    """A malformed component payload must not fail the whole week.
+
+    Regression: constructing a block payload that failed pydantic
+    validation (e.g. an out-of-vocabulary diagram_type) raised an
+    uncaught ValidationError that surfaced as HTTP 500, discarding every
+    lesson in the week. Such failures are now recorded per component.
+    """
+    chunk = _chunk("Alpha source text.", 0)
+    unit = _unit([_topic("Alpha Topic", [chunk.id])])
+    service, lesson_repository = _make_service(unit, [chunk], invalid_diagram=True)
+
+    result = await service.generate_week(unit.id)
+
+    assert len(result["errors"]) == 0
+    lesson = lesson_repository.added[0]
+    components = {entry["component"] for entry in lesson.generation_errors}
+    assert "diagrams" in components
+    assert LessonBlockType.DIAGRAM not in {
+        block.block_type for block in lesson.content_blocks
+    }
 
 
 async def test_unsourced_topic_is_skipped_not_fabricated() -> None:
@@ -471,3 +617,67 @@ def test_validated_resource_payload_is_jsonb_serializable() -> None:
     payload = blocks[0].payload
     json.dumps(payload)  # mirrors the PostgreSQL JSONB serializer
     assert isinstance(payload["validated_at"], str)
+
+
+async def test_practical_task_provider_failure_is_a_component_error() -> None:
+    chunk = _chunk("Alpha source text.", 0)
+    unit = _unit([_topic("Alpha Topic", [chunk.id])])
+    service, lesson_repository = _make_service(unit, [chunk], fail_practical=True)
+
+    result = await service.generate_week(unit.id)
+
+    assert result["errors"] == []
+    lesson = lesson_repository.added[0]
+    practical_errors = [
+        item
+        for item in lesson.generation_errors
+        if item["component"] == "practical_tasks"
+    ]
+    assert practical_errors
+    assert not any(
+        block.block_type == LessonBlockType.PRACTICAL_TASK
+        for block in lesson.content_blocks
+    )
+
+
+async def test_stepless_practical_task_is_rejected_before_persisting() -> None:
+    """A brief with no procedure must fail validation, not reach storage."""
+    chunk = _chunk("Alpha source text.", 0)
+    unit = _unit([_topic("Alpha Topic", [chunk.id])])
+    service, lesson_repository = _make_service(unit, [chunk], stepless_practical=True)
+
+    result = await service.generate_week(unit.id)
+
+    assert result["errors"] == []
+    lesson = lesson_repository.added[0]
+    practical_errors = [
+        item
+        for item in lesson.generation_errors
+        if item["component"] == "practical_tasks"
+    ]
+    assert practical_errors
+    assert "steps" in practical_errors[0]["error"]
+    assert not any(
+        block.block_type == LessonBlockType.PRACTICAL_TASK
+        for block in lesson.content_blocks
+    )
+
+
+async def test_practical_task_block_carries_grounding_and_brief_fields() -> None:
+    chunk = _chunk("Alpha source text.", 0)
+    unit = _unit([_topic("Alpha Topic", [chunk.id])])
+    service, lesson_repository = _make_service(unit, [chunk])
+
+    await service.generate_week(unit.id)
+
+    lesson = lesson_repository.added[0]
+    block = next(
+        b
+        for b in lesson.content_blocks
+        if b.block_type == LessonBlockType.PRACTICAL_TASK
+    )
+    payload = block.payload
+    assert payload["deliverable"]
+    assert payload["evidence"]
+    assert payload["steps"] == ["Run the described procedure."]
+    assert payload["source_chunk_markers"] == [str(chunk.id)]

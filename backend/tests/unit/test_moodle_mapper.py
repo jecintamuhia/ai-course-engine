@@ -14,6 +14,9 @@ from app.services.moodle.mapper import (
     _section_summary,
     _topic_titles,
     build_course_plan,
+    extract_lesson_id,
+    lesson_id_marker,
+    strip_lesson_id_marker,
 )
 
 # ---------------------------------------------------------------------------
@@ -275,6 +278,72 @@ class TestBuildCoursePlan:
             assert week.lessons == []
 
 
+class TestLessonIdMarker:
+    def test_marker_round_trip(self):
+        lesson_id = uuid.uuid4()
+        marker = lesson_id_marker(lesson_id)
+        content = f"{marker}\n<h3>Title</h3><p>Body</p>"
+        assert extract_lesson_id(content) == lesson_id
+        assert strip_lesson_id_marker(content) == "<h3>Title</h3><p>Body</p>"
+
+    def test_marker_survives_surrounding_whitespace(self):
+        lesson_id = uuid.uuid4()
+        content = f"prefix <!-- skillup-lesson-id: {lesson_id} --> suffix"
+        assert extract_lesson_id(content) == lesson_id
+
+    def test_no_marker_yields_none(self):
+        assert extract_lesson_id("<h3>No marker here</h3>") is None
+        assert extract_lesson_id(None) is None
+        assert extract_lesson_id("") is None
+
+    def test_garbage_marker_yields_none(self):
+        assert extract_lesson_id("<!-- skillup-lesson-id: not-a-uuid -->") is None
+
+    def test_strip_without_marker_is_noop(self):
+        content = "<h3>Title</h3>"
+        assert strip_lesson_id_marker(content) == content
+
+
+class TestSectionNameDisambiguation:
+    def test_duplicate_unit_titles_get_week_suffixed_names(self):
+        units = [
+            _make_unit(week_number=1, title="Applications"),
+            _make_unit(week_number=2, title="Applications"),
+        ]
+        c = _make_curriculum(title="Course", units=units)
+        plan = build_course_plan(c)
+
+        names = [w.section_name for w in plan.weeks]
+        assert names == ["Applications (Week 1)", "Applications (Week 2)"]
+        assert len(set(names)) == 2
+
+    def test_unique_unit_titles_keep_raw_names(self):
+        units = [
+            _make_unit(week_number=1, title="Basics"),
+            _make_unit(week_number=2, title="Advanced"),
+        ]
+        c = _make_curriculum(title="Course", units=units)
+        plan = build_course_plan(c)
+
+        assert [w.section_name for w in plan.weeks] == ["Basics", "Advanced"]
+
+    def test_literal_suffix_title_collision_gets_counter_guard(self):
+        # A unit literally titled "Applications (Week 2)" would collide
+        # with the disambiguated name of the week-2 "Applications" unit.
+        units = [
+            _make_unit(week_number=1, title="Applications"),
+            _make_unit(week_number=2, title="Applications"),
+            _make_unit(week_number=3, title="Applications (Week 2)"),
+        ]
+        c = _make_curriculum(title="Course", units=units)
+        plan = build_course_plan(c)
+
+        names = [w.section_name for w in plan.weeks]
+        assert len(set(names)) == 3
+        assert names[0] == "Applications (Week 1)"
+        assert names[1] == "Applications (Week 2)"
+
+
 class TestBuildCoursePlanLessons:
     def make_unit(self, week_number=1):
         u = MagicMock()
@@ -308,6 +377,21 @@ class TestBuildCoursePlanLessons:
         assert len(lessons) == 1
         assert lessons[0].name == "Week 1 Lesson"
         assert lessons[0].content_html == "<p>Lesson</p>"
+
+    def test_lesson_id_passes_through_to_plan(self):
+        u = self.make_unit()
+        c = _make_curriculum(title="Course", units=[u])
+        lesson_id = uuid.uuid4()
+
+        def renderer(unit):
+            return [
+                MoodleLessonPlan(
+                    name="Lesson", content_html="<p>c</p>", lesson_id=lesson_id
+                )
+            ]
+
+        plan = build_course_plan(c, lesson_renderer=renderer)
+        assert plan.weeks[0].lessons[0].lesson_id == lesson_id
 
     def test_lesson_names_are_length_clamped(self):
         u = self.make_unit()

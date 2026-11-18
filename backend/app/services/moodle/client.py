@@ -216,6 +216,19 @@ class MoodleClient:
         data = await self._call("core_course_get_contents", courseid=course_id)
         return data if isinstance(data, list) else []
 
+    async def get_pages_by_courses(self, course_id: int) -> dict[str, Any]:
+        """
+        Return mod_page_get_pages_by_courses for a course.
+
+        Unlike ``core_course_get_contents`` (which returns page *files*),
+        this exposes each Page activity's body HTML keyed by
+        ``coursemodule``, which is what the portals render.
+        """
+        data = await self._call(
+            "mod_page_get_pages_by_courses", **{"courseids[0]": course_id}
+        )
+        return data if isinstance(data, dict) else {}
+
     async def update_section(
         self,
         course_id: int,

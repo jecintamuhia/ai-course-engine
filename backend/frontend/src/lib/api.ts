@@ -1,3 +1,5 @@
+/// <reference types="vite/client" />
+
 import type {
   AssessmentGenerateRequest,
   AssessmentListResponse,
@@ -29,15 +31,34 @@ import type {
   LessonRead,
   LessonReviewRequest,
   LessonSourceMapRead,
+  LearnerAssessmentAnswer,
+  LearnerAssessmentAttemptListResponse,
+  LearnerAssessmentAttemptRead,
+  LearnerCertificateCourseRead,
+  LearnerCertificateListResponse,
+  LearnerCertificateRead,
+  LearnerCourseDetailRead,
+  LearnerCourseListResponse,
+  LearnerEnrolmentResponse,
+  LearnerFinalAssessmentRead,
+  LearnerLessonCompletionResponse,
+  LearnerProfileRead,
+  LecturerActivityRead,
+  LecturerGradeRequest,
+  LecturerLearnerProgress,
   MoodleConnectionCheck,
   MoodleConnectionStatus,
   MoodleCourseListResponse,
+  MoodleCourseStructureRead,
+  MoodleLessonContentRead,
   MoodlePreflightResponse,
   MoodlePublishRequest,
   MoodlePublishResponse,
   MoodleReadyExport,
   MoodleVerifyResponse,
   PageExtractionResponse,
+  PracticalSubmissionRead,
+  PracticalSubmissionResponse,
   QAReportRead,
   QAReportResponse,
   RegisterRequest,
@@ -51,7 +72,7 @@ import type {
 
 import { clearToken, getToken } from "@/lib/auth";
 
-const API_ROOT = "/api/v1";
+const API_ROOT = import.meta.env.VITE_API_BASE_URL || "/api/v1";
 
 export class ApiError extends Error {
   status: number;
@@ -194,6 +215,95 @@ export const api = {
   /* Dashboard */
   dashboard: () => request<DashboardResponse>("/dashboard"),
 
+  /* Learner portal */
+  learnerProfile: () => request<LearnerProfileRead>("/learner/profile"),
+  learnerCourses: () => request<LearnerCourseListResponse>("/learner/courses"),
+  learnerCatalog: () => request<LearnerCourseListResponse>("/learner/catalog"),
+  learnerEnrol: (courseId: UUID) =>
+    post<LearnerEnrolmentResponse>(
+      `/learner/courses/${encodeURIComponent(courseId)}/enrol`,
+    ),
+  learnerWithdraw: (courseId: UUID) =>
+    del<LearnerEnrolmentResponse>(
+      `/learner/courses/${encodeURIComponent(courseId)}/enrol`,
+    ),
+  learnerCourseDetail: (courseId: UUID) =>
+    request<LearnerCourseDetailRead>(
+      `/learner/courses/${encodeURIComponent(courseId)}`,
+    ),
+  learnerCompleteLesson: (courseId: UUID, lessonId: UUID) =>
+    post<LearnerLessonCompletionResponse>(
+      `/learner/courses/${encodeURIComponent(courseId)}/lessons/${encodeURIComponent(lessonId)}/complete`,
+    ),
+  learnerUncompleteLesson: (courseId: UUID, lessonId: UUID) =>
+    del<LearnerLessonCompletionResponse>(
+      `/learner/courses/${encodeURIComponent(courseId)}/lessons/${encodeURIComponent(lessonId)}/complete`,
+    ),
+  learnerSubmitPractical: (
+    courseId: UUID,
+    blockId: UUID,
+    content: string,
+  ) =>
+    post<PracticalSubmissionResponse>(
+      `/learner/courses/${encodeURIComponent(courseId)}/blocks/${encodeURIComponent(blockId)}/submit`,
+      { content },
+    ),
+  learnerSubmissions: () => request<PracticalSubmissionRead[]>("/learner/submissions"),
+  learnerFinalAssessment: (courseId: UUID) =>
+    request<LearnerFinalAssessmentRead>(
+      `/learner/courses/${encodeURIComponent(courseId)}/final-assessment`,
+    ),
+  learnerSubmitAssessment: (
+    courseId: UUID,
+    answers: LearnerAssessmentAnswer[],
+  ) =>
+    post<LearnerAssessmentAttemptRead>(
+      `/learner/courses/${encodeURIComponent(courseId)}/final-assessment/attempts`,
+      { answers },
+    ),
+  learnerAssessmentAttempts: (courseId: UUID) =>
+    request<LearnerAssessmentAttemptListResponse>(
+      `/learner/courses/${encodeURIComponent(courseId)}/final-assessment/attempts`,
+    ),
+  learnerRequestCertificate: (courseId: UUID) =>
+    post<LearnerCertificateCourseRead>(
+      `/learner/courses/${encodeURIComponent(courseId)}/certificate`,
+    ),
+  learnerCertificates: () =>
+    request<LearnerCertificateListResponse>("/learner/certificates"),
+  verifyCertificate: (reference: string) =>
+    request<LearnerCertificateRead>(
+      `/certificates/verify/${encodeURIComponent(reference)}`,
+    ),
+
+  /* Lecturer review */
+  lecturerSubmissions: (courseId: UUID) =>
+    request<PracticalSubmissionRead[]>(
+      `/lecturer/courses/${encodeURIComponent(courseId)}/submissions`,
+    ),
+  lecturerPendingSubmissions: (courseId: UUID) =>
+    request<PracticalSubmissionRead[]>(
+      `/lecturer/courses/${encodeURIComponent(courseId)}/submissions/pending`,
+    ),
+  lecturerActivities: (courseId: UUID) =>
+    request<LecturerActivityRead[]>(
+      `/lecturer/courses/${encodeURIComponent(courseId)}/activities`,
+    ),
+  lecturerLearners: (courseId: UUID) =>
+    request<LecturerLearnerProgress[]>(
+      `/lecturer/courses/${encodeURIComponent(courseId)}/learners`,
+    ),
+  lecturerGrade: (submissionId: UUID, body: LecturerGradeRequest) =>
+    post<PracticalSubmissionRead>(
+      `/lecturer/submissions/${encodeURIComponent(submissionId)}/grade`,
+      body,
+    ),
+  lecturerReturn: (submissionId: UUID, body: LecturerGradeRequest) =>
+    post<PracticalSubmissionRead>(
+      `/lecturer/submissions/${encodeURIComponent(submissionId)}/return`,
+      body,
+    ),
+
   /* Documents */
   listDocuments: () => request<DocumentOverviewListResponse>("/documents"),
   getDocumentOverview: (id: UUID) =>
@@ -334,4 +444,24 @@ export const api = {
   listCourses: () => request<MoodleCourseListResponse>("/courses"),
   verifyCourse: (courseId: UUID) =>
     post<MoodleVerifyResponse>(`/moodle/verify/${courseId}`),
+
+  /* Published Moodle course content (learner portal) */
+  learnerCourseContent: (courseId: UUID) =>
+    request<MoodleCourseStructureRead>(
+      `/learner/courses/${encodeURIComponent(courseId)}/content`
+    ),
+  learnerLessonContent: (courseId: UUID, lessonId: UUID) =>
+    request<MoodleLessonContentRead>(
+      `/learner/courses/${encodeURIComponent(courseId)}/lessons/${encodeURIComponent(lessonId)}/content`
+    ),
+
+  /* Published Moodle course content (lecturer portal) */
+  lecturerCourseContent: (courseId: UUID) =>
+    request<MoodleCourseStructureRead>(
+      `/lecturer/courses/${encodeURIComponent(courseId)}/content`
+    ),
+  lecturerLessonContent: (courseId: UUID, lessonId: UUID) =>
+    request<MoodleLessonContentRead>(
+      `/lecturer/courses/${encodeURIComponent(courseId)}/lessons/${encodeURIComponent(lessonId)}/content`
+    ),
 };

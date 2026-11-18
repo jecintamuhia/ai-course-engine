@@ -23,14 +23,14 @@ const Progress = React.forwardRef<
       <div
         aria-hidden
         className={cn(
-          "absolute inset-y-0 w-1/3 animate-progress-indeterminate rounded-full bg-burgundy/80",
+          "absolute inset-y-0 w-1/3 animate-progress-indeterminate rounded-full bg-brand/80",
           indicatorClassName,
         )}
       />
     ) : (
       <ProgressPrimitive.Indicator
         className={cn(
-          "h-full w-full flex-1 rounded-full bg-burgundy transition-all duration-300 ease-in-out",
+          "h-full w-full flex-1 rounded-full bg-brand transition-all duration-300 ease-in-out",
           indicatorClassName,
         )}
         style={{ transform: `translateX(-${100 - (value || 0)}%)` }}

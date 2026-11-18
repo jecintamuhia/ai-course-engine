@@ -79,10 +79,19 @@ def break_all_cycles(edges: Edges) -> tuple[Edges, list[tuple[uuid.UUID, uuid.UU
     return working_edges, removed
 
 
-def topological_sort(edges: Edges) -> list[uuid.UUID]:
+def topological_sort(
+    edges: Edges,
+    priority: dict[uuid.UUID, int] | None = None,
+) -> list[uuid.UUID]:
     """
     Kahn's algorithm: returns nodes in an order where every node
     appears after all nodes it depends on.
+
+    Ties between nodes that are simultaneously ready are broken by
+    ``priority`` when supplied (lower value first, e.g. document reading
+    order); otherwise by the node's string form so the result is always
+    deterministic. Using a priority keeps independent topics in their
+    original reading order instead of an arbitrary UUID order.
 
     Raises RuntimeError if the graph still contains a cycle — callers
     should always run break_all_cycles first.
@@ -90,6 +99,11 @@ def topological_sort(edges: Edges) -> list[uuid.UUID]:
     all_nodes: set[uuid.UUID] = set(edges.keys())
     for deps in edges.values():
         all_nodes.update(deps)
+
+    def order_key(node: uuid.UUID) -> tuple[float, str]:
+        if priority is None:
+            return (0.0, str(node))
+        return (float(priority.get(node, float("inf"))), str(node))
 
     in_degree: dict[uuid.UUID, int] = {node: 0 for node in all_nodes}
     dependents: dict[uuid.UUID, set[uuid.UUID]] = {node: set() for node in all_nodes}
@@ -99,7 +113,7 @@ def topological_sort(edges: Edges) -> list[uuid.UUID]:
             dependents[dep].add(node)
             in_degree[node] += 1
 
-    queue = sorted((node for node in all_nodes if in_degree[node] == 0), key=str)
+    queue = sorted((node for node in all_nodes if in_degree[node] == 0), key=order_key)
     order: list[uuid.UUID] = []
 
     while queue:
@@ -111,7 +125,7 @@ def topological_sort(edges: Edges) -> list[uuid.UUID]:
             if in_degree[dependent] == 0:
                 queue.append(dependent)
 
-        queue.sort(key=str)
+        queue.sort(key=order_key)
 
     if len(order) != len(all_nodes):
         raise RuntimeError("Graph still contains a cycle; run break_all_cycles first.")

@@ -10,18 +10,29 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 
 class UserRole(str, enum.Enum):
-    """Roles that can interact with the application."""
+    """
+    Roles that can interact with the application.
+
+    ``ADMIN`` and ``LECTURER`` are the authoring roles: they may use the
+    AI Course Engine workspace. ``STUDENT`` and ``TEACHER`` are learning
+    roles: the AI Course Engine never serves them a workspace, and after
+    sign-in they are sent to Moodle, which owns course access.
+    """
 
     ADMIN = "admin"
     LECTURER = "lecturer"
+    STUDENT = "student"
+    TEACHER = "teacher"
 
 
 class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     """
-    An authenticated application user (administrator or lecturer).
+    An authenticated application user.
 
-    Passwords are stored exclusively as Argon2 hashes; plaintext passwords
-    are never persisted.
+    ``ADMIN``/``LECTURER`` accounts use the authoring workspace;
+    ``STUDENT``/``TEACHER`` accounts exist only so sign-in can route them
+    to Moodle. Passwords are stored exclusively as Argon2 hashes;
+    plaintext passwords are never persisted.
     """
 
     __tablename__ = "users"

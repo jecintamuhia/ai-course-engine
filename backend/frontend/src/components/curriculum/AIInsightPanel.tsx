@@ -68,7 +68,7 @@ export function AIInsightPanel({ curriculum, topics, selectedUnit }: AIInsightPa
       </div>
 
       {selectedUnit && selectedUnit.topics.length > 0 && (
-        <div className="rounded-lg border border-burgundy/15 bg-burgundy-50/60 p-3 text-xs leading-relaxed text-burgundy-900">
+        <div className="rounded-lg border border-brand/15 bg-brand-50/60 p-3 text-xs leading-relaxed text-brand-900">
           <strong className="font-semibold">Week {selectedUnit.week_number}:</strong>{" "}
           {selectedUnit.topics.length} topic{selectedUnit.topics.length !== 1 && "s"} covering{" "}
           {selectedUnit.topics.map((t) => t.title).join(", ")}.
@@ -87,7 +87,7 @@ export function AIInsightPanel({ curriculum, topics, selectedUnit }: AIInsightPa
 
 function InsightStat({ value, label }: { value: string | number; label: string }) {
   return (
-    <div className="rounded-lg bg-cream-100/70 px-2 py-2.5 text-center">
+    <div className="rounded-lg bg-sand-100/70 px-2 py-2.5 text-center">
       <div className="tnum text-base font-bold text-ink">{value}</div>
       <div className="mt-0.5 text-[10px] font-medium text-muted-foreground">{label}</div>
     </div>

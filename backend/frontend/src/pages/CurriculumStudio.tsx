@@ -78,7 +78,7 @@ export function CurriculumStudioPage() {
             <StatusBadge tone={badge.tone} label={badge.label} />
             <Link
               to={`/document/${curriculum.document_id}`}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-burgundy-700 hover:text-burgundy-800"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-brand-700 hover:text-brand-800"
             >
               <ArrowLeft className="h-3.5 w-3.5" /> Document
             </Link>

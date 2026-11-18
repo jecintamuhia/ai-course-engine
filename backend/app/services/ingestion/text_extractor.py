@@ -131,6 +131,12 @@ def extract_pdf_pages(content: bytes) -> list[ExtractedPage]:
     if not pages:
         raise DocumentProcessingError("PDF contains no pages.")
 
+    if all(not page.raw_text.strip() for page in pages):
+        raise DocumentProcessingError(
+            "PDF contains no extractable text. Scanned or image-only PDFs "
+            "require OCR, which is not configured."
+        )
+
     return pages
 
 

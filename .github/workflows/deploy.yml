@@ -1,0 +1,28 @@
+name: deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      acknowledgement:
+        description: "Type MANUAL-DEPLOY to confirm a human will deploy outside GitHub Actions"
+        required: true
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  manual-only:
+    name: manual deployment gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reject unacknowledged runs
+        if: ${{ inputs.acknowledgement != 'MANUAL-DEPLOY' }}
+        run: |
+          echo "Deployment is manual only. No production deploy is automated." >&2
+          exit 1
+      - name: Confirm manual gate
+        if: ${{ inputs.acknowledgement == 'MANUAL-DEPLOY' }}
+        run: |
+          echo "No production deployment is performed by GitHub Actions."
+          echo "Follow docs/oci-deployment.md and obtain explicit approval."

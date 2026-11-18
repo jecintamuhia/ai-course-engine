@@ -39,7 +39,7 @@ export function TextbookTable({ documents }: TextbookTableProps) {
               <TableCell>
                 <Link
                   to={`/document/${d.document.id}`}
-                  className="font-medium text-burgundy-700 hover:text-burgundy-800 hover:underline"
+                  className="font-medium text-brand-700 hover:text-brand-800 hover:underline"
                 >
                   {d.document.original_filename}
                 </Link>

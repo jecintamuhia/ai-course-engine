@@ -1,8 +1,10 @@
-# AI Course Engine — Project Instructions
+# SkillUp Action Africa — Course Intelligence Workspace
 
 ## Project Purpose
 
-AI Course Engine ingests educational textbooks/documents, extracts and structures their content, and generates a configurable course curriculum that can later be published to Moodle.
+The SkillUp Action Africa course intelligence platform ingests educational textbooks/documents, extracts and structures their content, and generates a configurable course curriculum that can later be published to Moodle.
+
+The platform is branded for SkillUp Action Africa. Brand assets are derived from the official logo by `scripts/prepare_brand_assets.py`; never redraw, recolour or approximate the logo. Palette: red `#ED1B24`, navy `#283890`. Type: Playfair Display (headings), Outfit (body).
 
 Current priority:
 
@@ -18,8 +20,37 @@ Current priority:
 * Difficulty/workload estimation
 * 4-month / 16-week curriculum planning
 * Lecturer review before publishing
+* Learner portal: self-registration, progress, final assessment, certification
 
 Do NOT implement future features unless explicitly requested.
+
+## Roles and Surfaces
+
+Four roles exist. Two author, two learn.
+
+| Role | Surface | Notes |
+| --- | --- | --- |
+| `admin` | Authoring workspace `/dashboard` | Only role that may create users |
+| `lecturer` | Authoring workspace `/dashboard`, learner review `/reviews` | Reviews lessons and assessments, publishes to Moodle, marks learner hand-ins |
+| `student` | Learner portal `/learn` | Created by self-registration |
+| `teacher` | Learner portal `/learn` | Created by an administrator |
+
+* Self-registration (`POST /api/v1/auth/register`) **always** creates a `student`.
+  It can never mint a lecturer, teacher or admin.
+* `POST /api/v1/auth/users` (admin-only) is the only path to a lecturer, teacher
+  or admin account.
+* `app/services/auth/routing.py` is the single source of truth for
+  `role -> post-login destination`. The API returns `redirect_to` and the SPA
+  honours it; never hard-code `/dashboard` after sign-in.
+* `require_staff` gates the authoring workspace. `require_learner` gates the
+  learner portal, whose endpoints always return only the caller's own records.
+* This application's database is authoritative for learner progress, assessment
+  attempts, marks, feedback and certificates. Moodle is the delivery surface for
+  course content.
+* Learner-side records live in `learner_enrolments`, `learner_milestones`,
+  `practical_submissions` and `lecturer_activities`. Enrolment gates course
+  content; a milestone is one completed lesson; a practical submission is one
+  text/markdown hand-in per practical block. Withdrawing keeps the rows.
 
 ## Technology Stack
 

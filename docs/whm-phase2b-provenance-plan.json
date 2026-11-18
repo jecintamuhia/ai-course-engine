@@ -1,0 +1,557 @@
+{
+  "document_id": "995a7c3d-0305-4011-8b49-f52072e42e9f",
+  "basis": "Dry-run only. Exact numbered heading and matching existing topic title are required. New chunk content is copied verbatim from an existing WHM chunk, from that heading up to the next numbered section. Original chunks and source edges remain preserved.",
+  "planned_chunks": [
+    {
+      "section_id": "6aef0409-1eb2-4834-98ee-81ff74915a6d",
+      "section_number": "1.1.3",
+      "section_title": "Types of Web Hosting — Choosing the Right Environment",
+      "chapter_id": "af45b5c7-484b-4e2d-bb3f-47972cd32298",
+      "source_chunk_id": "08c0d9f9-c396-409b-8354-7049a9da231f",
+      "old_section_id": "613e5f54-f176-492c-ad51-e95bac234dc2",
+      "old_chapter_id": "af45b5c7-484b-4e2d-bb3f-47972cd32298",
+      "page_number": 5,
+      "topic_id": "724bd877-779b-40f4-8d40-99d749b73ab7",
+      "topic_title": "Types of Web Hosting",
+      "topic_old_chapter_id": "af45b5c7-484b-4e2d-bb3f-47972cd32298",
+      "topic_chapter_change_required": false,
+      "existing_topic_provenance_chunk_ids": [
+        "08c0d9f9-c396-409b-8354-7049a9da231f",
+        "3443c838-524c-446c-977c-a8a3520f379b"
+      ],
+      "fragment_char_count": 855,
+      "fragment_preview": "1.1.3 Types of Web Hosting — Choosing the Right Environment\nEvery hosting professional must be able to match a client's requirements to the correct hosting\nenvironment. Overselling an expensive solution wastes the client's money; underselling causes\nperformance disasters that destroy trust.\n\nHosting",
+      "action": "Create section-specific source chunk from exact numbered heading to next numbered section; attach existing topic. Preserve original chunk and all current links."
+    },
+    {
+      "section_id": "4277fd91-ebd1-40ed-be17-b6b45a2f7cd3",
+      "section_number": "1.1.4",
+      "section_title": "Data Centres and Server Infrastructure",
+      "chapter_id": "af45b5c7-484b-4e2d-bb3f-47972cd32298",
+      "source_chunk_id": "7252bc00-4bde-448c-96f6-70ca7cfc5479",
+      "old_section_id": "3ebf8a2b-bf82-4c8b-ac2b-2c1b309199e6",
+      "old_chapter_id": "aae4c942-7fdc-4cfd-acff-7d5057071d6f",
+      "page_number": 6,
+      "topic_id": "dec90a65-557c-4ecb-8f1d-3671336a29f9",
+      "topic_title": "Data Centres and Server Infrastructure",
+      "topic_old_chapter_id": "aae4c942-7fdc-4cfd-acff-7d5057071d6f",
+      "topic_chapter_change_required": true,
+      "existing_topic_provenance_chunk_ids": [
+        "7252bc00-4bde-448c-96f6-70ca7cfc5479"
+      ],
+      "fragment_char_count": 1141,
+      "fragment_preview": "1.1.4 Data Centres and Server Infrastructure\nProfessional hosting servers live in purpose-built facilitiescalled data centres. Understanding data\ncentre concepts helps when advising clients on server location, latency, and compliance requirements.\n• Tier Classification — Data centres are rated Tier ",
+      "action": "Create section-specific source chunk from exact numbered heading to next numbered section; attach existing topic. Preserve original chunk and all current links."
+    },
+    {
+      "section_id": "91bebc8c-5d2c-4912-acbf-2d272332d0fd",
+      "section_number": "1.3.3",
+      "section_title": "DNS TTL and Propagation",
+      "chapter_id": "1463a9a5-2b52-4497-8e51-a24c98377334",
+      "source_chunk_id": "0d8d8dc6-6a47-4209-8d3d-f901f961c7a2",
+      "old_section_id": "c544a828-849e-427a-8bd1-f68e40b44036",
+      "old_chapter_id": "1463a9a5-2b52-4497-8e51-a24c98377334",
+      "page_number": 10,
+      "topic_id": "d5720628-7157-4f4f-b33f-1dfac13edad1",
+      "topic_title": "DNS TTL and Propagation",
+      "topic_old_chapter_id": "1463a9a5-2b52-4497-8e51-a24c98377334",
+      "topic_chapter_change_required": false,
+      "existing_topic_provenance_chunk_ids": [
+        "0d8d8dc6-6a47-4209-8d3d-f901f961c7a2",
+        "f95cc5c7-bb97-447d-af35-64d0674080e4"
+      ],
+      "fragment_char_count": 450,
+      "fragment_preview": "1.3.3 DNS TTL and Propagation\nTTL (Time To Live) is the number of seconds that a DNS record can be cached by resolvers before\nthey must re-query for an updated value. Understanding TTL is criticalfor migrations.\n\nTTL Value Cache Duration When to Use\n\n300 5 minutes Before a migration — low TTL so cha",
+      "action": "Create section-specific source chunk from exact numbered heading to next numbered section; attach existing topic. Preserve original chunk and all current links."
+    },
+    {
+      "section_id": "7c1c461c-9495-409f-be57-ff96e9509038",
+      "section_number": "1.4.4",
+      "section_title": "Three-Panel Architecture Comparison",
+      "chapter_id": "55fefad8-0144-49f5-b32b-0e3bfc357d01",
+      "source_chunk_id": "98e93589-1873-4a95-bc35-8f1b3a35be70",
+      "old_section_id": "464969bc-adb8-4427-8d03-9d43a4df1383",
+      "old_chapter_id": "9a860f6e-cb1b-4eaa-b7e5-e09c161deff3",
+      "page_number": 16,
+      "topic_id": "55bd72a0-547f-42ce-be89-0ec269491205",
+      "topic_title": "Three-Panel Architecture Comparison",
+      "topic_old_chapter_id": "9a860f6e-cb1b-4eaa-b7e5-e09c161deff3",
+      "topic_chapter_change_required": true,
+      "existing_topic_provenance_chunk_ids": [
+        "98e93589-1873-4a95-bc35-8f1b3a35be70",
+        "94365480-b14e-440d-8bb3-8ec2ae4925c8"
+      ],
+      "fragment_char_count": 578,
+      "fragment_preview": "1.4.4 Three-Panel Architecture Comparison\n\nFeature / Area cPanel / WHM DirectAdmin Plesk\n\nUser hierarchy Server Admin → Admin → Reseller → User (3 tiers) Admin → Reseller →\nReseller → User (3 Customer → Domain User\ntiers) (4 tiers)\n\nAccount term cPanel Account User Account Subscription\n\nPackage term",
+      "action": "Create section-specific source chunk from exact numbered heading to next numbered section; attach existing topic. Preserve original chunk and all current links."
+    },
+    {
+      "section_id": "775a9191-c00d-4026-bc60-9e6df59ef88c",
+      "section_number": "1.5.3",
+      "section_title": "Recommended FTP Clients",
+      "chapter_id": "9a860f6e-cb1b-4eaa-b7e5-e09c161deff3",
+      "source_chunk_id": "b2fa7845-d9f6-4553-8b04-50c3a07b80b0",
+      "old_section_id": null,
+      "old_chapter_id": "07b82feb-f3e1-4cfb-a3b2-8f5a9de95f9a",
+      "page_number": 17,
+      "topic_id": "9b3be790-c00d-4bda-946c-59ed0eeab6bc",
+      "topic_title": "Recommended FTP Clients",
+      "topic_old_chapter_id": "07b82feb-f3e1-4cfb-a3b2-8f5a9de95f9a",
+      "topic_chapter_change_required": true,
+      "existing_topic_provenance_chunk_ids": [
+        "b2fa7845-d9f6-4553-8b04-50c3a07b80b0"
+      ],
+      "fragment_char_count": 558,
+      "fragment_preview": "1.5.3 Recommended FTP Clients\n\nClient Platform Protocol Support Best Feature\n\nFileZilla(free) Windows/Mac/Linux FTP, FTPS, SFTP Industry standard — excellent sitemanager for\nmultiple connections\n\nWinSCP (free) Windows FTP, FTPS, SFTP, SCP Synchronise local and remote directories;built-\nin texteditor",
+      "action": "Create section-specific source chunk from exact numbered heading to next numbered section; attach existing topic. Preserve original chunk and all current links."
+    },
+    {
+      "section_id": "600f6929-30f2-427e-9fa3-6e895caba9e5",
+      "section_number": "1.7.3",
+      "section_title": "MySQL Command Line — Essential Operations",
+      "chapter_id": "35038435-0958-4147-98f7-9a915287a5d4",
+      "source_chunk_id": "c669867c-ccfc-48f2-91d0-7d5656f007b4",
+      "old_section_id": "4d3ba4b5-2813-4174-af47-f41dcc1e779e",
+      "old_chapter_id": "35038435-0958-4147-98f7-9a915287a5d4",
+      "page_number": 20,
+      "topic_id": "75ae0fbc-a00b-49d7-9f2d-b05889587157",
+      "topic_title": "MySQL Command Line Essential Operations",
+      "topic_old_chapter_id": "35038435-0958-4147-98f7-9a915287a5d4",
+      "topic_chapter_change_required": false,
+      "existing_topic_provenance_chunk_ids": [
+        "9ab1d9c3-c7ea-48d2-9bd8-ea78a1318cd4",
+        "c669867c-ccfc-48f2-91d0-7d5656f007b4"
+      ],
+      "fragment_char_count": 618,
+      "fragment_preview": "1.7.3 MySQL Command Line — Essential Operations\n\n# Connect to MySQL as root (enter password when prompted):\nmysql -u root -p\n\n# List all databases:\nSHOW DATABASES;\n\n# Select a database to work with:\nUSE bob_wordpress;\n\n# List all tables in the current database:\nSHOW TABLES;\n\n# View structure of a ta",
+      "action": "Create section-specific source chunk from exact numbered heading to next numbered section; attach existing topic. Preserve original chunk and all current links."
+    },
+    {
+      "section_id": "8b610c9c-38ed-4c06-89cb-344f48fcec30",
+      "section_number": "1.8.3",
+      "section_title": "Installing a Commercial SSL Certificate",
+      "chapter_id": "80c70c2f-340b-44ad-82ab-08e477d3f8fb",
+      "source_chunk_id": "53be4cd2-4863-4eab-8645-8c6a2e8070a0",
+      "old_section_id": "2da0e646-08e3-4c9c-96d0-2abfc8325c1e",
+      "old_chapter_id": "80c70c2f-340b-44ad-82ab-08e477d3f8fb",
+      "page_number": 22,
+      "topic_id": "808bec42-f134-46a4-9cd6-dc4c240f37eb",
+      "topic_title": "Installing a Commercial SSL Certificate",
+      "topic_old_chapter_id": "80c70c2f-340b-44ad-82ab-08e477d3f8fb",
+      "topic_chapter_change_required": false,
+      "existing_topic_provenance_chunk_ids": [
+        "53be4cd2-4863-4eab-8645-8c6a2e8070a0",
+        "96ecba5b-617a-4f22-b029-ce850766734d"
+      ],
+      "fragment_char_count": 297,
+      "fragment_preview": "1.8.3 Installing a Commercial SSL Certificate\nWhen a client has purchased a paid SSL certificate (e.g., from Sectigo, DigiCert, or Namecheap SSL),\nyou must install itmanually. The process involves three components: the certificate (.crt),the private\nkey (.key), and the CA Bundle (chain of trust).",
+      "action": "Create section-specific source chunk from exact numbered heading to next numbered section; attach existing topic. Preserve original chunk and all current links."
+    },
+    {
+      "section_id": "cdad268e-aa8c-47ba-a60b-e3c46d4ec25c",
+      "section_number": "2.3.2",
+      "section_title": "Modifying Accounts",
+      "chapter_id": "740e960f-fe01-4852-8b45-ed1593d77be0",
+      "source_chunk_id": "d5137561-5053-406d-8b13-8313fc75fecb",
+      "old_section_id": "b99f0802-16ae-430a-acf2-a5ec15e193b8",
+      "old_chapter_id": "740e960f-fe01-4852-8b45-ed1593d77be0",
+      "page_number": 32,
+      "topic_id": "27ef811a-fb65-4a7d-8c9d-a0ac04d73eed",
+      "topic_title": "Modifying Accounts",
+      "topic_old_chapter_id": "740e960f-fe01-4852-8b45-ed1593d77be0",
+      "topic_chapter_change_required": false,
+      "existing_topic_provenance_chunk_ids": [
+        "d5137561-5053-406d-8b13-8313fc75fecb",
+        "62c128f7-aff0-4fd6-b1f4-5e1dcc205f7e"
+      ],
+      "fragment_char_count": 636,
+      "fragment_preview": "2.3.2 Modifying Accounts\n\nFeature /Area cPanel /WHM DirectAdmin Plesk\n\nChange Password WHM → Account Admin → Show AllUsers Admin → Subscriptions →\nFunctions → Change a → username → Change Customer name →\nPassword Password Change Password\n\nChange Package WHM → Account Admin → Show AllUsers Admin → Su",
+      "action": "Create section-specific source chunk from exact numbered heading to next numbered section; attach existing topic. Preserve original chunk and all current links."
+    },
+    {
+      "section_id": "a455442e-d32d-4d0e-a934-731de793fe4f",
+      "section_number": "2.3.3",
+      "section_title": "Account Suspension and Termination",
+      "chapter_id": "740e960f-fe01-4852-8b45-ed1593d77be0",
+      "source_chunk_id": "7aac800a-2f51-4fe0-8921-ea7743f9821e",
+      "old_section_id": "f6442615-e55c-4fee-b47a-00e50050c7d5",
+      "old_chapter_id": "c2353d15-1321-4843-8ac7-5afe6ff7b36c",
+      "page_number": 33,
+      "topic_id": "54bd793e-4c13-467c-bca8-6ddb5824d401",
+      "topic_title": "Account Suspension and Termination",
+      "topic_old_chapter_id": "c2353d15-1321-4843-8ac7-5afe6ff7b36c",
+      "topic_chapter_change_required": true,
+      "existing_topic_provenance_chunk_ids": [
+        "7aac800a-2f51-4fe0-8921-ea7743f9821e",
+        "230f2397-b304-4a36-8d2f-e1cac69c0bcc"
+      ],
+      "fragment_char_count": 860,
+      "fragment_preview": "2.3.3 Account Suspension and Termination\nSuspension retains allaccount data but disables access. Termination permanently deletes all data.\nAlways verify with a manager before terminating any account — data cannot be recovered unless a\nbackup exists.\n\nFeature / Area cPanel / WHM DirectAdmin Plesk\n\nSu",
+      "action": "Create section-specific source chunk from exact numbered heading to next numbered section; attach existing topic. Preserve original chunk and all current links."
+    },
+    {
+      "section_id": "62bb8dbb-21b8-40a8-ba60-de2a8a790b58",
+      "section_number": "2.4.3",
+      "section_title": "SSH Hardening",
+      "chapter_id": "c2353d15-1321-4843-8ac7-5afe6ff7b36c",
+      "source_chunk_id": "b335de73-c2af-4192-a7de-196abb112dc7",
+      "old_section_id": "293c38e4-dda5-4c6c-a65e-a175cf8153b1",
+      "old_chapter_id": "c2353d15-1321-4843-8ac7-5afe6ff7b36c",
+      "page_number": 35,
+      "topic_id": "f221dca0-7361-49b1-8da3-84327cd3229d",
+      "topic_title": "SSH Hardening",
+      "topic_old_chapter_id": "c2353d15-1321-4843-8ac7-5afe6ff7b36c",
+      "topic_chapter_change_required": false,
+      "existing_topic_provenance_chunk_ids": [
+        "b335de73-c2af-4192-a7de-196abb112dc7"
+      ],
+      "fragment_char_count": 365,
+      "fragment_preview": "2.4.3 SSH Hardening\nSSH isthe most targeted service on any publicly exposed server. These hardening steps apply\nregardless of which control panel is installed.\n\n# Edit SSH configuration:\nnano /etc/ssh/sshd_config\n\n# Recommended settings:\nPort 2200 # Change from default 22 (update firewall to allow n",
+      "action": "Create section-specific source chunk from exact numbered heading to next numbered section; attach existing topic. Preserve original chunk and all current links."
+    },
+    {
+      "section_id": "35231ab9-4507-405a-b15d-f1cad7f62001",
+      "section_number": "2.7.2",
+      "section_title": "Configuring Cron Jobs Across All Three Panels",
+      "chapter_id": "dd2e62e7-6337-4960-a452-87eb69290d1d",
+      "source_chunk_id": "d59b88c0-8cdb-4890-a88a-1a7dbfd0ecdb",
+      "old_section_id": "8bcfc414-e338-457b-ad97-59aa702ba1cf",
+      "old_chapter_id": "54ec3c9e-a6b8-48b6-84c7-4e59b8b7868f",
+      "page_number": 41,
+      "topic_id": "f830f8e5-85a9-43d7-99f0-4952db58efd0",
+      "topic_title": "Configuring Cron Jobs",
+      "topic_old_chapter_id": "54ec3c9e-a6b8-48b6-84c7-4e59b8b7868f",
+      "topic_chapter_change_required": true,
+      "existing_topic_provenance_chunk_ids": [
+        "440ad160-4626-45cd-9735-461dfe6397b0",
+        "d59b88c0-8cdb-4890-a88a-1a7dbfd0ecdb"
+      ],
+      "fragment_char_count": 659,
+      "fragment_preview": "2.7.2 Configuring Cron Jobs Across All Three Panels\n\nFeatur cPanel /WHM DirectAdmin Plesk\ne/\nArea\n\nAccess cPanel → Advanced → User Panel → Advanced Features → Cron Subscription → Scheduled Tasks\nCron Cron Jobs Jobs (Cron Jobs)\n\nAdd Select frequency from Enter cron expression fields→ enter Select sta",
+      "action": "Create section-specific source chunk from exact numbered heading to next numbered section; attach existing topic. Preserve original chunk and all current links."
+    },
+    {
+      "section_id": "0f549a57-716e-42cb-b94b-2f2c766613fa",
+      "section_number": "3.1.5",
+      "section_title": "Manual Account Backup and Restoration",
+      "chapter_id": "1d797cf8-b937-4fd7-a789-24e8f8c10a59",
+      "source_chunk_id": "d2aa5c62-bc39-42ce-864a-296837b3aa87",
+      "old_section_id": "f7a517a6-0cc9-4f7f-aa25-6b71cb5021fa",
+      "old_chapter_id": "1d797cf8-b937-4fd7-a789-24e8f8c10a59",
+      "page_number": 47,
+      "topic_id": "43f89f6a-1b32-4cb8-a6cc-7284d451b4a1",
+      "topic_title": "Manual Account Backup and Restoration",
+      "topic_old_chapter_id": "1d797cf8-b937-4fd7-a789-24e8f8c10a59",
+      "topic_chapter_change_required": false,
+      "existing_topic_provenance_chunk_ids": [
+        "d2aa5c62-bc39-42ce-864a-296837b3aa87",
+        "593fb885-7a02-4d15-a146-3ed1c2b7b514"
+      ],
+      "fragment_char_count": 472,
+      "fragment_preview": "3.1.5 Manual Account Backup and Restoration\n\n# cPanel — Generate full account backup via CLI:\n/scripts/pkgacct username /backup/\n# Creates: /backup/cpmove-username.tar.gz\n\n# cPanel — Restore full account backup:\n/scripts/restorepkg /backup/cpmove-username.tar.gz\n\n# DirectAdmin — Generate backup via ",
+      "action": "Create section-specific source chunk from exact numbered heading to next numbered section; attach existing topic. Preserve original chunk and all current links."
+    },
+    {
+      "section_id": "2ffcfbc6-5ab0-484a-92af-828b725c00fe",
+      "section_number": "3.2.5",
+      "section_title": "Cross-Panel Migration — cPanel to Plesk",
+      "chapter_id": "5d1a488c-1d68-41fd-8613-5a927a623433",
+      "source_chunk_id": "f6076ef8-3999-430c-bd25-c133e7df19f9",
+      "old_section_id": "4a4e6a61-9302-4421-a232-5162a831def9",
+      "old_chapter_id": "5d1a488c-1d68-41fd-8613-5a927a623433",
+      "page_number": 50,
+      "topic_id": "c326d59d-6be3-4bbc-a281-213adeeff85f",
+      "topic_title": "Cross-Panel Migration: cPanel to Plesk",
+      "topic_old_chapter_id": "5d1a488c-1d68-41fd-8613-5a927a623433",
+      "topic_chapter_change_required": false,
+      "existing_topic_provenance_chunk_ids": [
+        "f6076ef8-3999-430c-bd25-c133e7df19f9",
+        "d4a79d67-07e8-4509-9509-1c1baa7c4e19"
+      ],
+      "fragment_char_count": 172,
+      "fragment_preview": "3.2.5 Cross-Panel Migration — cPanel to Plesk\nThe most common professional cross-panel migration. Plesk's Migration Manager natively supports\nimporting from cPanel servers.",
+      "action": "Create section-specific source chunk from exact numbered heading to next numbered section; attach existing topic. Preserve original chunk and all current links."
+    },
+    {
+      "section_id": "d9a1b083-cb58-4ae8-9a62-beff0237db29",
+      "section_number": "3.4.2",
+      "section_title": "DKIM — DomainKeys Identified Mail",
+      "chapter_id": "9ffc3e9c-ef88-477b-a314-7bff1036c14b",
+      "source_chunk_id": "21223388-ba31-4e49-8cab-5fbff531c72e",
+      "old_section_id": "50811d2a-eaf9-41eb-881d-e45deac1a5a9",
+      "old_chapter_id": "9ffc3e9c-ef88-477b-a314-7bff1036c14b",
+      "page_number": 55,
+      "topic_id": "063fe940-91d6-4b48-8d2d-cd06fdfc7c5c",
+      "topic_title": "DKIM — DomainKeys Identified Mail",
+      "topic_old_chapter_id": "9ffc3e9c-ef88-477b-a314-7bff1036c14b",
+      "topic_chapter_change_required": false,
+      "existing_topic_provenance_chunk_ids": [
+        "21223388-ba31-4e49-8cab-5fbff531c72e",
+        "8826dc92-aba6-4e6c-ad9d-2768393d1c07",
+        "c9e22471-bf44-4ea1-9eaf-84ce5ddff502"
+      ],
+      "fragment_char_count": 334,
+      "fragment_preview": "3.4.2 DKIM — DomainKeys Identified Mail\nDKIM adds a cryptographic signature to every outbound email. The receiving server retrieves the public\nkey from your DNS and uses itto verify the signature — confirming the email was sent by an authorised\nserver and the content was not modified in transit.\n\nFe",
+      "action": "Create section-specific source chunk from exact numbered heading to next numbered section; attach existing topic. Preserve original chunk and all current links."
+    },
+    {
+      "section_id": "75a61c84-cbe0-4259-9c4b-6c9fe2c1826c",
+      "section_number": "3.4.5",
+      "section_title": "Mail Server Administration — Exim and Postfix",
+      "chapter_id": "9ffc3e9c-ef88-477b-a314-7bff1036c14b",
+      "source_chunk_id": "d53a41a2-ccd3-410b-bbda-70638bd2bfcf",
+      "old_section_id": "11b7902a-4c83-41a2-bfca-1b4a7f1b0914",
+      "old_chapter_id": "9ffc3e9c-ef88-477b-a314-7bff1036c14b",
+      "page_number": 57,
+      "topic_id": "d5aac72b-8710-4738-a5f2-8e66116e916d",
+      "topic_title": "Mail Server Administration — Exim",
+      "topic_old_chapter_id": "9ffc3e9c-ef88-477b-a314-7bff1036c14b",
+      "topic_chapter_change_required": false,
+      "existing_topic_provenance_chunk_ids": [
+        "d53a41a2-ccd3-410b-bbda-70638bd2bfcf"
+      ],
+      "fragment_char_count": 149,
+      "fragment_preview": "3.4.5 Mail Server Administration — Exim and Postfix\n\nExim Mail Queue Management (cPanel and DirectAdmin)\n\n# View mail queue (count):\nexim -bp | wc -l",
+      "action": "Create section-specific source chunk from exact numbered heading to next numbered section; attach existing topic. Preserve original chunk and all current links."
+    },
+    {
+      "section_id": "5a03222a-95aa-448f-91d9-4d842e2ace03",
+      "section_number": "3.4.6",
+      "section_title": "Diagnosing and Resolving IP Blacklisting",
+      "chapter_id": "9ffc3e9c-ef88-477b-a314-7bff1036c14b",
+      "source_chunk_id": "982c4a0a-5b34-4131-8957-9384a5bde558",
+      "old_section_id": "d5e4516d-3ad9-4c60-9bdb-e2b4de7bb8b9",
+      "old_chapter_id": "f66b062d-c19d-45aa-b801-38fb0dd703a4",
+      "page_number": 59,
+      "topic_id": "c7310ca1-553a-49af-b8b5-2294900c541c",
+      "topic_title": "Diagnosing and Resolving IP Blacklisting",
+      "topic_old_chapter_id": "f66b062d-c19d-45aa-b801-38fb0dd703a4",
+      "topic_chapter_change_required": true,
+      "existing_topic_provenance_chunk_ids": [
+        "2674d434-1df3-4e56-9f75-c1d8f9da87c9",
+        "982c4a0a-5b34-4131-8957-9384a5bde558"
+      ],
+      "fragment_char_count": 745,
+      "fragment_preview": "3.4.6 Diagnosing and Resolving IP Blacklisting\nIfyour server's IP appears on an email blacklist (RBL — Realtime Block List),email from allaccounts\non that server may be rejected by major providers. This isa critical emergency requiring immediate\naction.\n\nStep Action\n\n1— Detect Check server IP at mxt",
+      "action": "Create section-specific source chunk from exact numbered heading to next numbered section; attach existing topic. Preserve original chunk and all current links."
+    },
+    {
+      "section_id": "78883355-3401-4dd5-8357-60bd18c3b48a",
+      "section_number": "4.3.4",
+      "section_title": "Writing Professional Support Responses",
+      "chapter_id": "64b0e07f-08f7-4f64-a58e-7c13ab514313",
+      "source_chunk_id": "e9b240af-71ff-409c-b1a5-b78394a8f6ec",
+      "old_section_id": "896deb7f-8239-49aa-8467-b0484265637e",
+      "old_chapter_id": "64b0e07f-08f7-4f64-a58e-7c13ab514313",
+      "page_number": 69,
+      "topic_id": "df56d509-9974-4675-8de0-90e7b86c7bd0",
+      "topic_title": "Writing Professional Support Responses",
+      "topic_old_chapter_id": "64b0e07f-08f7-4f64-a58e-7c13ab514313",
+      "topic_chapter_change_required": false,
+      "existing_topic_provenance_chunk_ids": [
+        "e9b240af-71ff-409c-b1a5-b78394a8f6ec"
+      ],
+      "fragment_char_count": 473,
+      "fragment_preview": "4.3.4 Writing Professional Support Responses\nThe quality ofwritten support responses directly affects client retention. Every response should follow\nthese principles:\n• Acknowledge — start by confirming you understand the issue and that itmatters\n• Explain — describe what you found or did in plain,n",
+      "action": "Create section-specific source chunk from exact numbered heading to next numbered section; attach existing topic. Preserve original chunk and all current links."
+    },
+    {
+      "section_id": "d61fe425-e948-4e20-8ee8-16dee569072a",
+      "section_number": "4.4.2",
+      "section_title": "Kenya Data Protection Act (DPA) 2019 — Hosting Obligations",
+      "chapter_id": "50112537-a4dc-4843-b3c8-be6ad4a9d7a6",
+      "source_chunk_id": "7b9fa1bb-6cb0-4171-93a3-c8da4d21ef97",
+      "old_section_id": "b99ef5d7-8c14-4160-a644-e0ff1fe7c834",
+      "old_chapter_id": "50112537-a4dc-4843-b3c8-be6ad4a9d7a6",
+      "page_number": 70,
+      "topic_id": "cf103f69-8c22-4860-b9b9-11a01366fd61",
+      "topic_title": "Kenya Data Protection Act (DPA) 2019",
+      "topic_old_chapter_id": "50112537-a4dc-4843-b3c8-be6ad4a9d7a6",
+      "topic_chapter_change_required": false,
+      "existing_topic_provenance_chunk_ids": [
+        "7b9fa1bb-6cb0-4171-93a3-c8da4d21ef97"
+      ],
+      "fragment_char_count": 311,
+      "fragment_preview": "4.4.2 Kenya Data Protection Act (DPA) 2019 — Hosting Obligations\nThe Kenya Data Protection Act 2019 imposes obligations on organisations that process personal data,\nincluding web hosting providers who store customer data and website visitor data. Key obligations:\n\nObligation What It Means for Hostin",
+      "action": "Create section-specific source chunk from exact numbered heading to next numbered section; attach existing topic. Preserve original chunk and all current links."
+    },
+    {
+      "section_id": "42e6fca1-a39e-4983-bb30-c0d992071d6e",
+      "section_number": "4.4.3",
+      "section_title": "DMCA and Copyright Takedowns",
+      "chapter_id": "50112537-a4dc-4843-b3c8-be6ad4a9d7a6",
+      "source_chunk_id": "fce76a94-7745-450a-bcf2-4986ad71a647",
+      "old_section_id": "bad4378f-0229-48e9-8a79-b02bd7547d19",
+      "old_chapter_id": "f3a36319-ee1d-4770-9d4a-20980f7e0831",
+      "page_number": 71,
+      "topic_id": "36970753-5b92-48bc-93e2-720ba3240ca2",
+      "topic_title": "Handling DMCA and Copyright Takedowns",
+      "topic_old_chapter_id": "f3a36319-ee1d-4770-9d4a-20980f7e0831",
+      "topic_chapter_change_required": true,
+      "existing_topic_provenance_chunk_ids": [
+        "fce76a94-7745-450a-bcf2-4986ad71a647"
+      ],
+      "fragment_char_count": 834,
+      "fragment_preview": "4.4.3 DMCA and Copyright Takedowns\nCopyright holders who discover infringing content on your hosting platform will send DMCA (Digital\nMillennium Copyright Act) takedown notices — or equivalent local law notices. As a hosting provider,\nyou must have a process for handling these:\n82. Receive and log t",
+      "action": "Create section-specific source chunk from exact numbered heading to next numbered section; attach existing topic. Preserve original chunk and all current links."
+    },
+    {
+      "section_id": "6eb43693-f854-40e4-ac92-1a7503ccfefb",
+      "section_number": "5.1.7",
+      "section_title": "WordPress Troubleshooting — Advanced Scenarios",
+      "chapter_id": "b39db804-3869-42cd-b75c-405e02fdcdd3",
+      "source_chunk_id": "783ddfe1-0799-429c-bdef-6a40cf885540",
+      "old_section_id": "543be6d0-54ce-406c-8919-a7cdb3ff0911",
+      "old_chapter_id": "b39db804-3869-42cd-b75c-405e02fdcdd3",
+      "page_number": 78,
+      "topic_id": "daf3e468-821d-4a9e-9ead-2d00034f21e1",
+      "topic_title": "WordPress Troubleshooting and Mastery",
+      "topic_old_chapter_id": "e816a4d7-257e-46f3-b36e-04107b3300d8",
+      "topic_chapter_change_required": true,
+      "existing_topic_provenance_chunk_ids": [
+        "56055ac9-730f-492d-bef8-34d0a0d93824",
+        "c9c1b721-7246-47b5-a1b9-ccacbb60d1b0",
+        "2bdb0c90-8bef-450f-8c78-64838f235d58",
+        "d4e13c76-4167-4ab3-8146-c5c5d988d008"
+      ],
+      "fragment_char_count": 312,
+      "fragment_preview": "5.1.7 WordPress Troubleshooting — Advanced Scenarios\n\nProblem Diagnostic Steps Resolution\n\nWhite Screen of Death Enable WP_DEBUG_LOG in Most common: pluginconflict(rename plugins/folderto\n(WSOD) wp-config.php → check wp- test),PHP versionincompatibility,memory exhaustion\ncontent/debug.log→ check\nApa",
+      "action": "Create section-specific source chunk from exact numbered heading to next numbered section; attach existing topic. Preserve original chunk and all current links."
+    }
+  ],
+  "topic_chapter_changes": [
+    {
+      "topic_id": "dec90a65-557c-4ecb-8f1d-3671336a29f9",
+      "title": "Data Centres and Server Infrastructure",
+      "old_chapter_id": "aae4c942-7fdc-4cfd-acff-7d5057071d6f",
+      "new_chapter_id": "af45b5c7-484b-4e2d-bb3f-47972cd32298",
+      "source_pages": [
+        6
+      ],
+      "target_chapter_page_span": [
+        4,
+        6
+      ],
+      "all_source_pages_inside_target_chapter": true
+    },
+    {
+      "topic_id": "55bd72a0-547f-42ce-be89-0ec269491205",
+      "title": "Three-Panel Architecture Comparison",
+      "old_chapter_id": "9a860f6e-cb1b-4eaa-b7e5-e09c161deff3",
+      "new_chapter_id": "55fefad8-0144-49f5-b32b-0e3bfc357d01",
+      "source_pages": [
+        16,
+        16
+      ],
+      "target_chapter_page_span": [
+        13,
+        16
+      ],
+      "all_source_pages_inside_target_chapter": true
+    },
+    {
+      "topic_id": "9b3be790-c00d-4bda-946c-59ed0eeab6bc",
+      "title": "Recommended FTP Clients",
+      "old_chapter_id": "07b82feb-f3e1-4cfb-a3b2-8f5a9de95f9a",
+      "new_chapter_id": "9a860f6e-cb1b-4eaa-b7e5-e09c161deff3",
+      "source_pages": [
+        17
+      ],
+      "target_chapter_page_span": [
+        16,
+        17
+      ],
+      "all_source_pages_inside_target_chapter": true
+    },
+    {
+      "topic_id": "54bd793e-4c13-467c-bca8-6ddb5824d401",
+      "title": "Account Suspension and Termination",
+      "old_chapter_id": "c2353d15-1321-4843-8ac7-5afe6ff7b36c",
+      "new_chapter_id": "740e960f-fe01-4852-8b45-ed1593d77be0",
+      "source_pages": [
+        33,
+        33
+      ],
+      "target_chapter_page_span": [
+        32,
+        33
+      ],
+      "all_source_pages_inside_target_chapter": true
+    },
+    {
+      "topic_id": "f830f8e5-85a9-43d7-99f0-4952db58efd0",
+      "title": "Configuring Cron Jobs",
+      "old_chapter_id": "54ec3c9e-a6b8-48b6-84c7-4e59b8b7868f",
+      "new_chapter_id": "dd2e62e7-6337-4960-a452-87eb69290d1d",
+      "source_pages": [
+        41,
+        41
+      ],
+      "target_chapter_page_span": [
+        40,
+        41
+      ],
+      "all_source_pages_inside_target_chapter": true
+    },
+    {
+      "topic_id": "c7310ca1-553a-49af-b8b5-2294900c541c",
+      "title": "Diagnosing and Resolving IP Blacklisting",
+      "old_chapter_id": "f66b062d-c19d-45aa-b801-38fb0dd703a4",
+      "new_chapter_id": "9ffc3e9c-ef88-477b-a314-7bff1036c14b",
+      "source_pages": [
+        59,
+        59
+      ],
+      "target_chapter_page_span": [
+        55,
+        59
+      ],
+      "all_source_pages_inside_target_chapter": true
+    },
+    {
+      "topic_id": "36970753-5b92-48bc-93e2-720ba3240ca2",
+      "title": "Handling DMCA and Copyright Takedowns",
+      "old_chapter_id": "f3a36319-ee1d-4770-9d4a-20980f7e0831",
+      "new_chapter_id": "50112537-a4dc-4843-b3c8-be6ad4a9d7a6",
+      "source_pages": [
+        71
+      ],
+      "target_chapter_page_span": [
+        70,
+        71
+      ],
+      "all_source_pages_inside_target_chapter": true
+    },
+    {
+      "topic_id": "daf3e468-821d-4a9e-9ead-2d00034f21e1",
+      "title": "WordPress Troubleshooting and Mastery",
+      "old_chapter_id": "e816a4d7-257e-46f3-b36e-04107b3300d8",
+      "new_chapter_id": "b39db804-3869-42cd-b75c-405e02fdcdd3",
+      "source_pages": [
+        79,
+        79,
+        79,
+        79
+      ],
+      "target_chapter_page_span": [
+        74,
+        78
+      ],
+      "all_source_pages_inside_target_chapter": false
+    }
+  ],
+  "insufficient_or_unresolved": [
+    {
+      "section_number": "2.5.2",
+      "reason": "Exact heading chunk contains less than 120 characters of section body; insufficient source slice to repair without checking adjacent page chunks."
+    },
+    {
+      "section_number": "4.2.3",
+      "reason": "Exact heading chunk contains less than 120 characters of section body; insufficient source slice to repair without checking adjacent page chunks."
+    },
+    {
+      "section_number": "5.1.3",
+      "reason": "Exact heading chunk contains less than 120 characters of section body; insufficient source slice to repair without checking adjacent page chunks."
+    }
+  ]
+}

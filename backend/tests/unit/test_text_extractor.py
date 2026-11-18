@@ -144,6 +144,26 @@ def test_pdf_extraction_falls_back_when_layout_yields_nothing(
     assert "Plain default mode text" in pages[0].raw_text
 
 
+def test_pdf_extraction_rejects_image_only_document(monkeypatch) -> None:
+    class _FakePage:
+        def extract_text(self, extraction_mode=None):
+            return ""
+
+    class _FakeReader:
+        pages = [_FakePage(), _FakePage()]
+
+    monkeypatch.setattr(
+        "app.services.ingestion.text_extractor.PdfReader",
+        lambda _buffer: _FakeReader(),
+    )
+
+    with pytest.raises(DocumentProcessingError) as exc_info:
+        extract_pdf_pages(b"%PDF-1.4 fake")
+
+    assert "no extractable text" in str(exc_info.value)
+    assert "OCR" in str(exc_info.value)
+
+
 def test_pdf_extraction_falls_back_when_layout_raises(monkeypatch) -> None:
     """Layout mode failing on one page must not drop the page's content."""
 

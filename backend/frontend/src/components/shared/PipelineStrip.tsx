@@ -24,7 +24,7 @@ interface PipelineStripProps {
 
 const stateStyles: Record<PipelineStageState, string> = {
   done: "border-emerald-200 bg-emerald-50 text-emerald-800",
-  active: "border-burgundy/25 bg-cream-200 text-burgundy-900",
+  active: "border-brand/25 bg-sand-200 text-brand-900",
   pending: "border-border bg-card text-muted-foreground",
 };
 

@@ -8,7 +8,6 @@ from app.core.config import Settings
 from app.core.dependencies import (
     get_app_settings,
     get_database_session,
-    get_moodle_client,
 )
 from app.db.repositories.assessments import AssessmentRepository
 from app.db.repositories.courses import CourseRepository
@@ -46,13 +45,22 @@ router = APIRouter(prefix="/moodle", tags=["moodle"])
 
 
 def get_moodle_sync_service(
+    request: Request,
     session: AsyncSession = Depends(get_database_session),
-    client: MoodleClient = Depends(get_moodle_client),
     settings: Settings = Depends(get_app_settings),
 ) -> MoodleSyncService:
-    """Construct a request-scoped Moodle sync service."""
+    """
+    Construct a request-scoped Moodle sync service.
+
+    The Moodle client is read from application state WITHOUT eagerly
+    raising when Moodle is not configured: the service raises the same
+    configuration error lazily, once used. This keeps error precedence
+    correct for gated routes — a curriculum that failed content-QA is
+    reported as ``qa_blocked`` (409) even when Moodle is unconfigured,
+    instead of the Moodle configuration error masking the QA verdict.
+    """
     return MoodleSyncService(
-        client,
+        request.app.state.moodle_client,
         CurriculumRepository(session),
         CourseRepository(session),
         moodle_base_url=settings.moodle_url,
@@ -132,11 +140,17 @@ async def moodle_check(
         all_categories = await client.get_categories()
     except Exception as exc:  # noqa: BLE001 - permissive health surface
         check.error = str(exc)
-        check.connected = False
+        check.degraded = True
         return check
 
     check.default_category_found = bool(category_matches)
     check.categories_visible = len(all_categories)
+    check.degraded = not bool(category_matches)
+    if not category_matches:
+        check.error = (
+            "The configured MOODLE_COURSE_CATEGORY_ID is not visible to this "
+            "token, so publishing would fail."
+        )
     return check
 
 

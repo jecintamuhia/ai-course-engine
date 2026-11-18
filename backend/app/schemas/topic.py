@@ -42,12 +42,27 @@ class TopicRead(BaseModel):
     created_at: datetime
 
 
+class AnalysisWarningRead(BaseModel):
+    """A non-fatal extraction limitation reported to the client."""
+
+    kind: str
+    message: str
+    chapter_id: uuid.UUID | None = None
+    chapter_title: str | None = None
+    omitted_chunks: int | None = None
+    total_chunks: int | None = None
+    max_chars: int | None = None
+    actual_chars: int | None = None
+    minimum_chars: int | None = None
+
+
 class TopicAnalysisResponse(BaseModel):
     """Response returned after running document analysis."""
 
     document_id: uuid.UUID
     topic_count: int
     topics: list[TopicRead]
+    warnings: list[AnalysisWarningRead] = []
 
 
 class ProvenanceChunkRead(BaseModel):

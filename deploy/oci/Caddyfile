@@ -1,0 +1,33 @@
+{
+	email {$ACME_EMAIL}
+}
+
+{$CADDY_DOMAIN} {
+	encode zstd gzip
+
+	reverse_proxy api:8000 {
+		health_uri /health/ready
+		health_interval 30s
+		health_timeout 10s
+		header_up X-Real-IP {remote_host}
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+
+	request_body {
+		max_size 55MB
+	}
+
+	log {
+		output stdout
+		format json
+		level INFO
+	}
+}

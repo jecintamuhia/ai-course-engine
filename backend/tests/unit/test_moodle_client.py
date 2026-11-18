@@ -284,6 +284,48 @@ class TestAddPageModule:
 
 
 # ---------------------------------------------------------------------------
+# get_pages_by_courses (published Page bodies)
+# ---------------------------------------------------------------------------
+
+
+class TestGetPagesByCourses:
+    @pytest.mark.anyio
+    async def test_requests_page_bodies_for_course(self):
+        sent = {}
+
+        def handler(request):
+            sent.update(_form(request.content))
+            return _json_response(
+                {
+                    "pages": [
+                        {
+                            "coursemodule": 18,
+                            "name": "Week 1 Lesson",
+                            "content": "<p>Lesson body</p>",
+                            "contentformat": 1,
+                        }
+                    ],
+                    "warnings": [],
+                }
+            )
+
+        client = _make_client(handler)
+        result = await client.get_pages_by_courses(42)
+
+        assert sent["wsfunction"] == "mod_page_get_pages_by_courses"
+        assert sent["courseids[0]"] == "42"
+        assert result["pages"][0]["content"] == "<p>Lesson body</p>"
+
+    @pytest.mark.anyio
+    async def test_returns_empty_dict_for_non_dict_response(self):
+        def handler(request):
+            return _json_response([])
+
+        client = _make_client(handler)
+        assert await client.get_pages_by_courses(42) == {}
+
+
+# ---------------------------------------------------------------------------
 # get_categories
 # ---------------------------------------------------------------------------
 

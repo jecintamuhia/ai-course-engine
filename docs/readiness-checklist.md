@@ -1,5 +1,9 @@
 # Readiness Checklist — AI Course Engine Production Handoff
 
+> Historical snapshot only. This document predates the current learner portal,
+> OCI preparation, and production hardening. Do not use it as the current
+> launch gate. See [`production-readiness.md`](production-readiness.md).
+
 Date: 2026-09-17. 28 concrete items with status and evidence. Legend:
 ✔ done / ~ partial / ✖ blocked / — n/a. Evidence refers to
 `docs/verification-report.md` (§ = section) and the live runs it documents.

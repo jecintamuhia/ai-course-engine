@@ -33,6 +33,9 @@ exclude = [
     "migrations/versions",
     "alembic/versions",
     "backend/alembic/versions",
+    "_state",
+    "_repo_moodle_auth",
+    ".pytest-tmp-moodle",
 ]
 
 

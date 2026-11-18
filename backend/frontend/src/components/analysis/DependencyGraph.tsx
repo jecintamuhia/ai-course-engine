@@ -62,13 +62,13 @@ function CustomNode({ data }: { data: Record<string, unknown> }) {
     <div
       className={cn(
         "rounded-lg border px-3 py-2 shadow-sm transition-colors cursor-pointer",
-        selected && "ring-2 ring-burgundy ring-offset-2",
+        selected && "ring-2 ring-brand ring-offset-2",
       )}
       style={{
         width: NODE_WIDTH,
         height: NODE_HEIGHT,
         background: selected ? "#FDF3F5" : difficultyBg[difficulty],
-        borderColor: selected ? "#6B1F32" : difficultyBorder[difficulty],
+        borderColor: selected ? "#ED1B24" : difficultyBorder[difficulty],
       }}
     >
       <div className="truncate text-xs font-semibold text-foreground">{title}</div>
@@ -132,7 +132,7 @@ export function DependencyGraph({
                 target: topic.id,
                 animated: true,
                 type: "smoothstep",
-                style: { stroke: "#6B1F32", strokeWidth: 1.5 },
+                style: { stroke: "#ED1B24", strokeWidth: 1.5 },
               });
             }
           }
@@ -159,7 +159,7 @@ export function DependencyGraph({
   );
 
   return (
-    <div className={`relative h-[520px] w-full overflow-hidden rounded-xl border border-border bg-cream-50 ${className ?? ""}`}>
+    <div className={`relative h-[520px] w-full overflow-hidden rounded-xl border border-border bg-sand-50 ${className ?? ""}`}>
       <ReactFlow
         nodes={reactNodes}
         edges={reactEdges}
@@ -171,11 +171,11 @@ export function DependencyGraph({
         proOptions={{ hideAttribution: true }}
         defaultEdgeOptions={{
           type: "smoothstep",
-          style: { stroke: "#6B1F32", strokeWidth: 1.5 },
+          style: { stroke: "#ED1B24", strokeWidth: 1.5 },
           animated: true,
         }}
       >
-        <Background color="#E4DCD2" gap={16} />
+        <Background color="#E4E4E4" gap={16} />
         <Controls
           className="rounded-lg border border-border bg-card shadow-sm"
           showInteractive={false}

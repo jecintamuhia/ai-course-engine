@@ -56,6 +56,34 @@ async def test_login_returns_token_and_profile(client: httpx.AsyncClient) -> Non
     assert body["token_type"] == "bearer"
     assert body["access_token"]
     assert body["user"]["role"] == "admin"
+    # Authoring roles are routed back into the workspace.
+    assert body["redirect_to"] == "/dashboard"
+
+
+async def test_learning_role_login_redirects_to_the_learner_portal(
+    client: httpx.AsyncClient,
+) -> None:
+    from app.core.config import Settings
+    from app.core.dependencies import get_app_settings
+
+    fake = _FakeAuthService()
+    fake.user.role = UserRole.STUDENT
+    client.app.dependency_overrides[get_auth_service] = lambda: fake
+    client.app.dependency_overrides[get_app_settings] = lambda: Settings(
+        moodle_url="https://moodle.example.com"
+    )
+
+    response = await client.post(
+        LOGIN_URL,
+        json={"email": "admin@example.com", "password": "correct"},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["user"]["role"] == "student"
+    # Learners stay in this application; Moodle is where the course
+    # content is delivered, not where the session lives.
+    assert body["redirect_to"] == "/learn"
 
 
 async def test_login_rejects_wrong_credentials(
@@ -130,6 +158,45 @@ async def test_lecturer_cannot_create_user(client: httpx.AsyncClient) -> None:
     assert response.json()["error"]["code"] == "authorization_error"
 
 
+async def test_student_cannot_reach_workspace_routes(
+    client: httpx.AsyncClient,
+) -> None:
+    install_auth_override(client.app, role=UserRole.STUDENT)
+
+    response = await client.get(DOCUMENTS_URL)
+
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "authorization_error"
+
+
+async def test_teacher_cannot_reach_workspace_routes(
+    client: httpx.AsyncClient,
+) -> None:
+    install_auth_override(client.app, role=UserRole.TEACHER)
+
+    response = await client.get(DOCUMENTS_URL)
+
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "authorization_error"
+
+
+async def test_lecturer_is_allowed_by_the_staff_gate() -> None:
+    from app.core.dependencies import require_staff
+
+    user = make_test_user(role=UserRole.LECTURER)
+
+    assert require_staff(user) is user
+
+
+def test_require_staff_rejects_learning_roles() -> None:
+    from app.core.dependencies import require_staff
+    from app.core.exceptions import AuthorizationError
+
+    for role in (UserRole.STUDENT, UserRole.TEACHER):
+        with pytest.raises(AuthorizationError):
+            require_staff(make_test_user(role=role))
+
+
 async def test_protected_route_requires_token() -> None:
     application = create_application()
 
@@ -193,11 +260,11 @@ class _RecordingAuthService(_FakeAuthService):
         )
         self.user.email = email
         self.user.full_name = full_name
-        self.user.role = UserRole.LECTURER
+        self.user.role = UserRole.STUDENT
         return self.user
 
 
-async def test_register_returns_token_and_a_lecturer(
+async def test_register_returns_token_and_a_learner(
     client: httpx.AsyncClient,
 ) -> None:
     fake = _RecordingAuthService()
@@ -206,18 +273,20 @@ async def test_register_returns_token_and_a_lecturer(
     response = await client.post(
         REGISTER_URL,
         json={
-            "email": "Lecturer@Gmail.com",
+            "email": "Learner@Gmail.com",
             "password": "a-strong-password",
-            "full_name": "Course Lecturer",
+            "full_name": "Course Learner",
         },
     )
 
     assert response.status_code == 201
     body = response.json()
     assert body["access_token"]
-    assert body["user"]["role"] == "lecturer"
+    assert body["user"]["role"] == "student"
+    # A learner lands on the portal, never in the authoring workspace.
+    assert body["redirect_to"] == "/learn"
     # Email is normalized before it reaches the service.
-    assert fake.register_calls[0]["email"] == "lecturer@gmail.com"
+    assert fake.register_calls[0]["email"] == "learner@gmail.com"
 
 
 async def test_register_rejects_a_short_password(
@@ -272,9 +341,9 @@ async def test_register_cannot_escalate_to_admin(
     )
 
     # role is not part of RegisterRequest, so it is ignored rather than
-    # honoured, and the resulting account is a lecturer.
+    # honoured, and the resulting account is a learner.
     assert response.status_code == 201
-    assert response.json()["user"]["role"] == "lecturer"
+    assert response.json()["user"]["role"] == "student"
     assert "role" not in fake.register_calls[0]
 
 
@@ -357,3 +426,74 @@ async def test_google_start_refuses_when_not_configured() -> None:
 
     assert response.status_code == 401
     assert response.json()["error"]["code"] == "authentication_error"
+
+
+async def test_login_is_rate_limited_after_repeated_failures(
+    client: httpx.AsyncClient,
+) -> None:
+    from app.core.config import Settings
+    from app.core.dependencies import get_app_settings
+
+    fake = _FakeAuthService()
+    client.app.dependency_overrides[get_auth_service] = lambda: fake
+    client.app.dependency_overrides[get_app_settings] = lambda: Settings(
+        login_rate_limit_email_attempts=2,
+        login_rate_limit_ip_attempts=100,
+        login_rate_limit_window_seconds=60,
+    )
+
+    for _ in range(2):
+        response = await client.post(
+            LOGIN_URL,
+            json={"email": "admin@example.com", "password": "wrong"},
+        )
+        assert response.status_code == 401
+
+    response = await client.post(
+        LOGIN_URL,
+        json={"email": "admin@example.com", "password": "wrong"},
+    )
+
+    assert response.status_code == 429
+    assert response.headers["Retry-After"]
+    assert response.json()["error"]["code"] == "rate_limited"
+
+
+async def test_login_does_not_rate_limit_when_disabled(
+    client: httpx.AsyncClient,
+) -> None:
+    from app.core.config import Settings
+    from app.core.dependencies import get_app_settings
+
+    fake = _FakeAuthService()
+    client.app.dependency_overrides[get_auth_service] = lambda: fake
+    client.app.dependency_overrides[get_app_settings] = lambda: Settings(
+        login_rate_limit_enabled=False,
+    )
+
+    for _ in range(8):
+        response = await client.post(
+            LOGIN_URL,
+            json={"email": "admin@example.com", "password": "wrong"},
+        )
+        assert response.status_code == 401
+
+
+async def test_login_fails_closed_when_rate_limiter_is_unavailable(
+    client: httpx.AsyncClient,
+) -> None:
+    class _BrokenRedis:
+        async def incr(self, key):
+            raise RuntimeError("redis down")
+
+    fake = _FakeAuthService()
+    client.app.dependency_overrides[get_auth_service] = lambda: fake
+    client.app.state.redis_client = _BrokenRedis()
+
+    response = await client.post(
+        LOGIN_URL,
+        json={"email": "admin@example.com", "password": "wrong"},
+    )
+
+    assert response.status_code == 503
+    assert response.json()["error"]["code"] == "rate_limit_unavailable"

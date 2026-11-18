@@ -92,6 +92,38 @@ class AuthService:
     # Self-registration
     # ------------------------------------------------------------------
 
+    async def _enforce_registration_policy(self, email: str) -> None:
+        """
+        Apply the self-registration policy to a *new* account.
+
+        Used by both the password route and first-time external sign-in so
+        disabling registration or restricting domains cannot be bypassed
+        with Google. Existing accounts are never re-checked here.
+        """
+        settings = self._settings
+        if settings is None:
+            return
+
+        if not settings.auth_registration_enabled:
+            raise RegistrationDisabledError(
+                "Self-registration is disabled on this server. "
+                "Please sign in or ask an administrator for an account."
+            )
+
+        allowed = [
+            domain.strip().lower().lstrip("@")
+            for domain in settings.auth_registration_allowed_domains
+            if domain.strip()
+        ]
+        if allowed:
+            domain = email.strip().lower().partition("@")[2]
+            if domain not in allowed:
+                raise RegistrationDomainNotAllowedError(
+                    "This email domain cannot be used to register. "
+                    f"Allowed domains: {', '.join(allowed)}.",
+                    details={"allowed_domains": allowed},
+                )
+
     async def register_user(
         self,
         *,
@@ -100,37 +132,17 @@ class AuthService:
         full_name: str,
     ) -> User:
         """
-        Self-register a lecturer account.
+        Self-register a learner account.
 
-        Deliberately takes no ``role``: public registration can never mint
-        an administrator, so a signed-up account cannot reach the admin
-        user-creation or Moodle-publishing endpoints. Role assignment
-        stays an admin-only action.
+        Deliberately takes no ``role``: public registration always mints
+        a learner, so a signed-up account can never reach the admin
+        user-creation, authoring or Moodle-publishing endpoints. Lecturer,
+        teacher and admin accounts stay an admin-only action.
 
         Honors ``AUTH_REGISTRATION_ENABLED`` and the optional domain
         allowlist.
         """
-        settings = self._settings
-        if settings is not None:
-            if not settings.auth_registration_enabled:
-                raise RegistrationDisabledError(
-                    "Self-registration is disabled on this server. "
-                    "Please sign in or use Sign in with Google."
-                )
-
-            allowed = [
-                domain.strip().lower().lstrip("@")
-                for domain in settings.auth_registration_allowed_domains
-                if domain.strip()
-            ]
-            if allowed:
-                domain = email.strip().lower().partition("@")[2]
-                if domain not in allowed:
-                    raise RegistrationDomainNotAllowedError(
-                        "This email domain cannot be used to register. "
-                        f"Allowed domains: {', '.join(allowed)}.",
-                        details={"allowed_domains": allowed},
-                    )
+        await self._enforce_registration_policy(email)
 
         normalized = email.strip().lower()
         if await self._user_repository.get_by_email(normalized) is not None:
@@ -142,7 +154,7 @@ class AuthService:
             email=normalized,
             password=password,
             full_name=full_name,
-            role=UserRole.LECTURER,
+            role=UserRole.STUDENT,
         )
 
     # ------------------------------------------------------------------
@@ -157,12 +169,12 @@ class AuthService:
     ) -> User:
         """
         Return the account for a verified external identity, creating a
-        lecturer account on first sign-in.
+        learner account on first sign-in.
 
         An existing account is linked by email rather than duplicated, so
-        someone who registered with a password can later use Google on the
-        same account. An existing admin keeps its admin role — this never
-        demotes anyone, and never promotes.
+        someone who registered with a password can later use Google on
+        the same account. An existing admin keeps its admin role — this
+        never demotes anyone, and never promotes.
         """
         normalized = email.strip().lower()
         existing = await self._user_repository.get_by_email(normalized)
@@ -174,9 +186,11 @@ class AuthService:
                 )
             return existing
 
+        await self._enforce_registration_policy(normalized)
+
         return await self.create_user(
             email=normalized,
             password=secrets.token_urlsafe(32),
             full_name=full_name,
-            role=UserRole.LECTURER,
+            role=UserRole.STUDENT,
         )

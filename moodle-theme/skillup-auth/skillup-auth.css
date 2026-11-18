@@ -1,0 +1,446 @@
+/* ============================================================================
+   Skillup Action Africa - Authentication experience (login / signup / forgot)
+   Scope: body.pagelayout-login ONLY. Nothing outside the auth layouts changes.
+   Deployed through Moodle "Additional HTML" (no core files touched).
+
+   Palette (matches the official SkillUp Action Africa site)
+   ---------------------------------------------------------
+   red  #ED1B24   red-deep #C8131B   red-soft #FF6B70
+   navy #283890   navy-deep #121738  dark #0D1117
+   ink  #1A1A2E   muted #5A6270      line #E4E4E4   canvas #F7F7F7
+   ========================================================================== */
+
+body.pagelayout-login {
+  --sk-navy-deep: #121738;
+  --sk-navy: #283890;
+  --sk-red: #ed1b24;
+  --sk-red-deep: #c8131b;
+  --sk-red-soft: #ff6b70;
+  --sk-ink: #1a1a2e;
+  --sk-muted: #5a6270;
+  --sk-line: #e4e4e4;
+  --sk-canvas: #f7f7f7;
+  --sk-hero-w: clamp(340px, 42vw, 620px);
+  --sk-radius: 14px;
+  --sk-shadow: 0 22px 50px rgba(13, 17, 23, 0.16);
+  background: var(--sk-canvas);
+  overflow-x: hidden;
+}
+
+/* ---- Brand panel: hidden everywhere, shown on auth pages only ------------ */
+.skillup-auth-hero { display: none; }
+
+body.pagelayout-login .skillup-auth-hero {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: var(--sk-hero-w);
+  box-sizing: border-box;
+  padding: clamp(30px, 5vw, 68px);
+  display: flex;
+  align-items: center;
+  color: #ffffff;
+  overflow: hidden;
+  z-index: 1;
+  background:
+    radial-gradient(900px 520px at 12% -12%, rgba(237, 27, 36, 0.18), transparent 62%),
+    radial-gradient(760px 460px at 112% 118%, rgba(237, 27, 36, 0.30), transparent 62%),
+    linear-gradient(158deg, #121738 0%, #283890 52%, #0d1117 100%);
+}
+
+/* subtle geometric grid, masked so it never competes with the copy */
+body.pagelayout-login .skillup-auth-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 46px 46px;
+  -webkit-mask-image: radial-gradient(circle at 26% 18%, #000 0%, transparent 72%);
+  mask-image: radial-gradient(circle at 26% 18%, #000 0%, transparent 72%);
+}
+
+/* one restrained accent glow */
+body.pagelayout-login .skillup-auth-hero::after {
+  content: "";
+  position: absolute;
+  right: -130px;
+  bottom: -150px;
+  width: 380px;
+  height: 380px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(237, 27, 36, 0.30), transparent 70%);
+}
+
+.skillup-auth-hero__inner {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 540px;
+}
+
+.skillup-auth-hero__logo {
+  display: block;
+  width: min(320px, 100%);
+  height: auto;
+  margin: 0 0 26px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 12px 32px rgba(13, 17, 23, 0.28);
+}
+
+.skillup-auth-hero__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  font-family: "Outfit", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #ffffff;
+}
+
+.skillup-auth-hero__rule {
+  display: inline-block;
+  width: 34px;
+  height: 4px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--sk-red-soft), var(--sk-red));
+}
+
+.skillup-auth-hero__title {
+  margin: 30px 0 16px;
+  font-family: "Playfair Display", Georgia, ui-serif, serif;
+  font-size: clamp(1.95rem, 3.2vw, 3rem);
+  line-height: 1.12;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+}
+
+.skillup-auth-hero__lede {
+  margin: 0;
+  max-width: 44ch;
+  font-family: "Outfit", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: clamp(1rem, 1.1vw, 1.14rem);
+  line-height: 1.62;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.skillup-auth-hero__list {
+  list-style: none;
+  margin: 32px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 15px;
+}
+
+.skillup-auth-hero__list li {
+  position: relative;
+  padding-left: 38px;
+  font-family: "Outfit", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 1rem;
+  line-height: 1.4;
+  color: #ffffff;
+}
+
+.skillup-auth-hero__list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 23px;
+  height: 23px;
+  border-radius: 50%;
+  background: rgba(237, 27, 36, 0.18);
+  border: 1px solid rgba(237, 27, 36, 0.55);
+}
+
+.skillup-auth-hero__list li::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 9px;
+  width: 8px;
+  height: 4px;
+  border-left: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  transform: rotate(-45deg);
+}
+
+.skillup-auth-hero__note {
+  margin: 36px 0 0;
+  font-size: 0.84rem;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* ---- Right-hand column --------------------------------------------------- */
+body.pagelayout-login #page-wrapper {
+  margin-left: var(--sk-hero-w);
+}
+
+body.pagelayout-login #page {
+  padding-top: 0;
+  margin-top: 0;
+}
+
+body.pagelayout-login #page-content {
+  min-height: 100vh;
+  align-items: center;
+}
+
+body.pagelayout-login #region-main {
+  padding: clamp(24px, 4vw, 56px) clamp(16px, 3vw, 40px);
+}
+
+/* ---- The auth card ------------------------------------------------------- */
+body.pagelayout-login .login-wrapper {
+  width: 100%;
+}
+
+body.pagelayout-login .login-container {
+  width: 100%;
+  max-width: 478px;
+  margin: 0 auto;
+  padding: clamp(26px, 2.6vw, 40px);
+  box-sizing: border-box;
+  background: #ffffff;
+  border: 1px solid var(--sk-line);
+  border-radius: var(--sk-radius);
+  box-shadow: var(--sk-shadow);
+}
+
+body.pagelayout-login .login-heading {
+  margin: 0 0 4px;
+  font-size: clamp(1.5rem, 1.9vw, 1.7rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--sk-navy-deep);
+}
+
+body.pagelayout-login .login-divider {
+  margin: 18px 0;
+  border-top: 1px solid var(--sk-line);
+}
+
+body.pagelayout-login .login-instructions,
+body.pagelayout-login .login-signup,
+body.pagelayout-login .login-form-forgotpassword {
+  margin-top: 16px;
+  font-size: 0.95rem;
+  color: var(--sk-muted);
+}
+
+/* ---- Forms: stack label above field for a calm vertical rhythm ----------- */
+body.pagelayout-login .mform .fitem,
+body.pagelayout-login .mform .fitem.row {
+  display: block;
+  margin-bottom: 16px;
+}
+
+body.pagelayout-login .mform .fitem > .col-md-3,
+body.pagelayout-login .mform .fitem > .col-form-label,
+body.pagelayout-login .mform .fitem > .col-md-9,
+body.pagelayout-login .mform .fitem > .felement {
+  flex: 0 0 100%;
+  max-width: 100%;
+  width: 100%;
+  padding-right: 0;
+  padding-left: 0;
+  text-align: left;
+}
+
+body.pagelayout-login .mform label,
+body.pagelayout-login .loginform label {
+  display: inline-block;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+body.pagelayout-login .mform .form-control,
+body.pagelayout-login .loginform .form-control {
+  height: 48px;
+  padding: 10px 14px;
+  font-size: 1rem;
+  color: var(--sk-ink);
+  background: #ffffff;
+  border: 1.5px solid var(--sk-line);
+  border-radius: 12px;
+  box-shadow: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+body.pagelayout-login .mform select.form-control {
+  height: 48px;
+}
+
+body.pagelayout-login .mform .form-control:focus,
+body.pagelayout-login .loginform .form-control:focus {
+  border-color: var(--sk-red);
+  box-shadow: 0 0 0 4px rgba(237, 27, 36, 0.15);
+  outline: none;
+}
+
+body.pagelayout-login .form-control-feedback,
+body.pagelayout-login .invalid-feedback {
+  font-size: 0.86rem;
+}
+
+body.pagelayout-login .form-control-static,
+body.pagelayout-login .form-text {
+  font-size: 0.88rem;
+  color: var(--sk-muted);
+}
+
+/* ---- Buttons ------------------------------------------------------------- */
+body.pagelayout-login .btn-primary,
+body.pagelayout-login #id_submitbutton {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #ffffff;
+  border: 0;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #ed1b24 0%, var(--sk-red-deep) 100%);
+  box-shadow: 0 10px 22px rgba(200, 19, 27, 0.28);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+}
+
+body.pagelayout-login .btn-primary:hover,
+body.pagelayout-login #id_submitbutton:hover {
+  filter: brightness(1.05);
+  box-shadow: 0 12px 26px rgba(200, 19, 27, 0.34);
+}
+
+body.pagelayout-login .btn-primary:active,
+body.pagelayout-login #id_submitbutton:active {
+  transform: translateY(1px);
+}
+
+body.pagelayout-login .btn-cancel .btn,
+body.pagelayout-login .btn-secondary {
+  width: 100%;
+  min-height: 46px;
+  border-radius: 12px;
+  font-weight: 600;
+  color: var(--sk-navy-deep);
+  background: #f7f7f7;
+  border: 1px solid var(--sk-line);
+}
+
+/* buttons laid out in a row (form actions) */
+body.pagelayout-login .fitem.btn-cancel,
+body.pagelayout-login #fitem_id_submitbutton,
+body.pagelayout-login .fitem[data-fieldtype="submit"] { display: block; }
+
+body.pagelayout-login .fgroup,
+body.pagelayout-login [data-groupname="buttonar"] > .d-flex,
+body.pagelayout-login #fgroup_id_buttonar > .felement > .d-flex {
+  display: grid;
+  gap: 10px;
+}
+
+/* ---- Links --------------------------------------------------------------- */
+body.pagelayout-login a {
+  color: var(--sk-red-deep);
+  text-decoration: none;
+}
+
+body.pagelayout-login a:hover,
+body.pagelayout-login a:focus {
+  color: var(--sk-navy-deep);
+  text-decoration: underline;
+}
+
+/* ---- Footer / cookies ---------------------------------------------------- */
+body.pagelayout-login #page-footer {
+  background: transparent;
+}
+
+body.pagelayout-login .btn-footer-popover {
+  background: #f7f7f7;
+  color: var(--sk-navy-deep);
+}
+
+body.pagelayout-login .footer-content-popover {
+  font-size: 0.9rem;
+}
+
+/* ---- Focus visibility (keyboard) ---------------------------------------- */
+body.pagelayout-login a:focus-visible,
+body.pagelayout-login button:focus-visible,
+body.pagelayout-login input:focus-visible,
+body.pagelayout-login select:focus-visible,
+body.pagelayout-login [tabindex]:focus-visible {
+  outline: 3px solid rgba(237, 27, 36, 0.85);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ---- Redundant "Email (again)" field ------------------------------------ */
+/* Hidden only when the mirror script has run (html.sk2-js), so there is a
+   no-JS fallback. skillup-auth.js keeps #id_email2 in sync with #id_email so
+   native server-side validation still passes. */
+html.sk2-js body.pagelayout-login #fitem_id_email2 { display: none; }
+/* ---- Responsive: hero becomes a top banner ------------------------------ */
+@media (max-width: 991.98px) {
+  body.pagelayout-login .skillup-auth-hero {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    max-width: none;
+    min-height: 320px;
+    padding: 34px 26px;
+    align-items: flex-start;
+    flex: 0 0 auto;
+  }
+
+  body.pagelayout-login .skillup-auth-hero__inner { max-width: none; }
+
+  body.pagelayout-login #page-wrapper { margin-left: 0; }
+
+  body.pagelayout-login #page-content { min-height: auto; }
+}
+
+@media (max-width: 575.98px) {
+  body.pagelayout-login .skillup-auth-hero {
+    min-height: 0;
+    padding: 26px 20px 30px;
+  }
+
+  body.pagelayout-login .skillup-auth-hero__title {
+    margin: 18px 0 10px;
+    font-size: 1.7rem;
+  }
+
+  body.pagelayout-login .skillup-auth-hero__list { display: none; }
+
+  body.pagelayout-login .skillup-auth-hero__note { margin-top: 18px; }
+
+  body.pagelayout-login .login-container {
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(13, 17, 23, 0.10);
+  }
+
+  body.pagelayout-login #region-main { padding: 20px 14px 44px; }
+}
+
+/* ---- Motion preferences -------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  body.pagelayout-login *,
+  body.pagelayout-login *::before,
+  body.pagelayout-login *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
