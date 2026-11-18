@@ -27,7 +27,7 @@ replace any production approval gate.
 | Root Python lint | `python -m ruff check .` passed | 2026-11-18 |
 | Byte-compile | `python -m compileall -q app` passed | 2026-11-18 |
 | Alembic heads | Exactly one head: `f1a2b3c4d5e6 (head)` | `python -m alembic heads`, 2026-11-18 |
-| CI workflow files | `tests.yml` has backend/frontend gates; `deploy.yml` is manual-only and deploys nothing | Authored 2026-11-18; public Actions evidence shows 16 historical runs, latest `tests.yml` #8 failed before jobs; no current-work success verified |
+| CI workflow files | `tests.yml` has backend/frontend gates; `deploy.yml` is manual-only and deploys nothing | `tests.yml` run #11 passed both jobs (id `44271152336`, commit `3e5ec8abd8c2ec7ce84cd82e12680b332a98f04c`, 2026-11-18T08:56:23Z); required merge check pending |
 | Backend test suite (historical) | 697 passed | `python -m pytest -q`, 2026-11-17 |
 | Backend test suite (historical) | 660 passed | `python -m pytest -q`, 2026-11-04 |
 | Production config validation | Unsafe production values rejected; safe test values accepted | `backend/app/core/config.py`, `backend/tests/test_config.py` |
@@ -50,7 +50,7 @@ through their root guard on Windows.
 | Dimension | Status | Basis |
 | --- | --- | --- |
 | Code and repository gates | **GREEN locally** | 731 backend tests, 23 frontend tests, typecheck, build, Ruff, compile, single Alembic head |
-| CI execution gate | **NOT ESTABLISHED** | Historical public Actions runs failed; no successful run for current work |
+| CI execution gate | **ESTABLISHED (enforcement pending)** | `tests.yml` run #11 passed both jobs after dependency/environment fixes; make it a required merge check |
 | Staging/integration readiness | **NOT ESTABLISHED** | No non-production Moodle exists; no live publish, read-back, learner progression or certificate verification |
 | Operational readiness | **NOT ESTABLISHED** | No approved host, DNS, TLS, secrets, first admin, target backup/restore or production environment verification |
 | Security verification | **INCOMPLETE** | Code/config review only; `npm audit` advisories remain; no external penetration or load test |
@@ -75,7 +75,7 @@ Nothing below may be inferred, fabricated, or bypassed.
 | Manual assessment marking | Confirm objective-only scope in writing (owner direction recorded 2026-11-18), or approve the exact grading workflow | Manual marking formally excluded or implemented |
 | Non-production Moodle | Supply staging URL/token, bundled plugin, required functions/capabilities, test category and rollback plan | Staging checklist can be executed |
 | Moodle production | Supply the production URL/token and confirm the required web-service permissions; preserve all Moodle data and publishing records | Live Moodle verification or publishing |
-| CI verification | Require a successful `tests.yml` run on the current commit and make it a required merge check | CI gate verified |
+| CI enforcement | Make the passing `tests.yml` check required on `main`; keep `deploy.yml` manual-only | Required merge check configured |
 | Dependency security | Approve remediation for `npm audit` advisories and an upgrade policy for breaking fixes | Security findings triaged |
 | AI provider | Supply the production key/model and an approved spend limit | Ingestion/content generation can run |
 | Source data | Identify an authoritative production database/storage export, or approve starting empty | Migration can begin |
@@ -191,9 +191,10 @@ Then:
   decisions remain open. `docs/client-decision-register.md` records 21 OPEN
   decisions; no written client approval has been found. Draft decision records
   exist for authentication direction, course ownership and JWT lifecycle.
-- GitHub Actions workflows are authored, but public evidence shows historical
-  runs failing and no successful run for the current working tree. The latest
-  observed run failed before any job executed.
+- GitHub Actions execution is verified: `tests.yml` run #11 passed both jobs
+  after fixing missing Ruff, invalid `ENVIRONMENT=test`, and missing
+  `fakeredis`/`reportlab` dependencies. Required merge-check enforcement is
+  pending.
 - Staging Moodle integration is blocked by external dependency; the draft
   checklist has not been executed. The production Moodle URL/token is never
   verification evidence and was not used.

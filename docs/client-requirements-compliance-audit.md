@@ -33,8 +33,9 @@
 > JWT lifecycle, multi-lecturer ownership and authentication direction remain
 > open decisions with draft records. Moodle status/check consistency, OCR-required
 > PDF failure and non-fatal analysis warnings are fixed in code. Mocked integration
-> tests and CI workflows were added, but no GitHub Actions run, staging Moodle,
-> live AI, browser/a11y/load/penetration verification or client approval is claimed.
+> tests and CI workflows were added; a later pass execution-verified `tests.yml`
+> run #11 after dependency/environment fixes. No staging Moodle, live AI,
+> browser/a11y/load/penetration verification or client approval is claimed.
 > The verdict remains **NOT READY FOR PRODUCTION**.
 
 ## 1. Executive summary and verdict
@@ -58,9 +59,10 @@ Acceptance is still not supportable because:
    Moodle exists. The staging checklist is a draft and was not executed.
 3. **Course ownership is unimplemented** (6.8); any lecturer can read and
    mark any course. A draft decision record exists but client approval is open.
-4. **CI workflows are authored but not execution-verified** (D8, 6.17).
-   `tests.yml` contains backend/frontend gates; `deploy.yml` is a valid
-   manual-only approval gate and performs no production deployment.
+4. **CI execution is verified but merge enforcement is pending** (D8, 6.17).
+   `tests.yml` run #11 passed both jobs; `deploy.yml` is a valid manual-only
+   approval gate and performs no production deployment. Making `tests.yml` a
+   required check is still an owner action.
 5. **The authentication architecture still diverges from the original
     client direction** (6.5) and needs written client acceptance. JWT lifecycle
     and ownership decisions also remain open.
@@ -241,7 +243,7 @@ installed; searches used the repository Grep tool.
 | R58 | Real integration tests | PARTIAL | 7 mocked tests in `backend/tests/integration/test_ingestion.py`, `test_curriculum.py`, `test_moodle.py` | No live systems or stateful external dependency |
 | R59 | Frontend tests | PASS | Full vitest suite passed (2026-11-18) | Component/jsdom only; no browser E2E |
 | R60 | Frontend production build | PASS | `npm run build` passed (2026-11-18) | Local gate only |
-| R61 | Scoped Python lint | PASS | `python -m ruff check app tests scripts`, `python -m compileall -q app` and root `python -m ruff check .` pass | No execution-verified GitHub Actions gate |
+| R61 | Scoped Python lint | PASS | Local gates plus `tests.yml` run #11 Ruff step passed | Required merge check still to configure |
 | R62 | SRD, architecture, API, ERD docs | FAIL | 0-byte documents | No agreed scope or acceptance evidence |
 | R63 | SPA error containment and 404 | PASS | `ErrorBoundary` + tests (catch, reset, route change, role home) | **Updated 2026-11-17:** verified by executed tests |
 | R64 | Accessible/responsive UI | UNVERIFIED | No browser/a11y run | Not performed |
@@ -257,7 +259,7 @@ installed; searches used the repository Grep tool.
 | D5 | Lesson HTML | Moodle Page HTML rendered via `dangerouslySetInnerHTML` in learner and lecturer views | Untrusted HTML sanitized | No sanitizer; Moodle admins can edit page bodies | HIGH (security) | `SafeHtml` component (DOMPurify; forbids script/iframe/object/embed/form/base, `srcdoc`, `formaction`) | `SafeHtml.test.tsx` (script/onclick/javascript: stripped) | VERIFIED RESOLVED |
 | D6 | Prev/next controls | `<Link>` wrapping `<Button>` created nested interactive elements | One interactive element per control | `asChild` pattern misused | MEDIUM | `Button asChild` + `Link` | Lecturer/Learner navigation tests | VERIFIED RESOLVED |
 | D7 | Lecturer lesson retry | Retry swallowed rejection and could leave no feedback | Retry re-fetches and shows outcome | Unhandled rejection in `handleRetryLesson` | MEDIUM | `try/catch/finally` | `LecturerCourse.test.tsx` "recovers when a lesson fails to load" | VERIFIED RESOLVED |
-| D8 | CI | `.github/workflows/tests.yml`, `deploy.yml` are 0 bytes | Automated test/lint/build gate | Workflows never authored | HIGH (release process) | `tests.yml` authored with backend/frontend gates; `deploy.yml` is a manual-only approval gate with no production deployment | None: GitHub Actions execution NOT VERIFIED locally | PARTIALLY RESOLVED (not execution-verified) |
+| D8 | CI | `.github/workflows/tests.yml`, `deploy.yml` are 0 bytes | Automated test/lint/build gate | Workflows never authored | HIGH (release process) | `tests.yml` authored with backend/frontend gates; `deploy.yml` is a manual-only approval gate with no production deployment; test deps/env fixed | `tests.yml` run #11 passed both jobs | RESOLVED for execution; required merge check pending |
 | D9 | Authorization | Any lecturer can read/mark any course; no owner model | Enforced ownership or accepted single-tenant model | No ownership field; staff-only gate | HIGH (security/product) | Draft `docs/decision-record-course-ownership.md`; no schema/code change | Ownership tests absent | UNRESOLVED / REQUIRES CLIENT APPROVAL |
 | D10 | Learner assessment/certification | No attempts, scoring, results, certificate, or verification | Learner takes final assessment and receives certificate | Never implemented | CRITICAL (product) | Service, routes, models and tests added for objective auto-grading and verifiable certificates | Learner assessment service/API tests | VERIFIED RESOLVED for implemented scope; open-ended manual marking NOT IMPLEMENTED |
 | D11 | Moodle lesson content | `core_course_get_contents` does not return Page bodies, so every lesson would render empty against a real Moodle | Retrieve the Page body | Read path only used core contents (file list/index link) | CRITICAL (foundational) | Added `page_content.py` using `mod_page_get_pages_by_courses`; merged bodies in read and sync; preflight requires the function; missing body raises a clear `MoodleIntegrationError` instead of empty content | Client, content, sync, and preflight tests | VERIFIED RESOLVED (code); live Moodle BLOCKED BY EXTERNAL DEPENDENCY |
@@ -491,14 +493,15 @@ page bodies, and preflight requirement.
 `mod_page_get_pages_by_courses`; the portal reports this clearly through
 preflight. Live behaviour is BLOCKED BY EXTERNAL DEPENDENCY.
 
-### 6.17 High (new): no automated CI gate — PARTIALLY RESOLVED 2026-11-18
+### 6.17 High (new): no automated CI gate — RESOLVED for execution 2026-11-18
 
 `.github/workflows/tests.yml` now authors backend and frontend gates, and
 `.github/workflows/deploy.yml` is a valid manual-only approval gate that
-performs **NO production deployment**. GitHub Actions execution is **NOT
-VERIFIED locally**; all green results in section 8 remain local/manual.
+performs **NO production deployment**. GitHub Actions execution is **VERIFIED**:
+run #11 completed with both jobs passing after the test dependency and
+`ENVIRONMENT=testing` fixes recorded in section 8.1.
 
-**Required action:** verify the workflow runs in GitHub Actions and blocks
+**Remaining owner action:** make `tests.yml` a required check so it blocks
 merge on failure.
 
 ## 7. Independent verification of prior fixes
@@ -512,7 +515,7 @@ merge on failure.
 | 6.11 Moodle check consistency | Read `MoodleConnectionCheck`, `/check` route and moodle API tests | VERIFIED RESOLVED (code); live BLOCKED BY EXTERNAL DEPENDENCY |
 | 6.12 OCR-required failure and warnings | Read text extractor, analysis warnings and unit/API tests | PARTIALLY RESOLVED; OCR BLOCKED BY CLIENT APPROVAL |
 | 6.15 Root Ruff | Scoped and root `ruff check` results in section 8 | VERIFIED RESOLVED |
-| 6.17 CI gate | Read authored workflows; no GitHub Actions execution evidence | PARTIALLY RESOLVED / NOT VERIFIED |
+| 6.17 CI gate | Public GitHub API run #11 and jobs | VERIFIED PASS; required check pending |
 | R21 QA fail blocks publish | Gate-precedence tests | PASS |
 | R26 Publish to live Moodle | No staging instance available; checklist not executed | BLOCKED BY EXTERNAL DEPENDENCY |
 | R32 No writes before QA/preflight | Read route order; gate tests | PASS |
@@ -599,13 +602,18 @@ marking, or client approval.
   but excluded; there is no attempt-level grader, mark, feedback or marking
   status field. Generic "open-ended" is not an item kind. No manual marking was
   added because the grading policy is undefined.
-- **GitHub Actions:** public repository evidence shows 16 workflow runs. The
-  latest is tests.yml run #8, id `37669010382`, commit
-  `ff197d0644f4e10382fd596e8faf5dd8fd8ab91d`, conclusion `failure`, created
-  `2026-10-07T18:43:27Z`. The run API reports zero jobs and zero check runs, so
-  it failed before job execution; the exact workflow-validation message was not
-  exposed by the unauthenticated API. No successful run for the current working
-  tree has been verified. `gh` is not installed/authenticated locally.
+- **GitHub Actions:** after pushing the working tree, `tests.yml` run #9 (id
+  `44269524521`) executed both jobs but failed at Ruff because `ruff` was absent
+  from `backend/requirements/test.txt`. Run #10 (id `44269907260`) passed Ruff,
+  byte-compile and Alembic then failed at pytest with exit code 4 because the
+  workflow used invalid `ENVIRONMENT=test` and `fakeredis`/`reportlab` were
+  missing from test requirements. Fixes were applied: `ENVIRONMENT=testing` and
+  pinned `ruff==0.16.5`, `fakeredis==2.37.1`, `reportlab==5.0.1`. Run #11 (id
+  `44271152336`, commit `3e5ec8abd8c2ec7ce84cd82e12680b332a98f04c`, completed
+  `2026-11-18T08:56:23Z`) concluded `success` with both jobs passing. The
+  workflow now executes; merge enforcement still requires making the check
+  required. `gh` is not installed/authenticated locally; evidence was read from
+  the public GitHub API.
 - **Browser and security testing:** Chrome, Edge, and Firefox binaries exist,
   but no Playwright/Cypress/axe/Lighthouse/Puppeteer/chromedriver runtime or
   config exists; no browser, accessibility, responsive-device, load, or
@@ -656,7 +664,7 @@ marking, or client approval.
 | Login rate limiting (R50) | PASS | Redis windows; proxy trust off by default, right-most XFF only when enabled |
 | Moodle status/check consistency (6.11) | VERIFIED RESOLVED (code) | `degraded` flag; no live Moodle verification |
 | OCR for scanned PDFs (6.12) | BLOCKED / REQUIRES CLIENT APPROVAL | Explicit OCR-required error; no OCR implementation |
-| CI security gate (D8/6.17) | PARTIALLY RESOLVED / NOT VERIFIED | Workflows authored; GitHub Actions execution not verified |
+| CI security gate (D8/6.17) | PASS for execution | `tests.yml` run #11 passed; required merge check pending |
 | Staging execution (6.3) | NOT EXECUTED | Draft checklist only; no staging Moodle exists |
 | Real browser/a11y/load/penetration test | NOT TESTED | Not performed |
 
@@ -694,7 +702,7 @@ marking, or client approval.
 | Frontend component | Full vitest suite passed (2026-11-18) | Lesson/course navigation, retry, sanitizer, error boundary; no browser E2E |
 | Frontend browser E2E | None | Role journeys not automated |
 | Migrations | Single head `f1a2b3c4d5e6` | No upgrade/downgrade rehearsal on a real PostgreSQL instance |
-| Lint/type/build/compile | All green locally, including root Ruff | No execution-verified GitHub Actions gate |
+| Lint/type/build/compile | All green locally and in `tests.yml` run #11 | Required merge check still pending |
 
 **Assessment:** backend logic is the strongest layer; Moodle delivery, browser
 behaviour and external dependencies are the weakest. The new tests close the
@@ -718,7 +726,7 @@ penetration verification.
 | Assessment/manual marking | Approve grading scope, policy and attempt workflow | Objective-only implemented; manual assessment marking not implemented. Owner direction: objective-only acceptable; written approval still required |
 | Certificate policy | Approve template, signatory and branding details | Issuance/verification implemented; client presentation approval still open |
 | Source textbooks | Born-digital vs scanned | Determines OCR scope; OCR implementation blocked on approval |
-| CI ownership | Verify `tests.yml` in GitHub Actions; keep `deploy.yml` manual-only | Historical Actions runs failed; no successful current-work run verified |
+| CI ownership | Make `tests.yml` a required check; keep `deploy.yml` manual-only | Successful `tests.yml` run #11 verified; merge enforcement still to configure |
 | Browser/a11y/load/penetration | Commission and record results | Not performed; `npm audit` also found outstanding advisories |
 
 ## 12. Deployment gate and acceptance conditions
@@ -737,7 +745,7 @@ penetration verification.
 | AuthN/authZ tests | PASS for implemented paths; ownership and JWT lifecycle decisions OPEN |
 | Moodle publishing verified live | FAIL — BLOCKED BY EXTERNAL DEPENDENCY |
 | Staging checklist executed | NOT EXECUTED (draft only; no staging Moodle) |
-| GitHub Actions execution verified | FAIL (16 historical runs; latest tests.yml run #8 failed before jobs; current work not verified) |
+| GitHub Actions execution verified | PASS (`tests.yml` run #11, id `44271152336`, commit `3e5ec8abd8c2ec7ce84cd82e12680b332a98f04c`); required merge check not yet configured |
 | Browser/a11y/load/penetration testing | NOT TESTED (no automation runtime/config; npm audit advisories outstanding) |
 | Prod environment variables verified | NOT TESTED (no prod env access) |
 | No open critical/high defects | FAIL (6.5, 6.8, 6.9, 6.17/D8 execution, client decisions, live/staging verification, CI failure, npm audit advisories) |
@@ -802,9 +810,9 @@ The platform should not be accepted until at least:
 - JWT lifecycle, course ownership and authentication direction decision
   records are drafts, not client approvals. The wider
   `docs/client-decision-register.md` has 21 OPEN decisions and no approvals.
-- CI workflows are authored, but historical GitHub Actions runs failed; no
-  successful execution for the current working tree is **VERIFIED**. The latest
-  observed run failed before any job ran, and `gh` is unavailable locally.
+- CI workflows execute on GitHub. `tests.yml` run #11 is **VERIFIED** successful
+  after three CI-specific dependency/environment fixes; required merge-check
+  enforcement remains to be configured, and `gh` is unavailable locally.
 - `npm audit` found outstanding advisories; `pip-audit` was not run because it
   is not installed.
 - `docs/SRD.md`, `docs/architecture.md`, `docs/API.md` and `docs/ERD.md` remain
@@ -845,6 +853,6 @@ The platform should not be accepted until at least:
 | JWT lifecycle decision (draft, OPEN) | `docs/decision-record-jwt-lifecycle.md` |
 | Course ownership decision (draft, OPEN) | `docs/decision-record-course-ownership.md` |
 | Authentication direction decision (draft, OPEN) | `docs/decision-record-authentication-direction.md` |
-| CI workflows (authored; historical GitHub Actions runs failed) | `.github/workflows/tests.yml`, `.github/workflows/deploy.yml` |
-| GitHub Actions run evidence (16 runs; latest failed) | `https://api.github.com/repos/jecintamuhia/ai-course-engine/actions/runs?per_page=5` |
-| GitHub Actions latest failed run and jobs evidence | `https://api.github.com/repos/jecintamuhia/ai-course-engine/actions/runs/37669010382`, `.../jobs` |
+| CI workflows (execution verified; deploy remains manual) | `.github/workflows/tests.yml`, `.github/workflows/deploy.yml` |
+| GitHub Actions successful run #11 | `https://api.github.com/repos/jecintamuhia/ai-course-engine/actions/runs/44271152336`, `.../jobs` |
+| GitHub Actions failed diagnosis runs #9 and #10 | `https://api.github.com/repos/jecintamuhia/ai-course-engine/actions/runs/44269524521`, `https://api.github.com/repos/jecintamuhia/ai-course-engine/actions/runs/44269907260` |
